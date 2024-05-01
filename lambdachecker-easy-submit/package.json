@@ -16,36 +16,61 @@
       {
         "command": "lambdachecker-easy-submit.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "lambdachecker.submit",
+        "title": "Submit Solution"
+      },
+      {
+        "command": "lambdachecker.login",
+        "title": "Login"
       }
     ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "lambdachecker.login",
+          "when": "false"
+        }
+      ]
+    },
     "viewsContainers": {
         "activitybar": [
             {
-                "id": "lambda-checker",
+                "id": "lambdachecker",
                 "title": "Lambda Checker",
                 "icon": "resources/lambda-checker-logo.svg"
             }
         ]
     },
     "views": {
-      "lambda-checker": [
-          {
-              "id": "lambda-checker-problems",
-              "name": "Problems"
-          },
-          {
-              "id": "lambda-checker-outline",
-              "name": "Outline"
-          }
+      "lambdachecker": [
+        {
+            "id": "lambdachecker.problems",
+            "name": "Problems"
+        },
+        {
+            "id": "lambdachecker.outline",
+            "name": "Outline"
+        }
       ]
-    }
+    },
+    "viewsWelcome": [
+      {
+        "view": "lambdachecker.problems",
+        "contents": "[Sign in to LambdaChecker](command:lambdachecker.login)",
+        "when": "view == lambda-checker-problems"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
+    "build": "tsc",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
+    "format": "prettier --ignore-path .gitignore --write '**/*.+(js|ts|json)'",
     "test": "vscode-test"
   },
   "devDependencies": {
