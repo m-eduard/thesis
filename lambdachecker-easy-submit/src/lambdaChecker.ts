@@ -4,17 +4,22 @@ import { Storage } from "./storage";
 
 
 export class LambdaChecker {
-  static readonly client = new HTTPClient();
+  static client: HTTPClient;
   static userDataCache = new Storage();
 
   static async getLoginStatus(): Promise<string | undefined> {
     const loggedIn = this.userDataCache.get("token", true) !== undefined;
 
     if (loggedIn) {
+      if (this.client === undefined) {
+        this.client = new HTTPClient(this.userDataCache.get("token") as string);
+      }
+
       const user = this.userDataCache.get("user", true) as unknown as Record<string, unknown>;
       return user["username"] as string;
     }
 
+    this.client = new HTTPClient();
     return undefined;
   }
 
@@ -59,6 +64,28 @@ export class LambdaChecker {
       // save the data retrieved from api regarding the current user
       // the user data, token and enrolled contests
     }
+  }
+
+  static async contestsUi() {
+    const response = await LambdaChecker.client.getActiveContests();
+
+    if (response["message"]) {
+      vscode.window.showErrorMessage(response["message"] as string);
+    } else {
+
+
+      //contestsData["contests"] as unknown[]
+
+
+      
+      // vscode.window.showInformationMessage(
+      //  "Successfully logged into you LambdaChecker account!"
+      // );
+
+      // this.userDataCache.put("user", response["user"] as string);
+      // this.userDataCache.put("token", response["token"] as string);
+    }
+
   }
 
   // add problem to cache

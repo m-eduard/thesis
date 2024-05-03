@@ -1,3 +1,4 @@
+import Contest from "./types/contest";
 import User from "./types/user";
 
 /**
@@ -6,23 +7,27 @@ import User from "./types/user";
 export class HTTPClient {
   constructor(private token?: string) {}
 
-  async request(route: Route, body: string): Promise<Response> {
-    let headers: {[key: string]: string} = {
+  async request(route: Route, body?: string): Promise<Response> {
+    let headers: { [key: string]: string } = {
       "Content-Type": "application/json",
     };
 
     if (this.token !== undefined) {
-        headers["Authorization"] = "Bearer " + this.token;
+      headers["Authorization"] = "Bearer " + this.token;
+      console.log("Token: " + this.token);
     }
 
     return fetch(route.url, {
-        method: route.method,
-        headers: headers,
-        body: body,
+      method: route.method,
+      headers: headers,
+      body: body,
     });
   }
 
-  async login(email: string, password: string) : Promise<Record<string, unknown>> {
+  async login(
+    email: string,
+    password: string
+  ): Promise<Record<string, unknown>> {
     const response = await this.request(
       new Route("POST", "/users/login"),
       JSON.stringify({
@@ -32,8 +37,8 @@ export class HTTPClient {
     );
 
     const responseData: Record<string, unknown> =
-        await response.json() as Record<string, unknown>;
-    
+      (await response.json()) as Record<string, unknown>;
+
     if (responseData["token"] !== undefined) {
       this.token = responseData["token"] as string;
     }
@@ -41,17 +46,29 @@ export class HTTPClient {
     return responseData;
   }
 
-  async getActiveContests() {
+  async getActiveContests(): Promise<Contest[]> {
+    const response = await this.request(
+      new Route("GET", "/contests/index_active")
+    );
 
+    const contestsData: Record<string, unknown> =
+      (await response.json()) as Record<string, unknown>;
+
+    return contestsData["contests"] as Contest[];
   }
 
-  async getPastContests() {
-    
+  async getPastContests(): Promise<Contest[]> {
+    const response = await this.request(
+      new Route("GET", "/contests/index_past")
+    );
+
+    const contestsData: Record<string, unknown> =
+      (await response.json()) as Record<string, unknown>;
+
+    return contestsData["contests"] as Contest[];
   }
 
-  async getProblems() {
-
-  }
+  async getProblems() {}
 
   // async submitSolution(problemId: string, solution: string) {
   // }

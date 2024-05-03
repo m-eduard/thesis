@@ -46,20 +46,27 @@
     "views": {
       "lambdachecker": [
         {
-            "id": "lambdachecker.problems",
-            "name": "Problems"
+          "id": "lambdachecker.contests",
+          "name": "Contests",
+          "visibility": "visible"
         },
         {
-            "id": "lambdachecker.outline",
-            "name": "Outline"
+            "id": "lambdachecker.problems",
+            "name": "Problems",
+            "visibility": "collapsed"
+        },
+        {
+            "id": "lambdachecker.profile",
+            "name": "Profile",
+            "visibility": "collapsed"
         }
       ]
     },
     "viewsWelcome": [
       {
-        "view": "lambdachecker.problems",
+        "view": "lambdachecker.contests",
         "contents": "[Sign in to LambdaChecker](command:lambdachecker.login)",
-        "when": "view == lambda-checker-problems"
+        "when": "view == lambdachecker.contests"
       }
     ]
   },

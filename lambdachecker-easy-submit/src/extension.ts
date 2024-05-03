@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { LambdaChecker } from './lambdaChecker';
 import { Storage } from './storage';
 import StatusBar from './ui/statusBar';
+import ContestDataProvider from './ui/fileSystem/contestDataProvider';
 
 interface ProblemProps {
 	title: string;
@@ -43,6 +44,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('lambdachecker.login', () => {
 			LambdaChecker.loginUi();
+			LambdaChecker.contestsUi();
 		})
 	);
 
@@ -56,6 +58,12 @@ export async function activate(context: vscode.ExtensionContext) {
 		vscode.window.registerTreeDataProvider('lambdachecker.problems', new TreeDataProvider());
 
 		StatusBar.updateStatus(loggedInUsername);
+
+		vscode.window.createTreeView('lambdachecker.contests', {
+			treeDataProvider: new ContestDataProvider(LambdaChecker.client)
+		});
+
+		// vscode.window.registerTreeDataProvider('lambdachecker.contests', new ContestDataProvider());
 	}
 }
 
