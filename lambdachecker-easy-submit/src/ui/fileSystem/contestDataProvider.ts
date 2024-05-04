@@ -47,12 +47,6 @@ export default class ContestDataProvider
         // todo: improve so you don't make 2 calls for the contests
         // use element.label for filtering
         return this.getContestsBySubject(element.label as Subject);
-
-        return [
-          new ContestItem("Problem 1", "problem"),
-          new ContestItem("Problem 2", "problem"),
-          new ContestItem("Problem 3", "problem"),
-        ];
       case "problem":
         return [];
       default:

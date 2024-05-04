@@ -1,16 +1,19 @@
+import { Difficulty, Language } from "../../constants";
+
 export default interface Problem {
   id: number;
   name: string;
-  user: Record<string, unknown>;
   visible: boolean;
-  difficulty: string;
+  difficulty: Difficulty;
   categories: string;
-  language: string;
-  description: string;
-  skeleton: ProblemSkeleton;
-  example: ProblemTest;
-  tests: ProblemTest[];
-  is_owner: boolean;
+  language: Language;
+
+  user?: Record<string, unknown>;
+  description?: string;
+  skeleton?: ProblemSkeleton;
+  example?: ProblemTest;
+  tests?: ProblemTest[];
+  is_owner?: boolean;
 
   created_at?: string;
   example_id?: number;

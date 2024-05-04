@@ -64,12 +64,12 @@ export async function activate(context: vscode.ExtensionContext) {
 
   if (loggedInUsername !== undefined) {
     vscode.window.showInformationMessage("Already logged in!");
-    vscode.window.registerTreeDataProvider(
-      "lambdachecker.problems",
-      new TreeDataProvider()
-    );
-
     StatusBar.updateStatus(loggedInUsername);
+
+    // vscode.window.registerTreeDataProvider(
+    //   "lambdachecker.problems",
+    //   new TreeDataProvider()
+    // );
 
     const contestsTreeView = vscode.window.createTreeView(
       "lambdachecker.contests",
@@ -84,8 +84,6 @@ export async function activate(context: vscode.ExtensionContext) {
         treeDataProvider: new ProblemDataProvider(LambdaChecker.client),
       }
     );
-
-    // vscode.window.registerTreeDataProvider('lambdachecker.contests', new ContestDataProvider());
   }
 }
 

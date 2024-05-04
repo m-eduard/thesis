@@ -1,4 +1,5 @@
 import Contest from "./types/contest";
+import Problem from "./types/problem";
 import User from "./types/user";
 
 /**
@@ -68,7 +69,16 @@ export class HTTPClient {
     return contestsData["contests"] as Contest[];
   }
 
-  async getProblems() {}
+  async getProblems(): Promise<Problem[]> {
+    const response = await this.request(
+      new Route("GET", "/problems/index_privileged")
+    );
+
+    const problemsData: Record<string, unknown> =
+      (await response.json()) as Record<string, unknown>;
+
+    return problemsData["problems"] as Problem[];
+  }
 
   // async submitSolution(problemId: string, solution: string) {
   // }
