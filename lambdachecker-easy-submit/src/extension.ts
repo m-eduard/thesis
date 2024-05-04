@@ -16,8 +16,6 @@ interface ProblemProps {
 export async function activate(context: vscode.ExtensionContext) {
   Storage.setContext(context);
 
-  // Use the console to output diagnostic information (console.log) and errors (console.error)
-  // This line of code will only be executed once when your extension is activated
   console.log(
     'Congratulations, your extension "lambdachecker-easy-submit" is now active!'
   );
@@ -66,11 +64,6 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.window.showInformationMessage("Already logged in!");
     StatusBar.updateStatus(loggedInUsername);
 
-    // vscode.window.registerTreeDataProvider(
-    //   "lambdachecker.problems",
-    //   new TreeDataProvider()
-    // );
-
     const contestsTreeView = vscode.window.createTreeView(
       "lambdachecker.contests",
       {
@@ -87,55 +80,4 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 }
 
-class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
-  onDidChangeTreeData?: vscode.Event<TreeItem | null | undefined> | undefined;
-
-  data: TreeItem[];
-
-  constructor() {
-    this.data = [
-      new TreeItem("cars", [
-        new TreeItem("Ford", [
-          new TreeItem("Fiesta"),
-          new TreeItem("Focus"),
-          new TreeItem("Mustang"),
-        ]),
-        new TreeItem("BMW", [
-          new TreeItem("320"),
-          new TreeItem("X3"),
-          new TreeItem("X5"),
-        ]),
-      ]),
-    ];
-  }
-
-  getTreeItem(element: TreeItem): vscode.TreeItem | Thenable<vscode.TreeItem> {
-    return element;
-  }
-
-  getChildren(
-    element?: TreeItem | undefined
-  ): vscode.ProviderResult<TreeItem[]> {
-    if (element === undefined) {
-      return this.data;
-    }
-    return element.children;
-  }
-}
-
-class TreeItem extends vscode.TreeItem {
-  children: TreeItem[] | undefined;
-
-  constructor(label: string, children?: TreeItem[]) {
-    super(
-      label,
-      children === undefined
-        ? vscode.TreeItemCollapsibleState.None
-        : vscode.TreeItemCollapsibleState.Expanded
-    );
-    this.children = children;
-  }
-}
-
-// This method is called when your extension is deactivated
 export function deactivate() {}
