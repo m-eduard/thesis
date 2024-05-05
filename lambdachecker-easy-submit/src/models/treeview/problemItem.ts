@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Difficulty, Language } from "../../constants";
+import { Difficulty, Language } from "../api";
 
 export interface ProblemItemProps {
   type: string;
@@ -8,7 +8,7 @@ export interface ProblemItemProps {
   children?: ProblemItem[];
 }
 
-export default class ProblemItem extends vscode.TreeItem {
+export class ProblemItem extends vscode.TreeItem {
   props: ProblemItemProps;
 
   constructor(label: string, props: ProblemItemProps) {

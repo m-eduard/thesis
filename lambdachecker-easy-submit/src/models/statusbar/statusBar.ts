@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-export default class StatusBar {
+export class StatusBar {
   static readonly statusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left
   );

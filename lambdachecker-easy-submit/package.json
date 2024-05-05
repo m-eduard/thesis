@@ -23,50 +23,52 @@
       },
       {
         "command": "lambdachecker.login",
-        "title": "Login"
+        "title": "LambdaChecker: Login"
       }
     ],
     "menus": {
       "commandPalette": [
         {
           "command": "lambdachecker.login",
-          "when": "false"
+          "when": "true"
         }
       ]
     },
     "viewsContainers": {
-        "activitybar": [
-            {
-                "id": "lambdachecker",
-                "title": "Lambda Checker",
-                "icon": "resources/lambda-checker-logo.svg"
-            }
-        ]
+      "activitybar": [
+        {
+          "id": "lambdachecker",
+          "title": "Lambda Checker",
+          "icon": "resources/lambda-checker-logo.svg"
+        }
+      ]
     },
     "views": {
       "lambdachecker": [
         {
           "id": "lambdachecker.contests",
           "name": "Contests",
-          "visibility": "visible"
+          "visibility": "visible",
+          "contextualTitle": "Lambda Checker Contests"
         },
         {
-            "id": "lambdachecker.problems",
-            "name": "Problems",
-            "visibility": "collapsed"
+          "id": "lambdachecker.problems",
+          "name": "Problems",
+          "contextualTitle": "Lambda Checker Problems",
+          "visibility": "collapsed"
         },
         {
-            "id": "lambdachecker.profile",
-            "name": "Profile",
-            "visibility": "collapsed"
+          "id": "lambdachecker.profile",
+          "name": "Profile",
+          "contextualTitle": "Lambda Checker Profile",
+          "visibility": "collapsed"
         }
       ]
     },
     "viewsWelcome": [
       {
         "view": "lambdachecker.contests",
-        "contents": "[Sign in to LambdaChecker](command:lambdachecker.login)",
-        "when": "view == lambdachecker.contests"
+        "contents": "[Sign in to LambdaChecker](command:lambdachecker.login)"
       }
     ]
   },

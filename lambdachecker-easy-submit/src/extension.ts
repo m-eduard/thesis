@@ -1,11 +1,9 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
-import { LambdaChecker } from "./lambdaChecker";
-import { Storage } from "./storage";
-import StatusBar from "./ui/statusBar";
-import ContestDataProvider from "./ui/fileSystem/contestDataProvider";
-import ProblemDataProvider from "./ui/fileSystem/problemDataProvider";
+import { LambdaChecker } from "./commands";
+import { StatusBar, Storage } from "./models";
+import { ContestDataProvider, ProblemDataProvider } from "./treeview";
 
 interface ProblemProps {
   title: string;
@@ -14,69 +12,58 @@ interface ProblemProps {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  Storage.setContext(context);
+  try {
+    Storage.setContext(context);
 
-  console.log(
-    'Congratulations, your extension "lambdachecker-easy-submit" is now active!'
-  );
+    let disposable = vscode.commands.registerCommand(
+      "lambdachecker-easy-submit.helloWorld",
+      () => {
+        vscode.window.showInformationMessage("Hello World from LambdaChecker!");
 
-  let disposable = vscode.commands.registerCommand(
-    "lambdachecker-easy-submit.helloWorld",
-    () => {
-      vscode.window.showInformationMessage("Hello World from LambdaChecker!");
-
-      vscode.window.registerFileDecorationProvider({
-        provideFileDecoration: (uri: vscode.Uri) => {
-          const isFile = uri.scheme === "file";
-          return {
-            badge: isFile ? "📁" : undefined,
-            tooltip: isFile ? "File" : undefined,
-          };
-        },
-      });
-    }
-  );
-
-  context.subscriptions.push(disposable);
-
-  let submitCmd = vscode.commands.registerCommand(
-    "lambdachecker.submit",
-    () => {
-      vscode.window.showInformationMessage("Submitting the problem!");
-    }
-  );
-
-  context.subscriptions.push(submitCmd);
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand("lambdachecker.login", () => {
-      LambdaChecker.loginUi();
-      LambdaChecker.contestsUi();
-    })
-  );
-
-  context.subscriptions.push(StatusBar.statusBarItem);
-  StatusBar.updateStatus();
-
-  const loggedInUsername = await LambdaChecker.getLoginStatus();
-
-  if (loggedInUsername !== undefined) {
-    vscode.window.showInformationMessage("Already logged in!");
-    StatusBar.updateStatus(loggedInUsername);
-
-    const contestsTreeView = vscode.window.createTreeView(
-      "lambdachecker.contests",
-      {
-        treeDataProvider: new ContestDataProvider(LambdaChecker.client),
+        vscode.window.registerFileDecorationProvider({
+          provideFileDecoration: (uri: vscode.Uri) => {
+            const isFile = uri.scheme === "file";
+            return {
+              badge: isFile ? "📁" : undefined,
+              tooltip: isFile ? "File" : undefined,
+            };
+          },
+        });
       }
     );
+    context.subscriptions.push(disposable);
 
-    const problemsTreeView = vscode.window.createTreeView(
-      "lambdachecker.problems",
-      {
-        treeDataProvider: new ProblemDataProvider(LambdaChecker.client),
-      }
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        "lambdachecker.login",
+        LambdaChecker.login
+      )
     );
+
+    context.subscriptions.push(StatusBar.statusBarItem);
+
+    const loggedInUsername = await LambdaChecker.getLoginStatus();
+    if (loggedInUsername !== undefined) {
+      StatusBar.updateStatus(loggedInUsername);
+
+      const contestsTreeView = vscode.window.createTreeView(
+        "lambdachecker.contests",
+        {
+          treeDataProvider: new ContestDataProvider(LambdaChecker.client),
+        }
+      );
+
+      const problemsTreeView = vscode.window.createTreeView(
+        "lambdachecker.problems",
+        {
+          treeDataProvider: new ProblemDataProvider(LambdaChecker.client),
+        }
+      );
+    } else {
+      StatusBar.updateStatus();
+    }
+  } catch (error) {
+    console.error(error);
   }
 }
 

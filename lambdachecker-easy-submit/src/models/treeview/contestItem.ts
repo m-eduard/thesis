@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-export default class ContestItem extends vscode.TreeItem {
+export class ContestItem extends vscode.TreeItem {
   children: ContestItem[] | undefined;
   type: string;
 

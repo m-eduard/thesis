@@ -1,6 +1,5 @@
-import Contest from "./types/contest";
-import Problem from "./types/problem";
-import User from "./types/user";
+import * as vscode from "vscode";
+import { Contest, Problem } from "../models";
 
 /**
  * An HTTP client sending HTTP requests to the LambdaChecker API.
@@ -15,7 +14,6 @@ export class HTTPClient {
 
     if (this.token !== undefined) {
       headers["Authorization"] = "Bearer " + this.token;
-      console.log("Token: " + this.token);
     }
 
     return fetch(route.url, {
@@ -42,9 +40,10 @@ export class HTTPClient {
 
     if (responseData["token"] !== undefined) {
       this.token = responseData["token"] as string;
+      return responseData;
     }
 
-    return responseData;
+    throw new Error(responseData["message"] as string);
   }
 
   async getActiveContests(): Promise<Contest[]> {
@@ -55,7 +54,11 @@ export class HTTPClient {
     const contestsData: Record<string, unknown> =
       (await response.json()) as Record<string, unknown>;
 
-    return contestsData["contests"] as Contest[];
+    if (contestsData["contests"] !== undefined) {
+      return contestsData["contests"] as Contest[];
+    }
+
+    throw new Error(contestsData["message"] as string);
   }
 
   async getPastContests(): Promise<Contest[]> {
@@ -77,11 +80,37 @@ export class HTTPClient {
     const problemsData: Record<string, unknown> =
       (await response.json()) as Record<string, unknown>;
 
-    return problemsData["problems"] as Problem[];
+    if (problemsData["problems"] !== undefined) {
+      return problemsData["problems"] as Problem[];
+    }
+
+    throw new Error(problemsData["message"] as string);
   }
 
   // async submitSolution(problemId: string, solution: string) {
   // }
+
+  async getUserRank(): Promise<Record<string, unknown>> {
+    const response = await this.request(new Route("GET", "/get_user_rank"));
+
+    const userRankData: Record<string, unknown> =
+      (await response.json()) as Record<string, unknown>;
+
+    if (userRankData["user_rank"] !== undefined) {
+      return userRankData;
+    }
+
+    throw new Error(userRankData["message"] as string);
+  }
+
+  async checkTokenValidity(): Promise<boolean> {
+    try {
+      await this.getUserRank();
+      return true;
+    } catch (error: any) {
+      return false;
+    }
+  }
 }
 
 class Route {

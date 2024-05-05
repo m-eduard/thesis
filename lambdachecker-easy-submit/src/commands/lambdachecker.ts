@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
-import { HTTPClient } from "./lambdachecker/http";
-import { Storage } from "./storage";
-
+import { HTTPClient } from "../api";
+import { Storage } from "../models";
 
 export class LambdaChecker {
   static client: HTTPClient;
@@ -15,7 +14,10 @@ export class LambdaChecker {
         this.client = new HTTPClient(this.userDataCache.get("token") as string);
       }
 
-      const user = this.userDataCache.get("user", true) as unknown as Record<string, unknown>;
+      const user = this.userDataCache.get("user", true) as unknown as Record<
+        string,
+        unknown
+      >;
       return user["username"] as string;
     }
 
@@ -25,11 +27,7 @@ export class LambdaChecker {
 
   // Test creds
   // "test1@gmail.com", "TestTestTest!"
-  static async loginUi() {
-    if (await this.getLoginStatus() !== undefined) {
-      return;
-    }
-
+  static async login() {
     const email = await vscode.window.showInputBox({
       ignoreFocusOut: true,
       prompt: "Enter your email",
@@ -38,7 +36,6 @@ export class LambdaChecker {
       value: "@acs.upb.ro",
       valueSelection: [0, 0],
     });
-    vscode.window.showInformationMessage(`Got: ${email}`);
 
     const password = await vscode.window.showInputBox({
       ignoreFocusOut: true,
@@ -47,12 +44,12 @@ export class LambdaChecker {
       password: true,
     });
 
-    const response = await LambdaChecker.client.login(email as string, password as string);
-    console.log(response);
+    try {
+      const response = await LambdaChecker.client.login(
+        email as string,
+        password as string
+      );
 
-    if (response["status"] === "Failed") {
-      vscode.window.showErrorMessage(response["message"] as string);
-    } else {
       vscode.window.showInformationMessage(
         "Successfully logged into you LambdaChecker account!"
       );
@@ -60,32 +57,13 @@ export class LambdaChecker {
       this.userDataCache.put("user", response["user"] as string);
       this.userDataCache.put("token", response["token"] as string);
 
-
       // save the data retrieved from api regarding the current user
       // the user data, token and enrolled contests
+    } catch (error: any) {
+      vscode.window.showErrorMessage(error.message, "Try again").then(() => {
+        vscode.commands.executeCommand("lambdachecker.login");
+      });
     }
-  }
-
-  static async contestsUi() {
-    const response = await LambdaChecker.client.getActiveContests();
-
-    if (response["message"]) {
-      vscode.window.showErrorMessage(response["message"] as string);
-    } else {
-
-
-      //contestsData["contests"] as unknown[]
-
-
-      
-      // vscode.window.showInformationMessage(
-      //  "Successfully logged into you LambdaChecker account!"
-      // );
-
-      // this.userDataCache.put("user", response["user"] as string);
-      // this.userDataCache.put("token", response["token"] as string);
-    }
-
   }
 
   // add problem to cache

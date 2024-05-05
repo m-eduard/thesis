@@ -1,9 +1,8 @@
 import * as vscode from "vscode";
-import ContestItem from "./contestItem";
-import { Subject } from "../../constants";
-import { HTTPClient } from "../../lambdachecker/http";
+import { HTTPClient } from "../api";
+import { Contest, ContestItem, ContestSubject } from "../models";
 
-export default class ContestDataProvider
+export class ContestDataProvider
   implements vscode.TreeDataProvider<ContestItem>
 {
   onDidChangeTreeData?:
@@ -15,20 +14,31 @@ export default class ContestDataProvider
 
   constructor(client: HTTPClient) {
     this.lambdacheckerClient = client;
-    this.root = Object.values(Subject).map(
+    this.root = Object.values(ContestSubject).map(
       (label) => new ContestItem(label, "subject")
     );
-
-    console.log(this.root);
   }
 
-  async getContestsBySubject(subject: Subject): Promise<ContestItem[]> {
-    const contests = await this.lambdacheckerClient.getActiveContests();
-    contests.push(...(await this.lambdacheckerClient.getPastContests()));
+  async getContestsBySubject(subject: ContestSubject): Promise<ContestItem[]> {
+    let contests: Contest[] = [];
 
-    contests.forEach((contest) => {
-      console.log(contest.subject_abbreviation);
-    });
+    try {
+      contests = await this.lambdacheckerClient.getActiveContests();
+      contests.push(...(await this.lambdacheckerClient.getPastContests()));
+    } catch (error: any) {
+      vscode.window
+        .showErrorMessage(
+          "Error fetching contests. Would you like to log in again?",
+          error.message,
+          "No"
+        )
+        .then((selection) => {
+          if (selection !== "No") {
+            vscode.commands.executeCommand("lambdachecker.login");
+          }
+        });
+      return [];
+    }
 
     const contestsTreeItems = contests
       .filter((contest) => contest.subject_abbreviation === subject)
@@ -46,7 +56,7 @@ export default class ContestDataProvider
       case "subject":
         // todo: improve so you don't make 2 calls for the contests
         // use element.label for filtering
-        return this.getContestsBySubject(element.label as Subject);
+        return this.getContestsBySubject(element.label as ContestSubject);
       case "problem":
         return [];
       default:

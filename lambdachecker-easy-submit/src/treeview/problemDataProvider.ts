@@ -1,12 +1,11 @@
 import path from "path";
 import * as vscode from "vscode";
-import { Difficulty, Language, Subject } from "../../constants";
-import { defaultFolderIcon, fileIconMapping } from "../../icons";
-import { HTTPClient } from "../../lambdachecker/http";
-import ContestItem from "./contestItem";
-import ProblemItem from "./problemItem";
 
-export default class ProblemDataProvider
+import { HTTPClient } from "../api";
+import { defaultFolderIcon, fileIconMapping } from "../icons";
+import { Difficulty, Language, Problem, ProblemItem } from "../models";
+
+export class ProblemDataProvider
   implements vscode.TreeDataProvider<ProblemItem>
 {
   root: ProblemItem[];
@@ -30,15 +29,30 @@ export default class ProblemDataProvider
         children: childrenItems,
       });
     });
-
-    console.log(this.root);
   }
 
   async getProblemsByDifficultyAndLanguage(
     difficulty: Difficulty,
     language: Language
   ): Promise<ProblemItem[]> {
-    const problems = await this.lambdacheckerClient.getProblems();
+    let problems: Problem[] = [];
+
+    try {
+      problems = await this.lambdacheckerClient.getProblems();
+    } catch (error: any) {
+      vscode.window
+        .showErrorMessage(
+          "Error fetching problems. Would you like to log in again?",
+          error.message,
+          "No"
+        )
+        .then((selection) => {
+          if (selection !== "No") {
+            vscode.commands.executeCommand("lambdachecker.login");
+          }
+        });
+      return [];
+    }
 
     const contestsTreeItems = problems
       .filter(

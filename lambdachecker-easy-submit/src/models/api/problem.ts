@@ -1,6 +1,15 @@
-import { Difficulty, Language } from "../../constants";
+export enum Difficulty {
+  Easy = "Easy",
+  Medium = "Medium",
+  Hard = "Hard",
+}
 
-export default interface Problem {
+export enum Language {
+  C = "C",
+  Java = "Java",
+}
+
+export interface Problem {
   id: number;
   name: string;
   visible: boolean;
