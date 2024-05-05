@@ -1,7 +1,9 @@
+import path from "path";
 import * as vscode from "vscode";
-import ContestItem from "./contestItem";
 import { Difficulty, Language, Subject } from "../../constants";
+import { defaultFolderIcon, fileIconMapping } from "../../icons";
 import { HTTPClient } from "../../lambdachecker/http";
+import ContestItem from "./contestItem";
 import ProblemItem from "./problemItem";
 
 export default class ProblemDataProvider
@@ -45,7 +47,7 @@ export default class ProblemDataProvider
       )
       .map(
         (problem) =>
-          new ProblemItem(problem.name as string, {
+          new ProblemItem(`${problem.id}. ${problem.name}` as string, {
             type: "problem",
             difficulty: problem.difficulty,
             language: problem.language,
@@ -78,6 +80,18 @@ export default class ProblemDataProvider
   getTreeItem(
     element: ProblemItem
   ): vscode.TreeItem | Thenable<vscode.TreeItem> {
+    if (element.props.type === "problem") {
+      element.iconPath = {
+        light: fileIconMapping[element.props.language as Language].path,
+        dark: fileIconMapping[element.props.language as Language].path,
+      };
+    } else {
+      element.iconPath = {
+        light: defaultFolderIcon.path,
+        dark: defaultFolderIcon.path,
+      };
+    }
+
     return element;
   }
 }
