@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { HTTPClient } from "../api";
-import { Storage, getProblemWebviewContent } from "../models";
+import { StatusBar, Storage, getProblemWebviewContent } from "../models";
 import { ProblemItem } from "../treeview";
 import { ProblemEditor } from "../webview";
 import { ProblemWebview } from "../webview/problemWebview";
@@ -10,33 +10,36 @@ export class LambdaChecker {
   static userDataCache = new Storage();
 
   static async getLoginStatus(): Promise<string | undefined> {
-    const loggedIn = this.userDataCache.get("token", true) !== undefined;
+    const loggedIn =
+      LambdaChecker.userDataCache.get("token", true) !== undefined;
 
     if (loggedIn) {
-      if (this.client === undefined) {
-        this.client = new HTTPClient(this.userDataCache.get("token") as string);
+      if (LambdaChecker.client === undefined) {
+        LambdaChecker.client = new HTTPClient(
+          LambdaChecker.userDataCache.get("token") as string
+        );
       }
 
-      const user = this.userDataCache.get("user", true) as unknown as Record<
-        string,
-        unknown
-      >;
+      const user = LambdaChecker.userDataCache.get(
+        "user",
+        true
+      ) as unknown as Record<string, unknown>;
       return user["username"] as string;
     }
 
-    this.client = new HTTPClient();
+    LambdaChecker.client = new HTTPClient();
     return undefined;
   }
 
-  // Test creds
-  // "test1@gmail.com", "TestTestTest!"
   static async login() {
+    const status = await LambdaChecker.getLoginStatus();
+
     const email = await vscode.window.showInputBox({
       ignoreFocusOut: true,
       prompt: "Enter your email",
       title: "LambdaChecker Login",
 
-      value: "@acs.upb.ro",
+      value: "@stud.acs.upb.ro",
       valueSelection: [0, 0],
     });
 
@@ -57,26 +60,22 @@ export class LambdaChecker {
         "Successfully logged into you LambdaChecker account!"
       );
 
-      this.userDataCache.put("user", response["user"] as string);
-      this.userDataCache.put("token", response["token"] as string);
+      LambdaChecker.userDataCache.put("user", response["user"] as string);
+      LambdaChecker.userDataCache.put("token", response["token"] as string);
+      StatusBar.updateStatus(await LambdaChecker.getLoginStatus());
 
       // save the data retrieved from api regarding the current user
       // the user data, token and enrolled contests
     } catch (error: any) {
-      vscode.window.showErrorMessage(error.message, "Try again").then(() => {
-        vscode.commands.executeCommand("lambdachecker.login");
-      });
+      vscode.window
+        .showErrorMessage(error.message, "Try again")
+        .then((selection) => {
+          if (selection === "Try again") {
+            vscode.commands.executeCommand("lambdachecker.login");
+          }
+        });
     }
   }
-
-  // add problem to cache
-
-  // flush problem cache
-
-  // add user <email, token> in persistent storage
-
-  // storte user data and contests where he is enrolled
-  // (which are received when logging into Lambda CHECKER)
 
   // create a thread which manages the token in order to refresh it
   // (I suspect that we don't have a refresh token on the backend)

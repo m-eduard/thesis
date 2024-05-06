@@ -20,24 +20,6 @@ export async function activate(context: vscode.ExtensionContext) {
   try {
     Storage.setContext(context);
 
-    let disposable = vscode.commands.registerCommand(
-      "lambdachecker.helloWorld",
-      () => {
-        vscode.window.showInformationMessage("Hello World from LambdaChecker!");
-
-        vscode.window.registerFileDecorationProvider({
-          provideFileDecoration: (uri: vscode.Uri) => {
-            const isFile = uri.scheme === "file";
-            return {
-              badge: isFile ? "📁" : undefined,
-              tooltip: isFile ? "File" : undefined,
-            };
-          },
-        });
-      }
-    );
-    context.subscriptions.push(disposable);
-
     context.subscriptions.push(
       vscode.commands.registerCommand(
         "lambdachecker.login",

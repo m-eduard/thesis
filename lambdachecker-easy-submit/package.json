@@ -30,7 +30,7 @@
       },
       {
         "command": "lambdachecker.show-problem",
-        "title": "View Problem",
+        "title": "Show Problem",
         "category": "Lambda Checker"
       }
     ],

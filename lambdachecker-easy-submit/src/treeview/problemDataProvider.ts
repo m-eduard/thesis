@@ -102,7 +102,7 @@ export class ProblemDataProvider
 
       element.command = {
         command: "lambdachecker.show-problem",
-        title: "View Problem",
+        title: "Show Problem",
         arguments: [element],
       };
     } else {
