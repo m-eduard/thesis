@@ -92,11 +92,9 @@ export class LambdaChecker {
       return;
     }
 
-    // vscode.TabInputWebview
-
     const problemPanel = vscode.window.createWebviewPanel(
       "lambdachecker.webview",
-      problem.name,
+      `${problem.id}. ${problem.name}`,
       {
         viewColumn: vscode.ViewColumn.One,
         preserveFocus: false,
@@ -107,9 +105,9 @@ export class LambdaChecker {
       }
     );
 
-    problemPanel.iconPath = vscode.Uri.file(problemItem.iconPath as string);
+    // problemPanel.iconPath = vscode.Uri.file(problemItem.iconPath as string);
 
-    ProblemEditor.open();
+    // ProblemEditor.open();
     problemPanel.webview.html = getProblemWebviewContent(problem);
   }
 }

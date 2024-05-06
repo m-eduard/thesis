@@ -4,11 +4,11 @@ export class ProblemEditor {
   static cnt = 0;
 
   static async open() {
-    console.log(
-      vscode.workspace
-        .getConfiguration("lambdachecker")
-        .get<string>("workspaceFolder", "")
-    );
+    // console.log(
+    //   vscode.workspace
+    //     .getConfiguration("lambdachecker")
+    //     .get<string>("workspaceFolder", "")
+    // );
 
     // // dafault folder
     // os.homedir;

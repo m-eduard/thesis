@@ -105,6 +105,8 @@ export const getProblemWebviewContent = (problemData: Required<Problem>) => {
       let openCodeEditorsCount = 0;
       const vscode = acquireVsCodeApi();
 
+      vscode.setState(${JSON.stringify(problemData)});
+
       function solve() {
         vscode.postMessage({
           event: "solve",

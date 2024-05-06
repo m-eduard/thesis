@@ -8,6 +8,7 @@ import {
   ProblemDataProvider,
   ProblemItem,
 } from "./treeview";
+import { ProblemWebviewSerializer } from "./webview";
 
 interface ProblemProps {
   title: string;
@@ -48,6 +49,11 @@ export async function activate(context: vscode.ExtensionContext) {
       )
     );
     context.subscriptions.push(StatusBar.statusBarItem);
+
+    vscode.window.registerWebviewPanelSerializer(
+      "lambdachecker.webview",
+      new ProblemWebviewSerializer()
+    );
 
     const loggedInUsername = await LambdaChecker.getLoginStatus();
     if (loggedInUsername !== undefined) {
