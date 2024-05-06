@@ -24,6 +24,11 @@
       {
         "command": "lambdachecker.login",
         "title": "LambdaChecker: Login"
+      },
+      {
+        "command": "lambdachecker.view-problem",
+        "title": "View Problem",
+        "category": "LambdaChecker"
       }
     ],
     "menus": {

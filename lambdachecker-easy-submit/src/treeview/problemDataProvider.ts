@@ -3,7 +3,8 @@ import * as vscode from "vscode";
 
 import { HTTPClient } from "../api";
 import { defaultFolderIcon, fileIconMapping } from "../icons";
-import { Difficulty, Language, Problem, ProblemItem } from "../models";
+import { Difficulty, Language, Problem } from "../models";
+import { ProblemItem } from "./problemItem";
 
 export class ProblemDataProvider
   implements vscode.TreeDataProvider<ProblemItem>
@@ -65,6 +66,7 @@ export class ProblemDataProvider
             type: "problem",
             difficulty: problem.difficulty,
             language: problem.language,
+            problemMetadata: problem,
           })
       );
 
@@ -95,9 +97,13 @@ export class ProblemDataProvider
     element: ProblemItem
   ): vscode.TreeItem | Thenable<vscode.TreeItem> {
     if (element.props.type === "problem") {
-      element.iconPath = {
-        light: fileIconMapping[element.props.language as Language].path,
-        dark: fileIconMapping[element.props.language as Language].path,
+      element.iconPath =
+        fileIconMapping[element.props.language as Language].path;
+
+      element.command = {
+        command: "lambdachecker.view-problem",
+        title: "View Problem",
+        arguments: [element],
       };
     } else {
       element.iconPath = {

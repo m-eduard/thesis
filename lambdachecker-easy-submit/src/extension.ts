@@ -3,7 +3,11 @@
 import * as vscode from "vscode";
 import { LambdaChecker } from "./commands";
 import { StatusBar, Storage } from "./models";
-import { ContestDataProvider, ProblemDataProvider } from "./treeview";
+import {
+  ContestDataProvider,
+  ProblemDataProvider,
+  ProblemItem,
+} from "./treeview";
 
 interface ProblemProps {
   title: string;
@@ -37,9 +41,12 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(
         "lambdachecker.login",
         LambdaChecker.login
+      ),
+      vscode.commands.registerCommand(
+        "lambdachecker.view-problem",
+        (item: ProblemItem) => LambdaChecker.viewProblem(item)
       )
     );
-
     context.subscriptions.push(StatusBar.statusBarItem);
 
     const loggedInUsername = await LambdaChecker.getLoginStatus();

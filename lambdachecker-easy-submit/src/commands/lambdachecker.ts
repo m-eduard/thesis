@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import { HTTPClient } from "../api";
-import { Storage } from "../models";
+import { Storage, getProblemWebviewContent } from "../models";
+import { ProblemItem } from "../treeview";
+import { ProblemEditor } from "../webview";
 
 export class LambdaChecker {
   static client: HTTPClient;
@@ -77,4 +79,37 @@ export class LambdaChecker {
 
   // create a thread which manages the token in order to refresh it
   // (I suspect that we don't have a refresh token on the backend)
+
+  static async viewProblem(problemItem: ProblemItem) {
+    let problem;
+
+    try {
+      problem = await LambdaChecker.client.getProblem(
+        problemItem.props.problemMetadata!.id
+      );
+    } catch (error: any) {
+      vscode.window.showErrorMessage(error.message);
+      return;
+    }
+
+    // vscode.TabInputWebview
+
+    const problemPanel = vscode.window.createWebviewPanel(
+      "lambdachecker.webview",
+      problem.name,
+      {
+        viewColumn: vscode.ViewColumn.One,
+        preserveFocus: false,
+      },
+      {
+        enableScripts: true,
+        enableFindWidget: true,
+      }
+    );
+
+    problemPanel.iconPath = vscode.Uri.file(problemItem.iconPath as string);
+
+    ProblemEditor.open();
+    problemPanel.webview.html = getProblemWebviewContent(problem);
+  }
 }

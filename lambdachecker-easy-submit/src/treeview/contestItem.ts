@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 
 export class ContestItem extends vscode.TreeItem {
-  children: ContestItem[] | undefined;
   type: string;
 
   constructor(label: string, type: string) {

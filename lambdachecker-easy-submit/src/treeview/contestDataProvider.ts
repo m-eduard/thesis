@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import { HTTPClient } from "../api";
-import { Contest, ContestItem, ContestSubject } from "../models";
+import { defaultFolderIcon } from "../icons";
+import { Contest, ContestSubject } from "../models";
+import { ContestItem } from "./contestItem";
 
 export class ContestDataProvider
   implements vscode.TreeDataProvider<ContestItem>
@@ -54,8 +56,6 @@ export class ContestDataProvider
 
     switch (element.type) {
       case "subject":
-        // todo: improve so you don't make 2 calls for the contests
-        // use element.label for filtering
         return this.getContestsBySubject(element.label as ContestSubject);
       case "problem":
         return [];
@@ -67,7 +67,17 @@ export class ContestDataProvider
   getTreeItem(
     element: ContestItem
   ): vscode.TreeItem | Thenable<vscode.TreeItem> {
-    // element.label = "haha" + element.label;
+    if (element.type === "problem") {
+      // element.iconPath = {
+      //   light: fileIconMapping[element.props.language as Language].path,
+      //   dark: fileIconMapping[element.props.language as Language].path,
+      // };
+    } else {
+      element.iconPath = {
+        light: defaultFolderIcon.path,
+        dark: defaultFolderIcon.path,
+      };
+    }
 
     return element;
   }

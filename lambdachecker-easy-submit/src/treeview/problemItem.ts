@@ -1,10 +1,11 @@
 import * as vscode from "vscode";
-import { Difficulty, Language } from "../api";
+import { Difficulty, Language, Problem } from "../models";
 
 export interface ProblemItemProps {
   type: string;
   difficulty?: Difficulty;
   language?: Language;
+  problemMetadata?: Problem;
   children?: ProblemItem[];
 }
 

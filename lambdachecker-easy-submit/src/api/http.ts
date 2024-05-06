@@ -87,6 +87,33 @@ export class HTTPClient {
     throw new Error(problemsData["message"] as string);
   }
 
+  /**
+   *
+   * @param problemId The ID of the problem to get.
+   * @param contestId Get the problem in context of a certain contest.
+   */
+  async getProblem(
+    problemId: number,
+    contestId?: number
+  ): Promise<Required<Problem>> {
+    const path = `/problems/${problemId}?${
+      contestId !== undefined ? contestId : ""
+    }`;
+
+    const response = await this.request(new Route("GET", path));
+    const problemData = await response.json();
+
+    if (response.status !== 200) {
+      throw new Error(
+        `${response.statusText}: ${
+          (problemData as Record<string, unknown>)["error"]
+        }`
+      );
+    }
+
+    return problemData as Required<Problem>;
+  }
+
   // async submitSolution(problemId: string, solution: string) {
   // }
 
