@@ -48,12 +48,15 @@ export const getProblemWebviewContent = (problemData: Required<Problem>) => {
         display: table;
         clear: both;
       }
-      .solve {
-        background-color: #D6B1FF;
+      .code {
+        background-color: #b680f3;
       }
-      .solve:hover {
-        background-color: #A660F3;
+      .code:hover {
+        background-color: #8c30f5;
         transition: 0.1s;
+      }
+      .code:active {
+        transform: translateY(4px); 
       }
       .run {
         float: right;
@@ -82,7 +85,6 @@ export const getProblemWebviewContent = (problemData: Required<Problem>) => {
   </head>
   <body>
     <h1>${title}</h1>
-
     <p>${problemData.description}</p>
 
     <h2>Exemplu:</h2>
@@ -92,32 +94,20 @@ export const getProblemWebviewContent = (problemData: Required<Problem>) => {
     <h3>Output:</h3>
     <pre>${problemData.example.output}</pre>
 
-
     <div class="buttons">
-      <button id="solve" class="btn solve" onclick="solve()">Solve</button>
-      <button id="submit" class="btn submit" onclick="execute('submit')">
-        Submit
-      </button>
-      <button id="run" class="btn run" onclick="execute('run')">Run</button>
+      <button id="submit" class="btn submit" onclick="send('submit')">Submit</button>
+      <button id="run" class="btn run" onclick="send('run')">Run</button>
+      <button id="code" class="btn code" onclick="send('code')">Code</button>
     </div>
 
     <script>
-      let openCodeEditorsCount = 0;
       const vscode = acquireVsCodeApi();
 
       vscode.setState(${JSON.stringify(problemData)});
 
-      function solve() {
+      function send(cmd) {
         vscode.postMessage({
-          event: "solve",
-          challengeSlug: "<xxx>",
-        });
-      }
-
-      function execute(type) {
-        vscode.postMessage({
-          event: type,
-          challengeSlug: "<xxx>",
+          action: cmd,
         });
       }
     </script>

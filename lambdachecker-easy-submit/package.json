@@ -16,7 +16,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "lambdachecker-easy-submit.helloWorld",
+        "command": "lambdachecker.helloWorld",
         "title": "Hello World"
       },
       {
@@ -25,12 +25,13 @@
       },
       {
         "command": "lambdachecker.login",
-        "title": "LambdaChecker: Login"
+        "title": "Login",
+        "category": "Lambda Checker"
       },
       {
-        "command": "lambdachecker.view-problem",
+        "command": "lambdachecker.show-problem",
         "title": "View Problem",
-        "category": "LambdaChecker"
+        "category": "Lambda Checker"
       }
     ],
     "menus": {
@@ -76,6 +77,18 @@
       {
         "view": "lambdachecker.contests",
         "contents": "[Sign in to LambdaChecker](command:lambdachecker.login)"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "LambdaChecker",
+        "properties": {
+          "lambdaChecker.submissionsFolder": {
+            "type": "string",
+            "default": "",
+            "description": "The path of the folder where submission files will be saved."
+          }
+        }
       }
     ]
   },

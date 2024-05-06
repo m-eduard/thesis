@@ -101,7 +101,7 @@ export class ProblemDataProvider
         fileIconMapping[element.props.language as Language].path;
 
       element.command = {
-        command: "lambdachecker.view-problem",
+        command: "lambdachecker.show-problem",
         title: "View Problem",
         arguments: [element],
       };

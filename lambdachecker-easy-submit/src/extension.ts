@@ -21,7 +21,7 @@ export async function activate(context: vscode.ExtensionContext) {
     Storage.setContext(context);
 
     let disposable = vscode.commands.registerCommand(
-      "lambdachecker-easy-submit.helloWorld",
+      "lambdachecker.helloWorld",
       () => {
         vscode.window.showInformationMessage("Hello World from LambdaChecker!");
 
@@ -44,8 +44,8 @@ export async function activate(context: vscode.ExtensionContext) {
         LambdaChecker.login
       ),
       vscode.commands.registerCommand(
-        "lambdachecker.view-problem",
-        (item: ProblemItem) => LambdaChecker.viewProblem(item)
+        "lambdachecker.show-problem",
+        (item: ProblemItem) => LambdaChecker.showProblem(item)
       )
     );
     context.subscriptions.push(StatusBar.statusBarItem);

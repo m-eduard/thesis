@@ -3,6 +3,7 @@ import { HTTPClient } from "../api";
 import { Storage, getProblemWebviewContent } from "../models";
 import { ProblemItem } from "../treeview";
 import { ProblemEditor } from "../webview";
+import { ProblemWebview } from "../webview/problemWebview";
 
 export class LambdaChecker {
   static client: HTTPClient;
@@ -80,7 +81,7 @@ export class LambdaChecker {
   // create a thread which manages the token in order to refresh it
   // (I suspect that we don't have a refresh token on the backend)
 
-  static async viewProblem(problemItem: ProblemItem) {
+  static async showProblem(problemItem: ProblemItem) {
     let problem;
 
     try {
@@ -105,9 +106,11 @@ export class LambdaChecker {
       }
     );
 
-    // problemPanel.iconPath = vscode.Uri.file(problemItem.iconPath as string);
-
-    // ProblemEditor.open();
+    problemPanel.webview.onDidReceiveMessage(async (message) => {
+      ProblemWebview.webviewListener(message, problem);
+    });
     problemPanel.webview.html = getProblemWebviewContent(problem);
+
+    // problemPanel.iconPath = vscode.Uri.file(problemItem.iconPath as string);
   }
 }
