@@ -45,6 +45,7 @@ export async function activate(context: vscode.ExtensionContext) {
         "lambdachecker.contests",
         {
           treeDataProvider: new ContestDataProvider(LambdaChecker.client),
+          showCollapseAll: true,
         }
       );
 
@@ -52,6 +53,7 @@ export async function activate(context: vscode.ExtensionContext) {
         "lambdachecker.problems",
         {
           treeDataProvider: new ProblemDataProvider(LambdaChecker.client),
+          showCollapseAll: true,
         }
       );
     } else {

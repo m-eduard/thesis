@@ -105,12 +105,12 @@ export class ProblemDataProvider
         title: "Show Problem",
         arguments: [element],
       };
-    } else {
-      element.iconPath = {
-        light: defaultFolderIcon.path,
-        dark: defaultFolderIcon.path,
-      };
     }
+
+    element.resourceUri = vscode.Uri.from({
+      scheme: "lambdachecker",
+      authority: element.props.type === "problem" ? "leaf" : "node",
+    });
 
     return element;
   }
