@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { Contest, Problem } from "../models";
+import { Contest, Problem, SubmissionResult } from "../models";
 
 /**
  * An HTTP client sending HTTP requests to the LambdaChecker API.
@@ -114,8 +114,50 @@ export class HTTPClient {
     return problemData as Required<Problem>;
   }
 
-  // async submitSolution(problemId: string, solution: string) {
-  // }
+  async submitSolution(
+    problemId: number,
+    contestId: number,
+    solution: Uint8Array
+  ): Promise<void> {
+    const response = await this.request(
+      new Route("POST", "/submissions"),
+      JSON.stringify({
+        code: solution.toString(),
+        contest_id: contestId,
+        problem_id: problemId,
+      })
+    );
+    console.log(response);
+    const submissionData = await response.json();
+
+    console.log(JSON.stringify(submissionData));
+
+    if (response.status !== 200) {
+      throw new Error(
+        `${response.statusText}: ${
+          (submissionData as Record<string, unknown>)["message"]
+        }`
+      );
+    }
+  }
+
+  async getSubmissions(problemId: number): Promise<SubmissionResult[]> {
+    const response = await this.request(
+      new Route("GET", `/user-problem-submissions?problem_id=${problemId}`)
+    );
+
+    const submissionsData = await response.json();
+
+    if (response.status !== 200) {
+      throw new Error(
+        `${response.statusText}: ${
+          (submissionsData as Record<string, unknown>)["message"]
+        }`
+      );
+    }
+
+    return submissionsData as SubmissionResult[];
+  }
 
   async getUserRank(): Promise<Record<string, unknown>> {
     const response = await this.request(new Route("GET", "/get_user_rank"));

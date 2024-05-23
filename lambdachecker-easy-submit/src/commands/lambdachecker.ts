@@ -1,6 +1,14 @@
 import * as vscode from "vscode";
 import { HTTPClient } from "../api";
-import { StatusBar, Storage, getProblemWebviewContent } from "../models";
+import {
+  ProblemTest,
+  RunOutput,
+  StatusBar,
+  Storage,
+  SubmissionResult,
+  getProblemWebviewContent,
+  getSubmissionResultWebviewContent,
+} from "../models";
 import { ProblemItem } from "../treeview";
 import { ProblemEditor } from "../webview";
 import { ProblemWebview } from "../webview/problemWebview";
@@ -106,10 +114,35 @@ export class LambdaChecker {
     );
 
     problemPanel.webview.onDidReceiveMessage(async (message) => {
-      ProblemWebview.webviewListener(message, problem);
+      const problemWebview = new ProblemWebview(problem);
+      problemWebview.webviewListener(message);
     });
     problemPanel.webview.html = getProblemWebviewContent(problem);
+  }
 
-    // problemPanel.iconPath = vscode.Uri.file(problemItem.iconPath as string);
+  static async showSubmissionResult(
+    submissionResult: SubmissionResult,
+    problemName: string,
+    problemTests: ProblemTest[]
+  ) {
+    // console.log(JSON.parse(submissionResult.run_output) as RunOutput);
+
+    const problemPanel = vscode.window.createWebviewPanel(
+      "lambdachecker.webview.results",
+      `${submissionResult.problem_id}. ${problemName}`,
+      {
+        viewColumn: vscode.ViewColumn.Two,
+        preserveFocus: false,
+      },
+      {
+        enableScripts: true,
+        enableFindWidget: true,
+      }
+    );
+
+    problemPanel.webview.html = getSubmissionResultWebviewContent(
+      submissionResult,
+      problemTests
+    );
   }
 }

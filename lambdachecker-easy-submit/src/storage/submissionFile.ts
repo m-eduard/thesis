@@ -38,25 +38,34 @@ export class SubmissionFile {
     );
   }
 
+  private async fileExists(): Promise<boolean> {
+    try {
+      await vscode.workspace.fs.stat(this.fileUri);
+      return true;
+    } catch {}
+
+    return false;
+  }
+
   /**
    * Creates a file with the skeleton code, if it does not exist
    */
-  async createSubmissionFile(): Promise<boolean> {
-    try {
-      await vscode.workspace.fs.stat(this.fileUri);
-      return false;
-    } catch {
+  async createSubmissionFile(): Promise<void> {
+    if (!(await this.fileExists())) {
       await vscode.workspace.fs.writeFile(
         this.fileUri,
         Buffer.from(this.problemSkel)
       );
     }
-
-    return true;
   }
 
   async openInEditor(): Promise<void> {
     await this.createSubmissionFile();
     ProblemEditor.show(this);
+  }
+
+  async readSubmissionFile(): Promise<Uint8Array> {
+    await this.createSubmissionFile();
+    return await vscode.workspace.fs.readFile(this.fileUri);
   }
 }

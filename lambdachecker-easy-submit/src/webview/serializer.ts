@@ -7,7 +7,8 @@ export class ProblemWebviewSerializer implements vscode.WebviewPanelSerializer {
     const problem: Required<Problem> = state;
 
     webviewPanel.webview.onDidReceiveMessage(async (message) => {
-      ProblemWebview.webviewListener(message, problem);
+      const problemWebview = new ProblemWebview(problem);
+      problemWebview.webviewListener(message);
     });
     webviewPanel.webview.html = getProblemWebviewContent(problem);
   }

@@ -36,7 +36,7 @@ interface ProblemSkeleton {
   code: string;
 }
 
-interface ProblemTest {
+export interface ProblemTest {
   input: string;
   output: string;
   grade: number;

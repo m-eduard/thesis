@@ -1,4 +1,3 @@
-import path from "path";
 import * as vscode from "vscode";
 
 import { HTTPClient } from "../api";
