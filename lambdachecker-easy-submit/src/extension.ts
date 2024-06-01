@@ -27,7 +27,8 @@ export async function activate(context: vscode.ExtensionContext) {
       ),
       vscode.commands.registerCommand(
         "lambdachecker.show-problem",
-        (item: ProblemItem) => LambdaChecker.showProblem(item)
+        (item: ProblemItem, contestId?: number) =>
+          LambdaChecker.showProblem(item, contestId)
       )
     );
     context.subscriptions.push(StatusBar.statusBarItem);

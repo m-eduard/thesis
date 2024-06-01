@@ -9,27 +9,36 @@ export enum Language {
   Java = "Java",
 }
 
-export interface Problem {
+// Common fields for Problem
+export interface BaseProblem {
   id: number;
   name: string;
   visible: boolean;
   difficulty: Difficulty;
   categories: string;
-  language: Language;
-
-  user?: Record<string, unknown>;
   description?: string;
-  skeleton?: ProblemSkeleton;
-  example?: ProblemTest;
-  tests?: ProblemTest[];
-  is_owner?: boolean;
+  language?: Language;
+}
 
-  created_at?: string;
-  example_id?: number;
-  language_id?: number;
-  skeleton_id?: number;
-  updated_at?: string;
-  user_id?: number;
+// Interface used to store data received from LambdaChecker API
+// for a problem as item displayed in a list of filtered problems
+export interface ProblemMetadataContestContext extends BaseProblem {
+  language_id: number;
+  user_id: number;
+  skeleton_id: number;
+  example_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Interface used to store data received from LambdaChecker API
+// for a specific problem
+export interface SpecificProblem extends Required<BaseProblem> {
+  user: Record<string, unknown>;
+  skeleton: ProblemSkeleton;
+  example: ProblemTest;
+  tests: ProblemTest[];
+  is_owner: boolean;
 }
 
 interface ProblemSkeleton {

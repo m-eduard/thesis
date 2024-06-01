@@ -1,7 +1,12 @@
-import { Problem } from "../api";
+import { SpecificProblem } from "../api";
 
-export const getProblemWebviewContent = (problemData: Required<Problem>) => {
+export const getProblemWebviewContent = (
+  problemData: SpecificProblem,
+  contestId?: number
+) => {
   const title = `${problemData.id}. ${problemData.name}`;
+
+  console.log("Registered contest id", contestId);
 
   return `
 <!DOCTYPE html>
@@ -108,6 +113,7 @@ export const getProblemWebviewContent = (problemData: Required<Problem>) => {
       function send(cmd) {
         vscode.postMessage({
           action: cmd,
+          contestId: ${contestId},
         });
       }
     </script>

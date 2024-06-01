@@ -1,4 +1,4 @@
-import { Problem } from "./problem";
+import { ProblemMetadataContestContext } from "./problem";
 
 export enum ContestSubject {
   DSA = "SDA",
@@ -13,7 +13,7 @@ export interface Contest {
   user_id: number;
   subject_abbreviation: ContestSubject;
   description: string;
-  problems: Problem[];
+  problems: ProblemMetadataContestContext[];
   password: boolean;
 
   prize?: string;

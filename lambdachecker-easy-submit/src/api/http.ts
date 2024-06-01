@@ -1,5 +1,10 @@
 import * as vscode from "vscode";
-import { Contest, Problem, SubmissionResult } from "../models";
+import {
+  BaseProblem,
+  Contest,
+  SpecificProblem,
+  SubmissionResult,
+} from "../models";
 
 /**
  * An HTTP client sending HTTP requests to the LambdaChecker API.
@@ -49,6 +54,7 @@ export class HTTPClient {
   async getActiveContests(): Promise<Contest[]> {
     const response = await this.request(
       new Route("GET", "/contests/index_active")
+      // new Route("GET", "/contests/index_archived?academic_year=2022-2023")
     );
 
     const contestsData: Record<string, unknown> =
@@ -72,7 +78,18 @@ export class HTTPClient {
     return contestsData["contests"] as Contest[];
   }
 
-  async getProblems(): Promise<Problem[]> {
+  async getArchivedContests(): Promise<Contest[]> {
+    const response = await this.request(
+      new Route("GET", "/contests/index_archived?academic_year=2022-2023")
+    );
+
+    const contestsData: Record<string, unknown> =
+      (await response.json()) as Record<string, unknown>;
+
+    return contestsData["contests"] as Contest[];
+  }
+
+  async getProblems(): Promise<BaseProblem[]> {
     const response = await this.request(
       new Route("GET", "/problems/index_privileged")
     );
@@ -81,7 +98,7 @@ export class HTTPClient {
       (await response.json()) as Record<string, unknown>;
 
     if (problemsData["problems"] !== undefined) {
-      return problemsData["problems"] as Problem[];
+      return problemsData["problems"] as BaseProblem[];
     }
 
     throw new Error(problemsData["message"] as string);
@@ -95,10 +112,12 @@ export class HTTPClient {
   async getProblem(
     problemId: number,
     contestId?: number
-  ): Promise<Required<Problem>> {
+  ): Promise<SpecificProblem> {
     const path = `/problems/${problemId}?${
-      contestId !== undefined ? contestId : ""
+      contestId !== undefined ? "contest_id=" + contestId : ""
     }`;
+
+    console.log(path);
 
     const response = await this.request(new Route("GET", path));
     const problemData = await response.json();
@@ -111,7 +130,7 @@ export class HTTPClient {
       );
     }
 
-    return problemData as Required<Problem>;
+    return problemData as SpecificProblem;
   }
 
   async submitSolution(

@@ -1,11 +1,12 @@
 import * as vscode from "vscode";
 import { HTTPClient } from "../api";
-import { defaultFolderIcon } from "../icons";
-import { Contest, ContestSubject } from "../models";
+import { defaultFolderIcon, fileIconMapping } from "../icons";
+import { Contest, ContestSubject, Language } from "../models";
 import { ContestItem } from "./contestItem";
+import { ProblemItem } from "./problemItem";
 
 export class ContestDataProvider
-  implements vscode.TreeDataProvider<ContestItem>
+  implements vscode.TreeDataProvider<ContestItem | ProblemItem>
 {
   onDidChangeTreeData?:
     | vscode.Event<ContestItem | null | undefined>
@@ -21,7 +22,9 @@ export class ContestDataProvider
     );
   }
 
-  async getContestsBySubject(subject: ContestSubject): Promise<ContestItem[]> {
+  async getContestsBySubject(
+    subject: ContestSubject
+  ): Promise<ContestItem[] | ProblemItem[]> {
     let contests: Contest[] = [];
 
     try {
@@ -44,12 +47,24 @@ export class ContestDataProvider
 
     const contestsTreeItems = contests
       .filter((contest) => contest.subject_abbreviation === subject)
-      .map((contest) => new ContestItem(contest["name"] as string, "contest"));
+      .map(
+        (contest) =>
+          new ContestItem(
+            contest["name"] as string,
+            "contest",
+            contest["problems"],
+            contest.id
+          )
+      );
+
+    console.log(contestsTreeItems);
 
     return contestsTreeItems;
   }
 
-  getChildren(element?: ContestItem): vscode.ProviderResult<ContestItem[]> {
+  getChildren(
+    element?: ContestItem
+  ): vscode.ProviderResult<ContestItem[] | ProblemItem[]> {
     if (element === undefined) {
       return this.root;
     }
@@ -57,6 +72,17 @@ export class ContestDataProvider
     switch (element.type) {
       case "subject":
         return this.getContestsBySubject(element.label as ContestSubject);
+      case "contest":
+        return element.problems!.map(
+          (problem) =>
+            new ProblemItem(`${problem.id}. ${problem.name}` as string, {
+              type: "problem",
+              difficulty: problem.difficulty,
+              language: problem.language_id! === 1 ? Language.Java : Language.C,
+              problemMetadata: problem,
+              contestId: element.contestId,
+            })
+        );
       case "problem":
         return [];
       default:
@@ -65,19 +91,37 @@ export class ContestDataProvider
   }
 
   getTreeItem(
-    element: ContestItem
+    element: ContestItem | ProblemItem
   ): vscode.TreeItem | Thenable<vscode.TreeItem> {
-    if (element.type === "problem") {
+    if (element instanceof ProblemItem) {
+      console.log(element);
+      console.log((element as ProblemItem).props.language);
+
+      element.iconPath =
+        fileIconMapping[element.props.language as Language].path;
       // element.iconPath = {
       //   light: fileIconMapping[element.props.language as Language].path,
       //   dark: fileIconMapping[element.props.language as Language].path,
       // };
-    } else {
-      element.iconPath = {
-        light: defaultFolderIcon.path,
-        dark: defaultFolderIcon.path,
+
+      console.log("Here is ", element.props.contestId);
+
+      element.command = {
+        command: "lambdachecker.show-problem",
+        title: "Show Problem",
+        arguments: [element, element.props.contestId],
       };
     }
+    // else {
+    //   element.iconPath = {
+    //     light: defaultFolderIcon.path,
+    //     dark: defaultFolderIcon.path,
+    //   };
+    // }
+
+    element.resourceUri = vscode.Uri.from({
+      scheme: "lambdachecker",
+    });
 
     return element;
   }

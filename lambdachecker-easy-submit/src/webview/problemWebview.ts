@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { LambdaChecker } from "../commands";
 import {
-  Problem,
   RunOutput,
+  SpecificProblem,
   SubmissionResult,
   WebviewMessage,
 } from "../models";
@@ -11,9 +11,9 @@ import { SubmissionFile } from "../storage";
 export class ProblemWebview {
   public submissionFile: SubmissionFile;
   private static apiCooldown = 100;
-  private static maxApiConsecutiveRequests = 10;
+  private static maxApiConsecutiveRequests = 50;
 
-  constructor(public problem: Required<Problem>) {
+  constructor(public problem: SpecificProblem) {
     this.submissionFile = new SubmissionFile(
       problem.name,
       problem.language,
@@ -88,9 +88,11 @@ export class ProblemWebview {
       case "run":
         break;
       case "submit":
+        console.log("Submitting from ", message.contestId);
+
         LambdaChecker.client.submitSolution(
           this.problem.id,
-          -1,
+          message.contestId ? message.contestId : -1,
           await this.submissionFile.readSubmissionFile()
         );
         const submissionResult = await this.waitForSubmitionProcessing();

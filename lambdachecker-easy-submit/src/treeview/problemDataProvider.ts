@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 import { HTTPClient } from "../api";
 import { defaultFolderIcon, fileIconMapping } from "../icons";
-import { Difficulty, Language, Problem } from "../models";
+import { BaseProblem, Difficulty, Language } from "../models";
 import { ProblemItem } from "./problemItem";
 
 export class ProblemDataProvider
@@ -35,7 +35,7 @@ export class ProblemDataProvider
     difficulty: Difficulty,
     language: Language
   ): Promise<ProblemItem[]> {
-    let problems: Problem[] = [];
+    let problems: BaseProblem[] = [];
 
     try {
       problems = await this.lambdacheckerClient.getProblems();
@@ -96,6 +96,8 @@ export class ProblemDataProvider
     element: ProblemItem
   ): vscode.TreeItem | Thenable<vscode.TreeItem> {
     if (element.props.type === "problem") {
+      console.log(element.props.language);
+
       element.iconPath =
         fileIconMapping[element.props.language as Language].path;
 
