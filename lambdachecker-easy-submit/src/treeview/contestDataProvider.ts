@@ -98,8 +98,9 @@ export class ContestDataProvider
       (contest) =>
         new ContestItem(contest["name"] as string, {
           type: "contest",
-          problems: contest["problems"],
+          problems: contest.problems,
           contestId: contest.id,
+          startDate: contest.start_date,
         })
     );
 
@@ -119,7 +120,15 @@ export class ContestDataProvider
         // with new items, one for each archived academic year
         return this.contestsPromises
           .get(element.label as ContestSubject)
-          ?.then((contests) => [...contests, ...element.props.children!]);
+          ?.then((contests) => {
+            contests.sort(
+              (x, y) =>
+                new Date(y.props.startDate!).getTime() -
+                new Date(x.props.startDate!).getTime()
+            );
+
+            return [...contests, ...element.props.children!.reverse()];
+          });
       case "academic_year":
         // Retrieve the archived contests for a specific academic year
         return this.archivedContestsPromises.get(
