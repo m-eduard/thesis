@@ -67,6 +67,37 @@ const styles = `
     font-weight: strong;
     font-size: 30px;
   }
+
+  .buttons::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+
+  button {
+    color: inherit;
+  }
+
+  .btn {
+    font-size: 12px;
+    padding: 8px 25px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    border-radius: 0px;
+
+    display: inline-block;
+    background-color: transparent;
+  }
+
+  .code {
+    float: right;
+  }
+
+  .code svg {
+    width: 16px;
+    height: 16px;
+  }
 </style>`;
 
 const head = `
@@ -136,8 +167,9 @@ export const getExecutionResultHTML = (
   submissionDate: string,
   tests: ProblemTest[]
 ) => {
+  // Possible states are PASSED, FAILED, RUNTIME_ERROR
   const passedTestsCount = testsResults.filter(
-    (result) => result.status !== "FAILED"
+    (result) => result.status === "PASSED"
   ).length;
   const totalTestsCount = testsResults.length;
   const accepted = totalTestsCount === passedTestsCount;
@@ -168,8 +200,6 @@ ${head}
   </h1>
   
   ${testsResultsHTML}
-
-
 </body>
 </html>`;
 };
