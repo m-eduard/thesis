@@ -9,6 +9,11 @@ export enum Language {
   Java = "Java",
 }
 
+export const languageIdMapping: { [key: number]: Language } = {
+  1: Language.Java,
+  2: Language.C,
+};
+
 // Common fields for Problem
 export interface BaseProblem {
   id: number;

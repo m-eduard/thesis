@@ -1,7 +1,12 @@
 import * as vscode from "vscode";
 import { HTTPClient } from "../api";
 import { defaultFolderIcon, fileIconMapping } from "../icons";
-import { Contest, ContestSubject, Language } from "../models";
+import {
+  Contest,
+  ContestSubject,
+  Language,
+  languageIdMapping,
+} from "../models";
 import { ContestItem } from "./contestItem";
 import { ProblemItem } from "./problemItem";
 
@@ -71,8 +76,6 @@ export class ContestDataProvider
         )
     );
 
-    console.log(contestsTreeItems);
-
     return contestsTreeItems;
   }
 
@@ -92,7 +95,7 @@ export class ContestDataProvider
             new ProblemItem(`${problem.id}. ${problem.name}` as string, {
               type: "problem",
               difficulty: problem.difficulty,
-              language: problem.language_id! === 1 ? Language.Java : Language.C,
+              language: languageIdMapping[problem.language_id],
               problemMetadata: problem,
               contestId: element.contestId,
             })
@@ -108,17 +111,8 @@ export class ContestDataProvider
     element: ContestItem | ProblemItem
   ): vscode.TreeItem | Thenable<vscode.TreeItem> {
     if (element instanceof ProblemItem) {
-      console.log(element);
-      console.log((element as ProblemItem).props.language);
-
       element.iconPath =
         fileIconMapping[element.props.language as Language].path;
-      // element.iconPath = {
-      //   light: fileIconMapping[element.props.language as Language].path,
-      //   dark: fileIconMapping[element.props.language as Language].path,
-      // };
-
-      console.log("Here is ", element.props.contestId);
 
       element.command = {
         command: "lambdachecker.show-problem",
@@ -126,12 +120,6 @@ export class ContestDataProvider
         arguments: [element, element.props.contestId],
       };
     }
-    // else {
-    //   element.iconPath = {
-    //     light: defaultFolderIcon.path,
-    //     dark: defaultFolderIcon.path,
-    //   };
-    // }
 
     element.resourceUri = vscode.Uri.from({
       scheme: "lambdachecker",
