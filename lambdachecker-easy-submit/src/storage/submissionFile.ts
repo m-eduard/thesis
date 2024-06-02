@@ -8,6 +8,7 @@ export class SubmissionFile {
   private fileUri: vscode.Uri;
 
   constructor(
+    public problemId: number,
     public problemName: string,
     public problemLanguage: Language,
     public problemSkel: string
@@ -34,7 +35,9 @@ export class SubmissionFile {
   getSubmissionPath(): string {
     return path.join(
       SubmissionFile.getSubmissionsFolderPath(),
-      `${this.problemName}${languageExtensions[this.problemLanguage]}`
+      `${this.problemId}_${this.problemName.trim().replaceAll(" ", "_")}${
+        languageExtensions[this.problemLanguage]
+      }`
     );
   }
 

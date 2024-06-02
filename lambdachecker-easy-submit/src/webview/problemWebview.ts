@@ -15,6 +15,7 @@ export class ProblemWebview {
 
   constructor(public problem: SpecificProblem) {
     this.submissionFile = new SubmissionFile(
+      problem.id,
       problem.name,
       problem.language,
       problem.skeleton.code
