@@ -5,6 +5,11 @@ export enum ContestSubject {
   OOP = "POO",
 }
 
+export const getAcademicYearsRange = (): string[] =>
+  [...Array(new Date().getFullYear() - 2022)].map(
+    (_, offset) => `${2022 + offset - 1}-${2022 + offset}`
+  );
+
 export interface Contest {
   id: number;
   name: string;

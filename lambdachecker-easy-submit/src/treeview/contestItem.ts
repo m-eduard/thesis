@@ -1,29 +1,26 @@
 import * as vscode from "vscode";
-import { ProblemMetadataContestContext } from "../models";
+import { ContestSubject, ProblemMetadataContestContext } from "../models";
 import { ProblemItem, ProblemItemProps } from "./problemItem";
 
-export class ContestItem extends vscode.TreeItem {
+export interface ContestItemProps {
   type: string;
+  subject?: ContestSubject;
   problems?: ProblemMetadataContestContext[];
-  problemProps?: ProblemItemProps;
   contestId?: number;
+  children?: ContestItem[];
+}
 
-  constructor(
-    label: string,
-    type: string,
-    problems?: ProblemMetadataContestContext[],
-    contestId?: number
-  ) {
+export class ContestItem extends vscode.TreeItem {
+  props: ContestItemProps;
+
+  constructor(label: string, props: ContestItemProps) {
     let collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
 
-    if (type === "problem") {
+    if (props.type === "problem") {
       collapsibleState = vscode.TreeItemCollapsibleState.None;
     }
 
     super(label, collapsibleState);
-
-    this.type = type;
-    this.problems = problems;
-    this.contestId = contestId;
+    this.props = props;
   }
 }

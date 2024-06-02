@@ -5,6 +5,7 @@ import {
   Contest,
   ContestSubject,
   Language,
+  getAcademicYearsRange,
   languageIdMapping,
 } from "../models";
 import { ContestItem } from "./contestItem";
@@ -20,37 +21,64 @@ export class ContestDataProvider
   root: ContestItem[];
   lambdacheckerClient: HTTPClient;
   contestsPromises: Map<ContestSubject, Promise<ContestItem[]>> = new Map();
+  archivedContestsPromises: Map<string, Promise<ContestItem[]>> = new Map();
 
   constructor(client: HTTPClient) {
     this.lambdacheckerClient = client;
-    this.root = Object.values(ContestSubject).map(
-      (label) => new ContestItem(label, "subject")
-    );
+
+    // Create a subroot for each subject and for
+    // the archived academical years
+    this.root = Object.values(ContestSubject).map((subject) => {
+      const childrenItems = getAcademicYearsRange().map(
+        (year) =>
+          new ContestItem(year, {
+            type: "academic_year",
+            subject: subject,
+          })
+      );
+
+      return new ContestItem(subject, {
+        type: "subject",
+        children: childrenItems,
+      });
+    });
 
     // Create a promise for each subject for fetching contests
     Object.values(ContestSubject).forEach((subject) => {
       this.contestsPromises.set(subject, this.getContestsBySubject(subject));
+
+      getAcademicYearsRange().forEach((year) => {
+        this.archivedContestsPromises.set(
+          subject + year,
+          this.getContestsBySubject(subject, true, year)
+        );
+      });
     });
   }
 
-  async getContestsBySubject(subject: ContestSubject): Promise<ContestItem[]> {
+  async getContestsBySubject(
+    subject: ContestSubject,
+    archived: boolean = false,
+    academic_year?: string
+  ): Promise<ContestItem[]> {
     let contests: Contest[] = [];
 
     try {
-      const start = performance.now();
-
-      const contestsPromises = [
-        this.lambdacheckerClient.getActiveContests(subject),
-        this.lambdacheckerClient.getPastContests(subject),
-      ];
+      const contestsPromises = archived
+        ? [
+            this.lambdacheckerClient.getArchivedContests(
+              academic_year!,
+              subject
+            ),
+          ]
+        : [
+            this.lambdacheckerClient.getActiveContests(subject),
+            this.lambdacheckerClient.getPastContests(subject),
+          ];
 
       contests = await Promise.all(contestsPromises).then((values) => {
         return values.flat();
       });
-
-      console.log(contests);
-      const end = performance.now();
-      console.log("Time taken: ", end - start, " | ", start, end);
     } catch (error: any) {
       vscode.window
         .showErrorMessage(
@@ -68,12 +96,11 @@ export class ContestDataProvider
 
     const contestsTreeItems = contests.map(
       (contest) =>
-        new ContestItem(
-          contest["name"] as string,
-          "contest",
-          contest["problems"],
-          contest.id
-        )
+        new ContestItem(contest["name"] as string, {
+          type: "contest",
+          problems: contest["problems"],
+          contestId: contest.id,
+        })
     );
 
     return contestsTreeItems;
@@ -86,18 +113,27 @@ export class ContestDataProvider
       return this.root;
     }
 
-    switch (element.type) {
+    switch (element.props.type) {
       case "subject":
-        return this.contestsPromises.get(element.label as ContestSubject);
+        // Concatenate the contests of the current year
+        // with new items, one for each archived academic year
+        return this.contestsPromises
+          .get(element.label as ContestSubject)
+          ?.then((contests) => [...contests, ...element.props.children!]);
+      case "academic_year":
+        // Retrieve the archived contests for a specific academic year
+        return this.archivedContestsPromises.get(
+          (element.props.subject! + element.label) as string
+        );
       case "contest":
-        return element.problems!.map(
+        return element.props.problems!.map(
           (problem) =>
             new ProblemItem(`${problem.id}. ${problem.name}` as string, {
               type: "problem",
               difficulty: problem.difficulty,
               language: languageIdMapping[problem.language_id],
               problemMetadata: problem,
-              contestId: element.contestId,
+              contestId: element.props.contestId,
             })
         );
       case "problem":

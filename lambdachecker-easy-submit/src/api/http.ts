@@ -89,9 +89,17 @@ export class HTTPClient {
     return contestsData["contests"] as Contest[];
   }
 
-  async getArchivedContests(): Promise<Contest[]> {
+  async getArchivedContests(
+    academic_year: string,
+    subject?: ContestSubject
+  ): Promise<Contest[]> {
     const response = await this.request(
-      new Route("GET", "/contests/index_archived?academic_year=2022-2023")
+      new Route(
+        "GET",
+        `/contests/index_archived?academic_year=${academic_year}${
+          subject !== undefined ? "&subject_abbreviation=" + subject : ""
+        }`
+      )
     );
 
     const contestsData: Record<string, unknown> =
