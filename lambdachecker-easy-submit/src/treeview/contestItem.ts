@@ -1,5 +1,9 @@
 import * as vscode from "vscode";
-import { ContestSubject, ProblemMetadataContestContext } from "../models";
+import {
+  ContestSubject,
+  EnrollmentStatus,
+  ProblemMetadataContestContext,
+} from "../models";
 import { ProblemItem, ProblemItemProps } from "./problemItem";
 
 export interface ContestItemProps {
@@ -9,6 +13,7 @@ export interface ContestItemProps {
   contestId?: number;
   children?: ContestItem[];
   startDate?: string;
+  status?: EnrollmentStatus;
 }
 
 export class ContestItem extends vscode.TreeItem {

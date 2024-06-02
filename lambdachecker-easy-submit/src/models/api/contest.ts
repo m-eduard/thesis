@@ -10,6 +10,11 @@ export const getAcademicYearsRange = (): string[] =>
     (_, offset) => `${2022 + offset - 1}-${2022 + offset}`
   );
 
+export enum EnrollmentStatus {
+  ENROLLED = "ENROLLED",
+  NOT_ENROLLED = "NOT_ENROLLED",
+}
+
 export interface Contest {
   id: number;
   name: string;

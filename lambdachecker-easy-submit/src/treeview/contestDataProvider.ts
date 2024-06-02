@@ -4,6 +4,7 @@ import { defaultFolderIcon, fileIconMapping } from "../icons";
 import {
   Contest,
   ContestSubject,
+  EnrollmentStatus,
   Language,
   getAcademicYearsRange,
   languageIdMapping,
@@ -94,13 +95,23 @@ export class ContestDataProvider
       return [];
     }
 
+    // Start the requests for status here, and when they are
+    // finished, fill in the status for each contest
+    const statusPromises = await Promise.all(
+      contests.map(
+        async (contest) =>
+          await this.lambdacheckerClient.getEnrollmentStatus(contest.id)
+      )
+    );
+
     const contestsTreeItems = contests.map(
-      (contest) =>
+      (contest, idx) =>
         new ContestItem(contest["name"] as string, {
           type: "contest",
           problems: contest.problems,
           contestId: contest.id,
           startDate: contest.start_date,
+          status: statusPromises[idx],
         })
     );
 
@@ -135,6 +146,10 @@ export class ContestDataProvider
           (element.props.subject! + element.label) as string
         );
       case "contest":
+        if (element.props.status === EnrollmentStatus.NOT_ENROLLED) {
+          return [];
+        }
+
         return element.props.problems!.map(
           (problem) =>
             new ProblemItem(`${problem.id}. ${problem.name}` as string, {
@@ -164,11 +179,25 @@ export class ContestDataProvider
         title: "Show Problem",
         arguments: [element, element.props.contestId],
       };
-    }
 
-    element.resourceUri = vscode.Uri.from({
-      scheme: "lambdachecker",
-    });
+      element.resourceUri = vscode.Uri.from({
+        scheme: "lambdachecker",
+        authority: element.props.type,
+      });
+    } else {
+      if (element.props.status === EnrollmentStatus.NOT_ENROLLED) {
+        element.command = {
+          command: "lambdachecker.enroll-in-contest",
+          title: "Enroll",
+        };
+      }
+
+      element.resourceUri = vscode.Uri.from({
+        scheme: "lambdachecker",
+        authority: element.props.type,
+        query: `status=${element.props.status!}`,
+      });
+    }
 
     return element;
   }

@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { LambdaChecker } from "./commands";
-import { StatusBar, Storage } from "./models";
+import { EnrollmentStatus, StatusBar, Storage } from "./models";
 import {
   ContestDataProvider,
   ProblemDataProvider,
@@ -29,9 +29,33 @@ export async function activate(context: vscode.ExtensionContext) {
         "lambdachecker.show-problem",
         (item: ProblemItem, contestId?: number) =>
           LambdaChecker.showProblem(item, contestId)
+      ),
+      vscode.commands.registerCommand(
+        "lambdachecker.enroll-in-contest",
+        LambdaChecker.enrollInContest
       )
     );
     context.subscriptions.push(StatusBar.statusBarItem);
+    context.subscriptions.push(
+      vscode.window.registerFileDecorationProvider({
+        provideFileDecoration: (uri: vscode.Uri) => {
+          if (uri.scheme !== "lambdachecker") {
+            return;
+          }
+
+          console.log(uri);
+
+          const queryParams = new URLSearchParams(uri.query);
+          const isLockedContest =
+            queryParams.get("status") === EnrollmentStatus.NOT_ENROLLED;
+
+          return {
+            badge: isLockedContest ? "🔒" : undefined,
+            tooltip: isLockedContest ? "Locked" : undefined,
+          };
+        },
+      })
+    );
 
     vscode.window.registerWebviewPanelSerializer(
       "lambdachecker.webview",

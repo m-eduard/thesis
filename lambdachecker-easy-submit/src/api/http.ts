@@ -3,6 +3,7 @@ import {
   BaseProblem,
   Contest,
   ContestSubject,
+  EnrollmentStatus,
   SpecificProblem,
   SubmissionResult,
 } from "../models";
@@ -108,6 +109,16 @@ export class HTTPClient {
     return contestsData["contests"] as Contest[];
   }
 
+  async getEnrollmentStatus(contestId: number): Promise<EnrollmentStatus> {
+    const response = await this.request(
+      new Route("GET", `/contests/${contestId}`)
+    );
+
+    return response.status === 200
+      ? EnrollmentStatus.ENROLLED
+      : EnrollmentStatus.NOT_ENROLLED;
+  }
+
   async getProblems(): Promise<BaseProblem[]> {
     const response = await this.request(
       new Route("GET", "/problems/index_privileged")
@@ -208,6 +219,26 @@ export class HTTPClient {
     }
 
     throw new Error(userRankData["message"] as string);
+  }
+
+  async enrollParticipant(contestId: number, password: string): Promise<void> {
+    const response = await this.request(
+      new Route("POST", "/enroll_participants"),
+      JSON.stringify({
+        contest_id: contestId,
+        password: password,
+      })
+    );
+
+    const enrollmentData = await response.json();
+
+    if (response.status !== 200) {
+      throw new Error(
+        `${response.statusText}: ${
+          (enrollmentData as Record<string, unknown>)["message"]
+        }`
+      );
+    }
   }
 
   async checkTokenValidity(): Promise<boolean> {
