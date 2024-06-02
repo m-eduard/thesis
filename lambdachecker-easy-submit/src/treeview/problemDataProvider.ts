@@ -10,6 +10,7 @@ export class ProblemDataProvider
 {
   root: ProblemItem[];
   lambdacheckerClient: HTTPClient;
+  problemsPromise: Promise<ProblemItem[]>;
 
   constructor(client: HTTPClient) {
     this.lambdacheckerClient = client;
@@ -29,47 +30,49 @@ export class ProblemDataProvider
         children: childrenItems,
       });
     });
+
+    this.problemsPromise = this.lambdacheckerClient
+      .getProblems()
+      .then((problems: BaseProblem[]) => {
+        return problems.map(
+          (problem) =>
+            new ProblemItem(`${problem.id}. ${problem.name}` as string, {
+              type: "problem",
+              difficulty: problem.difficulty,
+              language: problem.language,
+              problemMetadata: problem,
+            })
+        );
+      })
+      .catch((error: any) => {
+        vscode.window
+          .showErrorMessage(
+            "Error fetching problems. Would you like to log in again?",
+            error.message,
+            "No"
+          )
+          .then((selection) => {
+            if (selection !== "No") {
+              vscode.commands.executeCommand("lambdachecker.login");
+            }
+          });
+        return [];
+      });
   }
 
   async getProblemsByDifficultyAndLanguage(
     difficulty: Difficulty,
     language: Language
   ): Promise<ProblemItem[]> {
-    let problems: BaseProblem[] = [];
-
-    try {
-      problems = await this.lambdacheckerClient.getProblems();
-    } catch (error: any) {
-      vscode.window
-        .showErrorMessage(
-          "Error fetching problems. Would you like to log in again?",
-          error.message,
-          "No"
-        )
-        .then((selection) => {
-          if (selection !== "No") {
-            vscode.commands.executeCommand("lambdachecker.login");
-          }
-        });
-      return [];
-    }
-
-    const contestsTreeItems = problems
-      .filter(
+    const problemsTreeItemsPromise = this.problemsPromise.then((problems) =>
+      problems.filter(
         (problem) =>
-          problem.difficulty === difficulty && problem.language === language
+          problem.props.difficulty === difficulty &&
+          problem.props.language === language
       )
-      .map(
-        (problem) =>
-          new ProblemItem(`${problem.id}. ${problem.name}` as string, {
-            type: "problem",
-            difficulty: problem.difficulty,
-            language: problem.language,
-            problemMetadata: problem,
-          })
-      );
+    );
 
-    return contestsTreeItems;
+    return problemsTreeItemsPromise;
   }
 
   getChildren(element?: ProblemItem): vscode.ProviderResult<ProblemItem[]> {
