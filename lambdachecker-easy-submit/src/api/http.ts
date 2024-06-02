@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import {
   BaseProblem,
   Contest,
+  ContestSubject,
   SpecificProblem,
   SubmissionResult,
 } from "../models";
@@ -51,9 +52,14 @@ export class HTTPClient {
     throw new Error(responseData["message"] as string);
   }
 
-  async getActiveContests(): Promise<Contest[]> {
+  async getActiveContests(subject?: ContestSubject): Promise<Contest[]> {
     const response = await this.request(
-      new Route("GET", "/contests/index_active")
+      new Route(
+        "GET",
+        `/contests/index_active${
+          subject !== undefined ? "?subject_abbreviation=" + subject : ""
+        }`
+      )
       // new Route("GET", "/contests/index_archived?academic_year=2022-2023")
     );
 
@@ -67,9 +73,14 @@ export class HTTPClient {
     throw new Error(contestsData["message"] as string);
   }
 
-  async getPastContests(): Promise<Contest[]> {
+  async getPastContests(subject?: ContestSubject): Promise<Contest[]> {
     const response = await this.request(
-      new Route("GET", "/contests/index_past")
+      new Route(
+        "GET",
+        `/contests/index_past${
+          subject !== undefined ? "?subject_abbreviation=" + subject : ""
+        }`
+      )
     );
 
     const contestsData: Record<string, unknown> =

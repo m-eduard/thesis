@@ -14,22 +14,38 @@ export class ContestDataProvider
 
   root: ContestItem[];
   lambdacheckerClient: HTTPClient;
+  contestsPromises: Map<ContestSubject, Promise<ContestItem[]>> = new Map();
 
   constructor(client: HTTPClient) {
     this.lambdacheckerClient = client;
     this.root = Object.values(ContestSubject).map(
       (label) => new ContestItem(label, "subject")
     );
+
+    // Create a promise for each subject for fetching contests
+    Object.values(ContestSubject).forEach((subject) => {
+      this.contestsPromises.set(subject, this.getContestsBySubject(subject));
+    });
   }
 
-  async getContestsBySubject(
-    subject: ContestSubject
-  ): Promise<ContestItem[] | ProblemItem[]> {
+  async getContestsBySubject(subject: ContestSubject): Promise<ContestItem[]> {
     let contests: Contest[] = [];
 
     try {
-      contests = await this.lambdacheckerClient.getActiveContests();
-      contests.push(...(await this.lambdacheckerClient.getPastContests()));
+      const start = performance.now();
+
+      const contestsPromises = [
+        this.lambdacheckerClient.getActiveContests(subject),
+        this.lambdacheckerClient.getPastContests(subject),
+      ];
+
+      contests = await Promise.all(contestsPromises).then((values) => {
+        return values.flat();
+      });
+
+      console.log(contests);
+      const end = performance.now();
+      console.log("Time taken: ", end - start, " | ", start, end);
     } catch (error: any) {
       vscode.window
         .showErrorMessage(
@@ -45,17 +61,15 @@ export class ContestDataProvider
       return [];
     }
 
-    const contestsTreeItems = contests
-      .filter((contest) => contest.subject_abbreviation === subject)
-      .map(
-        (contest) =>
-          new ContestItem(
-            contest["name"] as string,
-            "contest",
-            contest["problems"],
-            contest.id
-          )
-      );
+    const contestsTreeItems = contests.map(
+      (contest) =>
+        new ContestItem(
+          contest["name"] as string,
+          "contest",
+          contest["problems"],
+          contest.id
+        )
+    );
 
     console.log(contestsTreeItems);
 
@@ -71,7 +85,7 @@ export class ContestDataProvider
 
     switch (element.type) {
       case "subject":
-        return this.getContestsBySubject(element.label as ContestSubject);
+        return this.contestsPromises.get(element.label as ContestSubject);
       case "contest":
         return element.problems!.map(
           (problem) =>
