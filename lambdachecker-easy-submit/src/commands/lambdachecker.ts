@@ -9,7 +9,7 @@ import {
   getProblemWebviewContent,
   getSubmissionResultWebviewContent,
 } from "../models";
-import { ProblemItem } from "../treeview";
+import { ContestDataProvider, ProblemItem } from "../treeview";
 import { ProblemEditor } from "../webview";
 import { ProblemWebview } from "../webview/problemWebview";
 
@@ -145,5 +145,53 @@ export class LambdaChecker {
       submissionResult,
       problemTests
     );
+  }
+
+  static async enrollInContest(
+    contestId: number,
+    hasPassword: boolean,
+    contestDataProvider: ContestDataProvider
+  ) {
+    let password = "";
+
+    if (hasPassword) {
+      const passwordRaw = await vscode.window.showInputBox({
+        ignoreFocusOut: true,
+        prompt: "Enter your password",
+        title: `Unlock contest ${contestId}`,
+        placeHolder: "Enter your password",
+        password: true,
+      });
+
+      if (passwordRaw === undefined) {
+        return;
+      } else {
+        password = passwordRaw;
+      }
+    }
+
+    try {
+      const response = await LambdaChecker.client.enrollParticipant(
+        contestId,
+        password
+      );
+
+      contestDataProvider.refresh(contestId);
+    } catch (error: any) {
+      console.log("here", error);
+
+      vscode.window
+        .showErrorMessage(error.message, "Try again")
+        .then((selection) => {
+          if (selection === "Try again") {
+            vscode.commands.executeCommand(
+              "lambdachecker.enroll-in-contest",
+              contestId,
+              hasPassword,
+              contestDataProvider
+            );
+          }
+        });
+    }
   }
 }

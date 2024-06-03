@@ -32,6 +32,15 @@
         "command": "lambdachecker.show-problem",
         "title": "Show Problem",
         "category": "Lambda Checker"
+      },
+      {
+        "command": "lambdachecker.enroll-in-contest",
+        "title": "Enroll",
+        "icon": {
+          "light": "resources/icons/light/add.svg",
+          "dark": "resources/icons/dark/add.svg"
+        },
+        "category": "Lambda Checker"
       }
     ],
     "menus": {
@@ -39,6 +48,18 @@
         {
           "command": "lambdachecker.login",
           "when": "true"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "lambdachecker.enroll-in-contest",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "lambdachecker.enroll-in-contest",
+          "group": "inline"
         }
       ]
     },

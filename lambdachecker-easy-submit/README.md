@@ -1,6 +1,6 @@
-# lambdachecker-easy-submit README
+# lambdachecker README
 
-This is the README for your extension "lambdachecker-easy-submit". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "lambdachecker". After writing up a brief description, we recommend including the following sections.
 
 ## Features
 

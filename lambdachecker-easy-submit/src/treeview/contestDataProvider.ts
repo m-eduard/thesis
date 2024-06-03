@@ -15,14 +15,19 @@ import { ProblemItem } from "./problemItem";
 export class ContestDataProvider
   implements vscode.TreeDataProvider<ContestItem | ProblemItem>
 {
-  onDidChangeTreeData?:
-    | vscode.Event<ContestItem | null | undefined>
-    | undefined;
+  private _onDidChangeTreeData: vscode.EventEmitter<
+    ContestItem | undefined | null | void
+  > = new vscode.EventEmitter<ContestItem | undefined | null | void>();
+
+  readonly onDidChangeTreeData:
+    | vscode.Event<ContestItem | null | undefined | void>
+    | undefined = this._onDidChangeTreeData.event;
 
   root: ContestItem[];
   lambdacheckerClient: HTTPClient;
   contestsPromises: Map<ContestSubject, Promise<ContestItem[]>> = new Map();
   archivedContestsPromises: Map<string, Promise<ContestItem[]>> = new Map();
+  sessionUnlockedContests: Set<number> = new Set();
 
   constructor(client: HTTPClient) {
     this.lambdacheckerClient = client;
@@ -44,17 +49,32 @@ export class ContestDataProvider
       });
     });
 
-    // Create a promise for each subject for fetching contests
-    Object.values(ContestSubject).forEach((subject) => {
-      this.contestsPromises.set(subject, this.getContestsBySubject(subject));
+    this.refresh();
+  }
 
-      getAcademicYearsRange().forEach((year) => {
-        this.archivedContestsPromises.set(
-          subject + year,
-          this.getContestsBySubject(subject, true, year)
-        );
+  refresh(contestId?: number) {
+    if (contestId === undefined) {
+      // Get the remote enrollment status for each of the contests
+      this.contestsPromises.clear();
+      this.archivedContestsPromises.clear();
+
+      // Create a promise for each subject for fetching contests
+      Object.values(ContestSubject).forEach((subject) => {
+        this.contestsPromises.set(subject, this.getContestsBySubject(subject));
+
+        getAcademicYearsRange().forEach((year) => {
+          this.archivedContestsPromises.set(
+            subject + year,
+            this.getContestsBySubject(subject, true, year)
+          );
+        });
       });
-    });
+    } else {
+      // Update the enrollment status for the specific contest
+      this.sessionUnlockedContests.add(contestId);
+    }
+
+    this._onDidChangeTreeData.fire();
   }
 
   async getContestsBySubject(
@@ -112,6 +132,7 @@ export class ContestDataProvider
           contestId: contest.id,
           startDate: contest.start_date,
           status: statusPromises[idx],
+          hasPassword: contest.password,
         })
     );
 
@@ -138,7 +159,8 @@ export class ContestDataProvider
                 new Date(x.props.startDate!).getTime()
             );
 
-            return [...contests, ...element.props.children!.reverse()];
+            // Reverse a copy of the list of children
+            return [...contests, ...[...element.props.children!].reverse()];
           });
       case "academic_year":
         // Retrieve the archived contests for a specific academic year
@@ -185,11 +207,19 @@ export class ContestDataProvider
         authority: element.props.type,
       });
     } else {
+      // Update the status for the contest if it was unlocked during this session
+      if (this.sessionUnlockedContests.has(element.props.contestId!)) {
+        element.props.status = EnrollmentStatus.ENROLLED;
+      }
+
       if (element.props.status === EnrollmentStatus.NOT_ENROLLED) {
         element.command = {
           command: "lambdachecker.enroll-in-contest",
           title: "Enroll",
+          arguments: [element.props.contestId, element.props.hasPassword, this],
         };
+      } else {
+        element.command = undefined;
       }
 
       element.resourceUri = vscode.Uri.from({
