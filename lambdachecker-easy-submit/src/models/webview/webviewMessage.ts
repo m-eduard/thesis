@@ -5,3 +5,7 @@ export interface WebviewMessage {
   action: string;
   contestId?: number;
 }
+
+export interface ProblemSubmissionWebviewMessage {
+  action: string;
+}

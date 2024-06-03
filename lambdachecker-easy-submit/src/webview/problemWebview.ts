@@ -106,7 +106,8 @@ export class ProblemWebview {
           await LambdaChecker.showSubmissionResult(
             submissionResult,
             this.problem.name,
-            this.problem.tests
+            this.problem.tests,
+            this.problem.language
           );
         }
     }

@@ -53,8 +53,8 @@ export class SubmissionFile {
   /**
    * Creates a file with the skeleton code, if it does not exist
    */
-  async createSubmissionFile(): Promise<void> {
-    if (!(await this.fileExists())) {
+  async createSubmissionFile(override: boolean = false): Promise<void> {
+    if (!(await this.fileExists()) || override) {
       await vscode.workspace.fs.writeFile(
         this.fileUri,
         Buffer.from(this.problemSkel)
@@ -62,8 +62,8 @@ export class SubmissionFile {
     }
   }
 
-  async openInEditor(): Promise<void> {
-    await this.createSubmissionFile();
+  async openInEditor(override: boolean = false): Promise<void> {
+    await this.createSubmissionFile(override);
     ProblemEditor.show(this);
   }
 

@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { HTTPClient } from "../api";
 import {
+  Language,
   ProblemTest,
   RunOutput,
   StatusBar,
@@ -10,7 +11,7 @@ import {
   getSubmissionResultWebviewContent,
 } from "../models";
 import { ContestDataProvider, ProblemItem } from "../treeview";
-import { ProblemEditor } from "../webview";
+import { ProblemEditor, ProblemSubmissionWebviewListener } from "../webview";
 import { ProblemWebview } from "../webview/problemWebview";
 
 export class LambdaChecker {
@@ -124,7 +125,8 @@ export class LambdaChecker {
   static async showSubmissionResult(
     submissionResult: SubmissionResult,
     problemName: string,
-    problemTests: ProblemTest[]
+    problemTests: ProblemTest[],
+    problemLanguage: Language
   ) {
     // console.log(JSON.parse(submissionResult.run_output) as RunOutput);
 
@@ -140,6 +142,15 @@ export class LambdaChecker {
         enableFindWidget: true,
       }
     );
+
+    problemPanel.webview.onDidReceiveMessage(async (message) => {
+      const submissionWebview = new ProblemSubmissionWebviewListener(
+        submissionResult,
+        problemName,
+        problemLanguage
+      );
+      submissionWebview.webviewListener(message);
+    });
 
     problemPanel.webview.html = getSubmissionResultWebviewContent(
       submissionResult,
