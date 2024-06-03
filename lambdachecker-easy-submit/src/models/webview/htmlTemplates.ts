@@ -3,7 +3,7 @@ import { ProblemTest, RunOutput, SubmissionResult, TestResult } from "../api";
 const styles = `
 <style>
   h1 {
-    font-size: 30px;
+    font-size: 26px;
   }
 
   body.vscode-light {
@@ -15,7 +15,7 @@ const styles = `
   }
 
   code, svg, li, .highlight, p {
-    font-size: 16px;
+    font-size: 14px;
   }
   .error {
     font-size: 14px;
@@ -31,16 +31,16 @@ const styles = `
   }
 
   .normal {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: normal;
   }
 
   span {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   code, svg, li, .highlight, p, pre {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   pre {
@@ -60,12 +60,12 @@ const styles = `
   .accepted {
     color: #0BDA51;
     font-weight: strong;
-    font-size: 30px;
+    font-size: 26px;
   }
   .failed {
     color: #D2042D;
     font-weight: strong;
-    font-size: 30px;
+    font-size: 26px;
   }
 
   .buttons::after {

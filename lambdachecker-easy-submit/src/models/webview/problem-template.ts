@@ -21,10 +21,10 @@ export const getProblemWebviewContent = (
         border-left: 3px solid #8c30f5;
       }
       h1 {
-        font-size: 30px;
+        font-size: 26px;
       }
       code, svg, li, .highlight, p, pre {
-        font-size: 16px;
+        font-size: 14px;
       }
       li {
         margin: 5px 0;
