@@ -8,4 +8,5 @@ export interface WebviewMessage {
 
 export interface ProblemSubmissionWebviewMessage {
   action: string;
+  submissionIdx?: number;
 }

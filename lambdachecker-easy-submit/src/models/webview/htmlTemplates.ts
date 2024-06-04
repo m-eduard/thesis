@@ -68,6 +68,16 @@ const styles = `
     font-size: 26px;
   }
 
+  .accepted-normal {
+    color: #0BDA51;
+    font-weight: strong;
+  }
+
+  .failed-normal {
+    color: #D2042D;
+    font-weight: strong;
+  }
+
   .buttons::after {
     content: "";
     display: table;
@@ -98,6 +108,7 @@ const styles = `
   .copy-code svg {
     width: 14px;
     height: 14px;
+    margin-right: 5px;
   }
 
   .all-submissions {
@@ -107,12 +118,40 @@ const styles = `
   .all-submissions svg {
     width: 14px;
     height: 14px;
+    margin-right: 5px;
   }
 
   div {
     padding-top: 5px;
     min-height: 20px;
   }
+
+  .submissions-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .submissions-table th, .submissions-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid white;
+    font-size: 14px;
+  }
+
+  .submissions-table tr:nth-child(even) {
+    background-color: var(--vscode-inlineChat-background);
+  }
+
+  .submissions-table tr:nth-child(odd) {
+    background-color: var(--vscode-editor-background);
+  }
+
+  .submissions-table tr {
+    border: none;
+    cursor: pointer;
+    border-radius: 0px;
+  }
+
 </style>`;
 
 const head = `
@@ -147,7 +186,7 @@ const getBringCodeToEditorButton = () => {
 
 const getAllSubmissionsButton = () => {
   return `
-  <button id="all-submissions" class="btn all-submissions" onclick="send('all-submissions')">
+  <button id="all-submissions" class="btn all-submissions" onclick="send('view-all-submissions')">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path fill-rule="evenodd" clip-rule="evenodd" d="M6.99999 3.0929L2 8.09288L2 8.79999L6.99999 13.8L7.7071 13.0929L3.56066 8.94644L14 8.94644L14 7.94644L3.56066 7.94644L7.7071 3.8L6.99999 3.0929Z" fill="#C5C5C5"/>
     </svg>All Submissions</button>`;
@@ -199,10 +238,14 @@ const getTestResultHTML = (
   testResult: TestResult,
   test: ProblemTest
 ) => {
+  const grade = testResult.status === "PASSED" ? test.grade : 0;
+
   return `
 <h2> <span class=${
     testResult.status === "PASSED" ? "accepted" : "failed"
-  }>Case ${testNo} </span> <span class="normal">| ${test.grade} pts</span>
+  }>Case ${testNo} </span> <span class="normal">|  ${grade} / ${
+    test.grade
+  } pts</span>
 </h2>
 <h3>Input:</h3>
 <pre>${test.input}</pre>
@@ -275,7 +318,104 @@ ${getBringCodeToEditorButton()}
         action: cmd,
       });
     }
+
+    window.addEventListener('message', event => {
+      const message = event.data;
+
+      switch (message.command) {
+        case 'reset-cursor':
+          window.scrollTo(0, 0);
+          break;
+      }
+    });
   </script>
 </body>
 </html>`;
+};
+
+const getSubmissionsTableEntryHTML = (
+  submissionResult: SubmissionResult,
+  tests: ProblemTest[],
+  submissionIdx: number
+) => {
+  const passedTestsCount = submissionResult.run_output.results?.filter(
+    (result) => result.status === "PASSED"
+  ).length;
+  const totalTestsCount = submissionResult.run_output.results?.length;
+  let accepted = totalTestsCount === passedTestsCount;
+
+  let status = "Accepted";
+  if (submissionResult.run_output.compiled === false) {
+    status = "Compilation Error";
+    accepted = false;
+  } else if (!accepted) {
+    status = "Wrong Answer";
+  }
+
+  const headerClass = accepted ? "accepted-normal" : "failed-normal";
+
+  return `
+<tr onclick='send("view-submission", ${submissionIdx})'>
+  <td>Submission ${submissionIdx}</td>
+  <td> <span class="${headerClass}"><b>${status}</b></span> <div class="meta">${stringifyDate(
+    submissionResult.date
+  )}</div></td>
+  <td>${
+    passedTestsCount !== undefined
+      ? passedTestsCount + " / " + totalTestsCount
+      : "-"
+  }</td>
+  <td>${
+    submissionResult.grade +
+    " / " +
+    tests.map((x) => x.grade).reduce((acc, x) => acc + x)
+  }</td>
+</tr>`;
+};
+
+export const getSubmissionsTableHTML = (
+  submissionResults: SubmissionResult[],
+  tests: ProblemTest[]
+) => {
+  const submissionsData = submissionResults
+    .map((submissionResult, idx) =>
+      getSubmissionsTableEntryHTML(submissionResult, tests, idx)
+    )
+    .reverse()
+    .join("");
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<html>
+  ${head}
+  <body>
+  <h1>Submissions</h1>
+    <table class="submissions-table">
+      <thead>
+          <tr>
+              <th>Index</th>
+              <th>Status</th>
+              <th>Tests Passed</th>
+              <th>Points</th>
+          </tr>
+      </thead>
+      <tbody>
+          ${submissionsData}
+      </tbody>
+    </table>
+
+    <script>
+      const vscode = acquireVsCodeApi();
+
+      function send(cmd, submissionIdx) {
+        vscode.postMessage({
+          action: cmd,
+          submissionIdx: submissionIdx
+        });
+      }
+    </script>
+  </body>
+</html>
+`;
 };

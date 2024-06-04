@@ -143,13 +143,17 @@ export class LambdaChecker {
       }
     );
 
+    // Create the listener once, and use it for each message received
+    const currentProblemResultListener = new ProblemSubmissionWebviewListener(
+      submissionResult,
+      problemName,
+      problemLanguage,
+      problemPanel,
+      problemTests
+    );
+
     problemPanel.webview.onDidReceiveMessage(async (message) => {
-      const submissionWebview = new ProblemSubmissionWebviewListener(
-        submissionResult,
-        problemName,
-        problemLanguage
-      );
-      submissionWebview.webviewListener(message);
+      currentProblemResultListener.webviewListener(message);
     });
 
     problemPanel.webview.html = getSubmissionResultWebviewContent(
