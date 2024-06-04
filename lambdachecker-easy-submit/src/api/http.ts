@@ -4,6 +4,7 @@ import {
   Contest,
   ContestSubject,
   EnrollmentStatus,
+  RunOutput,
   SpecificProblem,
   SubmissionResult,
 } from "../models";
@@ -154,7 +155,7 @@ export class HTTPClient {
 
     if (response.status !== 200) {
       throw new Error(
-        `${response.statusText}: ${
+        `${response.statusText} (${response.status}): ${
           (problemData as Record<string, unknown>)["error"]
         }`
       );
@@ -176,14 +177,16 @@ export class HTTPClient {
         problem_id: problemId,
       })
     );
-    console.log(response);
-    const submissionData = await response.json();
 
-    console.log(JSON.stringify(submissionData));
+    const submissionData = await response.json().catch((error) => {
+      console.log(error);
+
+      throw new Error(`${response.statusText} (${response.status})`);
+    });
 
     if (response.status !== 200) {
       throw new Error(
-        `${response.statusText}: ${
+        `${response.statusText} (${response.status}): ${
           (submissionData as Record<string, unknown>)["message"]
         }`
       );
@@ -199,13 +202,21 @@ export class HTTPClient {
 
     if (response.status !== 200) {
       throw new Error(
-        `${response.statusText}: ${
+        `${response.statusText} (${response.status}): ${
           (submissionsData as Record<string, unknown>)["message"]
         }`
       );
     }
 
-    return submissionsData as SubmissionResult[];
+    const submissions = submissionsData as SubmissionResult[];
+    submissions.forEach((submission) => {
+      // Parse the run_output field as JSON
+      submission.run_output = JSON.parse(
+        submission.run_output as unknown as string
+      ) as RunOutput;
+    });
+
+    return submissions;
   }
 
   async getUserRank(): Promise<Record<string, unknown>> {
@@ -234,7 +245,7 @@ export class HTTPClient {
 
     if (response.status !== 200) {
       throw new Error(
-        `${response.statusText}: ${
+        `${response.statusText} (${response.status}): ${
           (enrollmentData as Record<string, unknown>)["message"]
         }`
       );

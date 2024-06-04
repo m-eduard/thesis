@@ -22,7 +22,22 @@ export class ProblemWebview {
     );
   }
 
-  async waitForSubmitionProcessing(): Promise<SubmissionResult | undefined> {
+  async waitForSubmitionProcessing(
+    contestId?: number
+  ): Promise<SubmissionResult | undefined> {
+    let stopPolling = false;
+
+    LambdaChecker.client
+      .submitSolution(
+        this.problem.id,
+        contestId ? contestId : -1,
+        await this.submissionFile.readSubmissionFile()
+      )
+      .catch((error) => {
+        stopPolling = true;
+        vscode.window.showErrorMessage(error.message);
+      });
+
     const getSubmissionsSafe = async () => {
       return LambdaChecker.client
         .getSubmissions(this.problem.id)
@@ -47,14 +62,10 @@ export class ProblemWebview {
           let poller = setTimeout(async function loop() {
             const currentSubmissions = await getSubmissionsSafe();
 
-            if (currentSubmissions.length > submissions.length) {
+            if (currentSubmissions.length > submissions.length || stopPolling) {
               clearInterval(poller);
               const lastSubmissionResult =
                 currentSubmissions[currentSubmissions.length - 1];
-
-              lastSubmissionResult.run_output = JSON.parse(
-                lastSubmissionResult.run_output as unknown as string
-              ) as RunOutput;
 
               resolve(lastSubmissionResult);
               return;
@@ -91,12 +102,9 @@ export class ProblemWebview {
       case "submit":
         console.log("Submitting from ", message.contestId);
 
-        LambdaChecker.client.submitSolution(
-          this.problem.id,
-          message.contestId ? message.contestId : -1,
-          await this.submissionFile.readSubmissionFile()
+        const submissionResult = await this.waitForSubmitionProcessing(
+          message.contestId
         );
-        const submissionResult = await this.waitForSubmitionProcessing();
 
         console.log(this.problem.tests!);
 
