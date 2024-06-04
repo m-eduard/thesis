@@ -6,14 +6,20 @@ import {
   SubmissionResult,
   WebviewMessage,
 } from "../models";
+import { getProblemHTML } from "../models/webview/htmlTemplates";
 import { SubmissionFile } from "../storage";
+import { ProblemSubmissionWebviewListener } from "./problemSubmissionWebviewListener";
 
 export class ProblemWebview {
   public submissionFile: SubmissionFile;
   private static apiCooldown = 100;
   private static maxApiConsecutiveRequests = 50;
+  private submissionsListener?: ProblemSubmissionWebviewListener;
 
-  constructor(public problem: SpecificProblem) {
+  constructor(
+    public problem: SpecificProblem,
+    public panel: vscode.WebviewPanel
+  ) {
     this.submissionFile = new SubmissionFile(
       problem.id,
       problem.name,
@@ -118,6 +124,59 @@ export class ProblemWebview {
             this.problem.language
           );
         }
+      case "view-description":
+        this.panel.webview.html = getProblemHTML(this.problem);
+        break;
+      case "view-submissions":
+        const submissionsPanel = vscode.window.createWebviewPanel(
+          "lambdachecker.webview.results",
+          `${this.problem.id}. ${this.problem.name}`,
+          {
+            viewColumn: vscode.ViewColumn.Two,
+            preserveFocus: false,
+          },
+          {
+            enableScripts: true,
+            enableFindWidget: true,
+          }
+        );
+
+        if (this.submissionsListener === undefined) {
+          this.submissionsListener = new ProblemSubmissionWebviewListener(
+            this.problem.id,
+            this.problem.name,
+            this.problem.language,
+            "",
+            submissionsPanel,
+            this.problem.tests
+          );
+        }
+
+        submissionsPanel.webview.onDidReceiveMessage(async (message) => {
+          this.submissionsListener!.webviewListener(message);
+        });
+
+        submissionsPanel.webview.postMessage({});
+
+        // Message sent by postMessage doesn't reach
+        // otherwise the submissionPanelListener
+        const bounceOffDummyHTML = `
+        <html>
+          <script>
+          const vscode = acquireVsCodeApi();
+
+          window.addEventListener('message', event => {
+            vscode.postMessage({
+              action: "view-all-submissions",
+            });
+          });
+          </script>
+        </html>
+        `;
+
+        submissionsPanel.webview.html = bounceOffDummyHTML;
+
+        break;
     }
   }
 }

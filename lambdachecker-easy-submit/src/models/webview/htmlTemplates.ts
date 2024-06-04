@@ -1,4 +1,10 @@
-import { ProblemTest, RunOutput, SubmissionResult, TestResult } from "../api";
+import {
+  ProblemTest,
+  RunOutput,
+  SpecificProblem,
+  SubmissionResult,
+  TestResult,
+} from "../api";
 
 const styles = `
 <style>
@@ -151,6 +157,67 @@ const styles = `
     cursor: pointer;
     border-radius: 0px;
   }
+
+  .bottom-btn {
+    font-size: 15px;
+    padding: 10px 25px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    border-radius: 3px;
+  }
+
+</style>`;
+
+const problemButtonsStyle = `
+<style>
+.code {
+  color: black;
+  background-color: #b680f3;
+}
+.code:hover {
+  background-color: #8c30f5;
+  transition: 0.1s;
+}
+.code:active {
+  transform: translateY(4px); 
+}
+.run {
+  float: right;
+  color: black;
+  background-color: #f4f4f5;
+  margin-right: 10px;
+}
+.run:hover {
+  background-color: #8C30F5;
+  transition: 0.1s;
+}
+.run:active {
+  transform: translateY(4px); 
+}
+.submit {
+  float: right;
+  color: black;
+  background-color: #b680f3;
+}
+.submit:hover {
+  background-color: #8c30f5;
+  transition: 0.1s;
+}
+.submit:active {
+  transform: translateY(4px); 
+}
+
+.button-container {
+  display: flex;
+  align-items: center;
+}
+
+.separator {
+  margin: 0 10px;
+  font-size: 18px;
+  color: #333;
+}
 
 </style>`;
 
@@ -412,6 +479,113 @@ export const getSubmissionsTableHTML = (
         vscode.postMessage({
           action: cmd,
           submissionIdx: submissionIdx
+        });
+      }
+    </script>
+  </body>
+</html>
+`;
+};
+
+const getDescriptionButton = () => {
+  return `
+<button id="description" class="btn" onclick="send('view-description')">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M10.57 1.14L13.85 4.44L14 4.8V14.5L13.5 15H2.5L2 14.5V1.5L2.5 1H10.22L10.57 1.14ZM10 5H13L10 2V5ZM3 2V14H13V6H9.5L9 5.5V2H3ZM11 7H5V8H11V7ZM5 9H11V10H5V9ZM11 11H5V12H11V11Z" fill="#C5C5C5"/>
+  </svg> Description
+</button>`;
+};
+
+const getSubmissionsButton = () => {
+  return `
+<button id="submissions" class="btn all-submissions" onclick="send('view-submissions')">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.5 0H8.5L7 1.5V6H2.5L1 7.5V22.5699L2.5 24H14.5699L16 22.5699V18H20.7L22 16.5699V4.5L17.5 0ZM17.5 2.12L19.88 4.5H17.5V2.12ZM14.5 22.5H2.5V7.5H7V16.5699L8.5 18H14.5V22.5ZM20.5 16.5H8.5V1.5H16V6H20.5V16.5Z" fill="#C5C5C5"/>
+  </svg> Submissions
+</buton>`;
+};
+
+export const getProblemHTML = (
+  problemData: SpecificProblem,
+  contestId?: number
+) => {
+  const title = `${problemData.id}. ${problemData.name}`;
+
+  console.log("Registered contest id", contestId);
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${title}</title>
+    ${styles}
+    <style>
+      body {
+        border-left: 3px solid #8c30f5;
+      }
+    </style>
+
+    ${problemButtonsStyle}
+      
+    <style>
+      .header-btn {
+        font-size: 14px;
+        padding: 8px 0px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        border-radius: 0px;
+    
+        display: inline-block;
+        background-color: transparent;
+      }
+
+      .all-submissions {
+        float: left;
+      }
+    
+      .all-submissions svg {
+        width: 14px;
+        height: 14px;
+        margin-right: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="button-container">
+      ${getDescriptionButton()}
+      <span class="separator">|</span>
+      ${getSubmissionsButton()}
+    </div>
+
+    <h1>${title}</h1>
+    <p>${problemData.description}</p>
+
+    <h2>Exemplu:</h2>
+    <h3>Input:</h3>
+    <pre>${problemData.example.input}</pre>
+
+    <h3>Output:</h3>
+    <pre>${problemData.example.output}</pre>
+
+    <div class="buttons">
+      <button id="submit" class="bottom-btn submit" onclick="send('submit')">Submit</button>
+      <button id="run" class="bottom-btn run" onclick="send('run')">Run</button>
+      <button id="code" class="bottom-btn code" onclick="send('code')">Code</button>
+    </div>
+
+    <script>
+      const vscode = acquireVsCodeApi();
+
+      vscode.setState(${JSON.stringify(problemData)});
+
+      function send(cmd) {
+        vscode.postMessage({
+          action: cmd,
+          contestId: ${contestId},
         });
       }
     </script>

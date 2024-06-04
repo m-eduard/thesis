@@ -10,6 +10,7 @@ import {
   getProblemWebviewContent,
   getSubmissionResultWebviewContent,
 } from "../models";
+import { getProblemHTML } from "../models/webview/htmlTemplates";
 import { ContestDataProvider, ProblemItem } from "../treeview";
 import { ProblemEditor, ProblemSubmissionWebviewListener } from "../webview";
 import { ProblemWebview } from "../webview/problemWebview";
@@ -116,10 +117,10 @@ export class LambdaChecker {
     );
 
     problemPanel.webview.onDidReceiveMessage(async (message) => {
-      const problemWebview = new ProblemWebview(problem);
+      const problemWebview = new ProblemWebview(problem, problemPanel);
       problemWebview.webviewListener(message);
     });
-    problemPanel.webview.html = getProblemWebviewContent(problem, contestId);
+    problemPanel.webview.html = getProblemHTML(problem, contestId);
   }
 
   static async showSubmissionResult(
@@ -145,9 +146,10 @@ export class LambdaChecker {
 
     // Create the listener once, and use it for each message received
     const currentProblemResultListener = new ProblemSubmissionWebviewListener(
-      submissionResult,
+      submissionResult.problem_id,
       problemName,
       problemLanguage,
+      submissionResult.code,
       problemPanel,
       problemTests
     );

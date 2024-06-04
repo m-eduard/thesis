@@ -15,24 +15,25 @@ export class ProblemSubmissionWebviewListener {
   public allSubmissions: SubmissionResult[] = [];
 
   constructor(
-    public submissionResult: SubmissionResult,
+    public problemId: number,
     problemName: string,
     problemLanguage: Language,
+    problemCode: string,
     public panel: vscode.WebviewPanel,
     public problemTests: ProblemTest[]
   ) {
     this.submissionFile = new SubmissionFile(
-      submissionResult.problem_id,
+      problemId,
       problemName,
       problemLanguage,
-      submissionResult.code
+      problemCode
     );
   }
 
   async webviewListener(message: ProblemSubmissionWebviewMessage) {
     const getSubmissionsSafe = async () => {
       return LambdaChecker.client
-        .getSubmissions(this.submissionResult.problem_id)
+        .getSubmissions(this.problemId)
         .catch((error) => {
           vscode.window.showErrorMessage(error.message);
           return [] as SubmissionResult[];
