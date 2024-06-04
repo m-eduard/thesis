@@ -239,7 +239,7 @@ const stringifyDate = (date: string) => {
     hour: "numeric",
     minute: "numeric",
     second: "numeric",
-    hour12: false,
+    hourCycle: "h23",
   });
 };
 
