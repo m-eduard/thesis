@@ -36,11 +36,17 @@
       {
         "command": "lambdachecker.enroll-in-contest",
         "title": "Enroll",
+        "category": "Lambda Checker"
+      },
+      {
+        "command": "lambdachecker.create-contest",
+        "title": "Create Contest",
         "icon": {
           "light": "resources/icons/light/add.svg",
           "dark": "resources/icons/dark/add.svg"
         },
-        "category": "Lambda Checker"
+        "category": "Lambda Checker",
+        "when": "lambdachecker.teacher"
       }
     ],
     "menus": {
@@ -52,14 +58,16 @@
       ],
       "view/title": [
         {
-          "command": "lambdachecker.enroll-in-contest",
-          "group": "navigation"
+          "command": "lambdachecker.create-contest",
+          "group": "navigation",
+          "when": "lambdachecker.teacher"
         }
       ],
       "view/item/context": [
         {
-          "command": "lambdachecker.enroll-in-contest",
-          "group": "inline"
+          "command": "lambdachecker.create-contest",
+          "group": "inline",
+          "when": "lambdachecker.teacher"
         }
       ]
     },

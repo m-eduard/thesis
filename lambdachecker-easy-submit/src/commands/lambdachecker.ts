@@ -74,6 +74,13 @@ export class LambdaChecker {
       LambdaChecker.userDataCache.put("token", response["token"] as string);
       StatusBar.updateStatus(await LambdaChecker.getLoginStatus());
 
+      // Update the role seen by the extension
+      if ((response["user"] as unknown as Record<string, unknown>)["role"] == "teacher") {
+        vscode.commands.executeCommand('setContext', 'lambdachecker.teacher', true);
+      } else {
+        vscode.commands.executeCommand('setContext', 'lambdachecker.teacher', false);
+      }
+
       // save the data retrieved from api regarding the current user
       // the user data, token and enrolled contests
     } catch (error: any) {
@@ -210,5 +217,9 @@ export class LambdaChecker {
           }
         });
     }
+  }
+
+  static async createContest() {
+    
   }
 }

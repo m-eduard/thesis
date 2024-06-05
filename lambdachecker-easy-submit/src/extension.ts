@@ -33,7 +33,11 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(
         "lambdachecker.enroll-in-contest",
         LambdaChecker.enrollInContest
-      )
+      ),
+      vscode.commands.registerCommand(
+        "lambdachecker.create-contest",
+        LambdaChecker.createContest
+      ),
     );
     context.subscriptions.push(StatusBar.statusBarItem);
     context.subscriptions.push(
@@ -65,6 +69,12 @@ export async function activate(context: vscode.ExtensionContext) {
     const loggedInUsername = await LambdaChecker.getLoginStatus();
     if (loggedInUsername !== undefined) {
       StatusBar.updateStatus(loggedInUsername);
+      const role = (LambdaChecker.userDataCache.get("user") as unknown as Record<string, unknown>)["role"];
+
+      // Update the role seen by the extension
+      if (role == "teacher") {
+        vscode.commands.executeCommand('setContext', 'lambdachecker.teacher', true);
+      }
 
       const contestsTreeView = vscode.window.createTreeView(
         "lambdachecker.contests",
