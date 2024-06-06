@@ -11,6 +11,7 @@ import {
 } from "../models";
 import { ContestItem } from "./contestItem";
 import { ProblemItem } from "./problemItem";
+import { LambdaChecker } from "../commands";
 
 export class ContestDataProvider
   implements vscode.TreeDataProvider<ContestItem | ProblemItem>
@@ -31,6 +32,7 @@ export class ContestDataProvider
 
   constructor(client: HTTPClient) {
     this.lambdacheckerClient = client;
+    LambdaChecker.contestDataProvider = this;
 
     // Create a subroot for each subject and for
     // the archived academical years

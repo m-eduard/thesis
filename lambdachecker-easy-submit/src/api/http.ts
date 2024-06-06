@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import {
   BaseProblem,
   Contest,
+  ContestCreate,
+  ContestCreateResponse,
   ContestSubject,
   EnrollmentStatus,
   RunOutput,
@@ -252,6 +254,41 @@ export class HTTPClient {
     }
   }
 
+  async createContest(contestContent: ContestCreate): Promise<ContestCreateResponse> {
+    const response = await this.request(
+      new Route("POST", "/contests"),
+      JSON.stringify(contestContent)
+    );
+
+    const contestCreateData = await response.json();
+
+    console.log("content:", contestCreateData);
+
+    if (response.status !== 200) {
+      throw new Error(
+        `${response.statusText} (${response.status}): ${
+          (contestCreateData as Record<string, unknown>)["message"]
+        }`
+      );
+    }
+
+    return contestCreateData as ContestCreateResponse;
+  }
+
+  async editContest(contestId: number, contestContent: ContestCreate): Promise<void> {
+    const response = await this.request(new Route("PUT", `/contests/${contestId}`));
+
+    const contestEditData = await response.json();
+
+    if (response.status !== 200) {
+      throw new Error(
+        `${response.statusText} (${response.status}): ${
+          (contestEditData as Record<string, unknown>)["message"]
+        }`
+      );
+    }
+  }
+
   async checkTokenValidity(): Promise<boolean> {
     try {
       await this.getUserRank();
@@ -263,7 +300,8 @@ export class HTTPClient {
 }
 
 class Route {
-  private static readonly base = "https://apibeta.lambdachecker.io";
+  // private static readonly base = "https://apibeta.lambdachecker.io";
+  private static readonly base = "http://localhost:3000";
 
   public method: string;
   public url: string;

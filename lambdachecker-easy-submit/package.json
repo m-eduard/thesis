@@ -60,14 +60,14 @@
         {
           "command": "lambdachecker.create-contest",
           "group": "navigation",
-          "when": "lambdachecker.teacher"
+          "when": "lambdachecker.teacher && view == lambdachecker.contests"
         }
       ],
       "view/item/context": [
         {
           "command": "lambdachecker.create-contest",
           "group": "inline",
-          "when": "lambdachecker.teacher"
+          "when": "lambdachecker.teacher && view == lambdachecker.contests"
         }
       ]
     },

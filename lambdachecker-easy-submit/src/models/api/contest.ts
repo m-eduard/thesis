@@ -29,4 +29,28 @@ export interface Contest {
   prize?: string;
   scoring?: string;
   rules?: string;
+
+  collab_username?: string;
+}
+
+export interface ContestCreate {
+  name: string;
+  start_date: string;
+  end_date: string;
+  user_id?: number;
+  collab_username?: string;
+  subject_abbreviation: ContestSubject;
+  description: string;
+  password?: string;
+  prize?: string;
+  scoring?: string;
+  rules?: string;
+  problems?: number[];
+  quotas?: number[];
+}
+
+export interface ContestCreateResponse {
+  status: string;
+  message: string;
+  id: number;
 }

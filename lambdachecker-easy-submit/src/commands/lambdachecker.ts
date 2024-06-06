@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { HTTPClient } from "../api";
 import {
+  ContestSubject,
   Language,
   ProblemTest,
   RunOutput,
@@ -10,7 +11,7 @@ import {
   getProblemWebviewContent,
   getSubmissionResultWebviewContent,
 } from "../models";
-import { getProblemHTML } from "../models/webview/htmlTemplates";
+import { getContestCreationHTML, getProblemHTML } from "../models/webview/htmlTemplates";
 import { ContestDataProvider, ProblemItem } from "../treeview";
 import { ProblemEditor, ProblemSubmissionWebviewListener } from "../webview";
 import { ProblemWebview } from "../webview/problemWebview";
@@ -18,6 +19,7 @@ import { ProblemWebview } from "../webview/problemWebview";
 export class LambdaChecker {
   static client: HTTPClient;
   static userDataCache = new Storage();
+  static contestDataProvider: ContestDataProvider;
 
   static async getLoginStatus(): Promise<string | undefined> {
     const loggedIn =
@@ -80,6 +82,9 @@ export class LambdaChecker {
       } else {
         vscode.commands.executeCommand('setContext', 'lambdachecker.teacher', false);
       }
+
+      // Update the contests status
+      LambdaChecker.contestDataProvider.refresh();
 
       // save the data retrieved from api regarding the current user
       // the user data, token and enrolled contests
@@ -220,6 +225,55 @@ export class LambdaChecker {
   }
 
   static async createContest() {
-    
+    const createContestPanel = vscode.window.createWebviewPanel(
+      "lambdachecker.webview.create-contest",
+      "Create Contest",
+      {
+        viewColumn: vscode.ViewColumn.One,
+        preserveFocus: false,
+      },
+      {
+        enableScripts: true,
+        enableFindWidget: true,
+      }
+    );
+
+    createContestPanel.webview.html = getContestCreationHTML();
+
+    // try {
+    //   const response = await LambdaChecker.client.createContest({
+    //     // name: "abc" + Math.random().toString(),
+    //     name: "contest name",
+    //     start_date: "2024-06-05T22:26:22.136Z",
+    //     end_date: "2024-06-14T22:25:22.000Z",
+    //     user_id: 0,
+    //     collab_username: "",
+    //     subject_abbreviation: ContestSubject.DSA,
+    //     description: "test description",
+    //     password: "password",
+    //     problems: [1, 129],
+    //     quotas: [1, 1],
+    //   });
+
+    //   console.log("Id is: ", response.id);
+
+    //   LambdaChecker.contestDataProvider.refresh();
+    // } catch (error: any) {
+    //   console.log("here", error);
+
+    //   vscode.window
+    //     .showErrorMessage(error.message, "Try again")
+    //     .then((selection) => {
+    //       if (selection === "Try again") {
+    //         console.log("hahah no work");
+    //         // vscode.commands.executeCommand(
+    //         //   "lambdachecker.enroll-in-contest",
+    //         //   contestId,
+    //         //   hasPassword,
+    //         //   contestDataProvider
+    //         // );
+    //       }
+    //     });
+    // }
   }
 }
