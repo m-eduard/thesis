@@ -14,6 +14,8 @@ export class ProblemWebview {
   public submissionFile: SubmissionFile;
   private static apiCooldown = 100;
   private static maxApiConsecutiveRequests = 50;
+  private createdWebview = false;
+  private submissionsPanel?: vscode.WebviewPanel;
   private submissionsListener?: ProblemSubmissionWebviewListener;
 
   constructor(
@@ -106,17 +108,11 @@ export class ProblemWebview {
       case "run":
         break;
       case "submit":
-        console.log("Submitting from ", message.contestId);
-
         const submissionResult = await this.waitForSubmitionProcessing(
           message.contestId
         );
 
-        console.log(this.problem.tests!);
-
         if (submissionResult !== undefined) {
-          console.log(submissionResult);
-
           await LambdaChecker.showSubmissionResult(
             submissionResult,
             this.problem.name,
@@ -124,57 +120,69 @@ export class ProblemWebview {
             this.problem.language
           );
         }
+        break;
       case "view-description":
-        this.panel.webview.html = getProblemHTML(this.problem);
+        this.panel.webview.html = getProblemHTML(
+          this.problem,
+          message.contestId
+        );
         break;
       case "view-submissions":
-        const submissionsPanel = vscode.window.createWebviewPanel(
-          "lambdachecker.webview.results",
-          `${this.problem.id}. ${this.problem.name}`,
-          {
-            viewColumn: vscode.ViewColumn.Two,
-            preserveFocus: false,
-          },
-          {
-            enableScripts: true,
-            enableFindWidget: true,
-          }
-        );
+        if (this.createdWebview === false) {
+          this.createdWebview = true;
 
-        if (this.submissionsListener === undefined) {
+          // Create a new webview panel for the submissions status
+          this.submissionsPanel = vscode.window.createWebviewPanel(
+            "lambdachecker.webview.results",
+            `${this.problem.id}. ${this.problem.name}`,
+            {
+              viewColumn: vscode.ViewColumn.Two,
+              preserveFocus: false,
+            },
+            {
+              enableScripts: true,
+              enableFindWidget: true,
+            }
+          );
+
           this.submissionsListener = new ProblemSubmissionWebviewListener(
             this.problem.id,
             this.problem.name,
             this.problem.language,
             "",
-            submissionsPanel,
+            this.submissionsPanel,
             this.problem.tests
           );
-        }
 
-        submissionsPanel.webview.onDidReceiveMessage(async (message) => {
-          this.submissionsListener!.webviewListener(message);
-        });
-
-        submissionsPanel.webview.postMessage({});
-
-        // Message sent by postMessage doesn't reach
-        // otherwise the submissionPanelListener
-        const bounceOffDummyHTML = `
-        <html>
-          <script>
-          const vscode = acquireVsCodeApi();
-
-          window.addEventListener('message', event => {
-            vscode.postMessage({
-              action: "view-all-submissions",
-            });
+          this.submissionsPanel.webview.onDidReceiveMessage(async (message) => {
+            this.submissionsListener!.webviewListener(message);
           });
-          </script>
-        </html>
-        `;
 
-        submissionsPanel.webview.html = bounceOffDummyHTML;
+          this.submissionsPanel.onDidDispose(() => {
+            this.createdWebview = false;
+          });
+
+          // Message sent by postMessage doesn't reach
+          // otherwise the submissionPanelListener
+          const bounceOffDummyHTML = `
+          <html>
+            <script>
+            const vscode = acquireVsCodeApi();
+
+            window.addEventListener('message', event => {
+              vscode.postMessage({
+                action: "view-all-submissions",
+              });
+            });
+            </script>
+          </html>
+          `;
+
+          this.submissionsPanel!.webview.html = bounceOffDummyHTML;
+          this.submissionsPanel!.webview.postMessage({});
+        } else {
+          this.submissionsPanel!.reveal();
+        }
 
         break;
     }
