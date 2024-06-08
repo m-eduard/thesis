@@ -5,12 +5,13 @@ import { ProblemWebview } from "./problemWebview";
 
 export class ProblemWebviewSerializer implements vscode.WebviewPanelSerializer {
   async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
-    const problem: SpecificProblem = state;
+    const problem: SpecificProblem = state.problem;
+    const contestId: number | undefined = state.contestId;
 
     webviewPanel.webview.onDidReceiveMessage(async (message) => {
       const problemWebview = new ProblemWebview(problem, webviewPanel);
       problemWebview.webviewListener(message);
     });
-    webviewPanel.webview.html = getProblemHTML(problem);
+    webviewPanel.webview.html = getProblemHTML(problem, contestId);
   }
 }
