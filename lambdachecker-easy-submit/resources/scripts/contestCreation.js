@@ -297,7 +297,7 @@ function submitForm() {
 
   const problemsInput = selectedItems.map(item => parseInt(item.text));
   const quotasInput = document.getElementById('quotas-input').value;
-  const quotas = quotasInput.split(',').map(quota => parseInt(quota));
+  const quotas = quotasInput.split(',').filter(quota => quota.length > 0).map(quota => parseInt(quota));
 
   vscode.postMessage({
     state: "submitted",
