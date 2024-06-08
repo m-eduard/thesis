@@ -575,10 +575,10 @@ export const getProblemHTML = (
 
     <h2>Exemplu:</h2>
     <h3>Input:</h3>
-    <pre>${problemData.example.input}</pre>
+    <pre>${problemData.example?.input || ""}</pre>
 
     <h3>Output:</h3>
-    <pre>${problemData.example.output}</pre>
+    <pre>${problemData.example?.output || ""}</pre>
 
     <div class="buttons">
       <button id="submit" class="bottom-btn submit" onclick="send('submit')">Submit</button>
