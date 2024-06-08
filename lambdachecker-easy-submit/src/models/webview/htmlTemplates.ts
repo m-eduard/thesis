@@ -88,6 +88,14 @@ const styles = `
     font-weight: strong;
   }
 
+  .accepted-thin {
+    color: #0BDA51;
+  }
+
+  .failed-thin {
+    color: #D2042D;
+  }
+
   .buttons::after {
     content: "";
     display: table;
@@ -304,12 +312,81 @@ ${getBringCodeToEditorButton()}
 </html>`;
 };
 
+const longestIncreasingSubsequence = (arr: number[]) => {
+  if (arr.length === 0) {
+    return [];
+  }
+
+  const n = arr.length;
+  const window = [arr[0]];
+
+  for (let i = 0; i < n; ++i) {
+    if (arr[i] > window[window.length - 1]) {
+      window.push(arr[i]);
+    } else {
+      const idx = window.findIndex((x) => x >= arr[i]);
+      window[idx] = arr[i];
+    }
+  }
+
+  return window;
+};
+
 const getTestResultHTML = (
   testNo: number,
   testResult: TestResult,
   test: ProblemTest
 ) => {
   const grade = testResult.status === "PASSED" ? test.grade : 0;
+
+  let formattedOut = "";
+  let formattedRef = "";
+
+  let leftmostApparition = new Array(128).fill(0);
+  let firstApparition = new Array(testResult.out.length).fill(-1);
+
+  for (let i = 0; i < testResult.out.length; ++i) {
+    console.log(testResult.out[i], i);
+
+    // Find the first apparition of i-th character in the reference,
+    // and if it's not the first time when the character appears in
+    // the ref string, start from the last position where it was found
+    const left = leftmostApparition[testResult.out[i].charCodeAt(0)] + 1;
+
+    for (let j = left; j < testResult.ref.length; ++j) {
+      if (testResult.out[i] === testResult.ref[j]) {
+        leftmostApparition[testResult.out[i].charCodeAt(0)] = j;
+        firstApparition[i] = j;
+        break;
+      }
+    }
+
+    // The character was not found
+    if (leftmostApparition[testResult.out[i].charCodeAt(0)] === left - 1) {
+    } else {
+    }
+  }
+
+  // Find one of the longest increasing subsequences
+  const lis = longestIncreasingSubsequence(firstApparition);
+
+  if (lis[0] === -1) {
+    lis.shift();
+  }
+
+  console.log(lis);
+
+  formattedOut = Array.from(testResult.out)
+    .map((x, idx) => {
+      if (lis.includes(firstApparition[idx])) {
+        return x;
+      }
+
+      return `<span class="failed-thin">${x}</span>`;
+    })
+    .join("");
+
+  for (let i = 0; i < testResult.out.length; ++i) {}
 
   return `
 <h2> <span class=${
@@ -321,7 +398,7 @@ const getTestResultHTML = (
 <h3>Input:</h3>
 <pre>${test.input}</pre>
 <h3>Output:</h3>
-<pre>${testResult.out}</pre>
+<pre>${formattedOut}</pre>
 <h3>Expected:</h3>
 <pre>${testResult.ref}</pre>
 <hr>
