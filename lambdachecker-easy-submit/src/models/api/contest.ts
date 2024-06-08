@@ -31,6 +31,7 @@ export interface Contest {
   rules?: string;
 
   collab_username?: string;
+  collab_id?: number;
 }
 
 export interface ContestCreate {

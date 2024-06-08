@@ -47,6 +47,16 @@
         },
         "category": "Lambda Checker",
         "when": "lambdachecker.teacher"
+      },
+      {
+        "command": "lambdachecker.edit-contest",
+        "title": "Edit Contest",
+        "icon": {
+          "light": "resources/icons/light/add.svg",
+          "dark": "resources/icons/dark/add.svg"
+        },
+        "category": "Lambda Checker",
+        "when": "lambdachecker.teacher"
       }
     ],
     "menus": {
@@ -65,9 +75,9 @@
       ],
       "view/item/context": [
         {
-          "command": "lambdachecker.create-contest",
+          "command": "lambdachecker.edit-contest",
           "group": "inline",
-          "when": "lambdachecker.teacher && view == lambdachecker.contests"
+          "when": "lambdachecker.teacher && viewItem == editable-contest && view == lambdachecker.contests"
         }
       ]
     },

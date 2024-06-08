@@ -110,14 +110,6 @@ export class LambdaChecker {
         );
       }
 
-      // Update the current user's id (used to allow assistants
-      // to edit contests/problems in Treeview)
-      vscode.commands.executeCommand(
-        "setContext",
-        "lambdachecker.id",
-        (response["user"] as unknown as Record<string, unknown>)["id"]
-      );
-
       // Update the contests status
       LambdaChecker.contestDataProvider.refresh();
 

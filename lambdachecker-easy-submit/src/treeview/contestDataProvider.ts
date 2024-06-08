@@ -1,3 +1,4 @@
+import path from "path";
 import * as vscode from "vscode";
 import { HTTPClient } from "../api";
 import { LambdaChecker } from "../commands";
@@ -29,6 +30,7 @@ export class ContestDataProvider
   contestsPromises: Map<ContestSubject, Promise<ContestItem[]>> = new Map();
   archivedContestsPromises: Map<string, Promise<ContestItem[]>> = new Map();
   sessionUnlockedContests: Set<number> = new Set();
+  private currentUserId: number;
 
   constructor(client: HTTPClient) {
     this.lambdacheckerClient = client;
@@ -51,6 +53,12 @@ export class ContestDataProvider
       });
     });
 
+    this.currentUserId = (
+      LambdaChecker.userDataCache.get("user") as unknown as Record<
+        string,
+        unknown
+      >
+    )["id"] as number;
     this.refresh();
   }
 
@@ -75,6 +83,14 @@ export class ContestDataProvider
       // Update the enrollment status for the specific contest
       this.sessionUnlockedContests.add(contestId);
     }
+
+    // Update the current user
+    this.currentUserId = (
+      LambdaChecker.userDataCache.get("user") as unknown as Record<
+        string,
+        unknown
+      >
+    )["id"] as number;
 
     this._onDidChangeTreeData.fire();
   }
@@ -142,6 +158,8 @@ export class ContestDataProvider
           startDate: contest.start_date,
           status: statusPromises[idx],
           hasPassword: contest.password,
+          userId: contest.user_id,
+          collabId: contest.collab_id,
         })
     );
 
@@ -173,9 +191,17 @@ export class ContestDataProvider
           });
       case "academic_year":
         // Retrieve the archived contests for a specific academic year
-        return this.archivedContestsPromises.get(
-          (element.props.subject! + element.label) as string
-        );
+        return this.archivedContestsPromises
+          .get((element.props.subject! + element.label) as string)
+          ?.then((contests) => {
+            contests.sort(
+              (x, y) =>
+                new Date(y.props.startDate!).getTime() -
+                new Date(x.props.startDate!).getTime()
+            );
+
+            return contests;
+          });
       case "contest":
         if (element.props.status === EnrollmentStatus.NOT_ENROLLED) {
           return [];
@@ -214,6 +240,7 @@ export class ContestDataProvider
       element.resourceUri = vscode.Uri.from({
         scheme: "lambdachecker",
         authority: element.props.type,
+        query: `type=${element.props.type}`,
       });
     } else {
       // Update the status for the contest if it was unlocked during this session
@@ -234,8 +261,21 @@ export class ContestDataProvider
       element.resourceUri = vscode.Uri.from({
         scheme: "lambdachecker",
         authority: element.props.type,
-        query: `status=${element.props.status!}`,
+        path: `/${element.props.type}/${element.props.userId}/${element.label}`,
+        query: `status=${element.props.status!}&type=${element.props.type}`,
       });
+
+      element.contextValue = `${element.props.type}-${
+        element.props.userId || ""
+      }-${element.props.collabId || ""}-${element.label}`;
+
+      // Allow only the creator or the owner to edit a contest
+      if (
+        element.props.userId === this.currentUserId ||
+        element.props.collabId === this.currentUserId
+      ) {
+        element.contextValue = "editable-contest";
+      }
     }
 
     return element;

@@ -15,6 +15,8 @@ export interface ContestItemProps {
   startDate?: string;
   status?: EnrollmentStatus;
   hasPassword?: boolean;
+  userId?: number;
+  collabId?: number;
 }
 
 export class ContestItem extends vscode.TreeItem {

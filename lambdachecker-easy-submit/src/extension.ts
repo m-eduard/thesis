@@ -70,15 +70,14 @@ export async function activate(context: vscode.ExtensionContext) {
     const loggedInUsername = await LambdaChecker.getLoginStatus();
     if (loggedInUsername !== undefined) {
       StatusBar.updateStatus(loggedInUsername);
-      const role = (
-        LambdaChecker.userDataCache.get("user") as unknown as Record<
-          string,
-          unknown
-        >
-      )["role"];
+
+      const user = LambdaChecker.userDataCache.get("user") as unknown as Record<
+        string,
+        unknown
+      >;
 
       // Update the role seen by the extension
-      if (role === "teacher") {
+      if (user["role"] === "teacher") {
         vscode.commands.executeCommand(
           "setContext",
           "lambdachecker.teacher",
