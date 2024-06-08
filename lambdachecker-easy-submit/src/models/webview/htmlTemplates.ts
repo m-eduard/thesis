@@ -312,24 +312,42 @@ ${getBringCodeToEditorButton()}
 </html>`;
 };
 
-const longestIncreasingSubsequence = (arr: number[]) => {
-  if (arr.length === 0) {
-    return [];
+const levenshteinDistanceOps = (word1: string, word2: string) => {
+  const dp = Array.from({ length: word1.length + 1 }).map(() =>
+    Array.from({ length: word2.length + 1 }).map(() => 0)
+  );
+  const operations = Array.from({ length: word1.length + 1 }).map(() =>
+    Array.from({ length: word2.length + 1 }).map(() => "")
+  );
+
+  for (let i = 0; i <= word1.length; i++) {
+    dp[i][0] = i;
   }
 
-  const n = arr.length;
-  const window = [arr[0]];
+  for (let i = 0; i <= word2.length; i++) {
+    dp[0][i] = i;
+  }
 
-  for (let i = 0; i < n; ++i) {
-    if (arr[i] > window[window.length - 1]) {
-      window.push(arr[i]);
-    } else {
-      const idx = window.findIndex((x) => x >= arr[i]);
-      window[idx] = arr[i];
+  for (let j = 1; j <= word2.length; j++) {
+    for (let i = 1; i <= word1.length; i++) {
+      if (word1[i - 1] === word2[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1];
+        operations[i][j] = " ";
+      } else {
+        dp[i][j] = Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]) + 1;
+
+        if (dp[i][j] === dp[i - 1][j] + 1) {
+          operations[i][j] = "-";
+        } else if (dp[i][j] === dp[i][j - 1] + 1) {
+          operations[i][j] = "+";
+        } else {
+          operations[i][j] = "&";
+        }
+      }
     }
   }
 
-  return window;
+  return operations;
 };
 
 const getTestResultHTML = (
@@ -342,51 +360,40 @@ const getTestResultHTML = (
   let formattedOut = "";
   let formattedRef = "";
 
-  let leftmostApparition = new Array(128).fill(0);
-  let firstApparition = new Array(testResult.out.length).fill(-1);
+  // Find the optimum operations to make the strings equal
+  const operations = levenshteinDistanceOps(testResult.out, testResult.ref);
 
-  for (let i = 0; i < testResult.out.length; ++i) {
-    console.log(testResult.out[i], i);
+  let i = testResult.out.length;
+  let j = testResult.ref.length;
 
-    // Find the first apparition of i-th character in the reference,
-    // and if it's not the first time when the character appears in
-    // the ref string, start from the last position where it was found
-    const left = leftmostApparition[testResult.out[i].charCodeAt(0)] + 1;
+  while (i > 0 && j > 0) {
+    if (operations[i][j] === " ") {
+      formattedOut = testResult.out[i - 1] + formattedOut;
+      formattedRef = testResult.ref[j - 1] + formattedRef;
 
-    for (let j = left; j < testResult.ref.length; ++j) {
-      if (testResult.out[i] === testResult.ref[j]) {
-        leftmostApparition[testResult.out[i].charCodeAt(0)] = j;
-        firstApparition[i] = j;
-        break;
-      }
-    }
-
-    // The character was not found
-    if (leftmostApparition[testResult.out[i].charCodeAt(0)] === left - 1) {
+      i--;
+      j--;
+    } else if (operations[i][j] === "-") {
+      formattedOut =
+        `<span class="failed-thin"><b>${testResult.out[i - 1]}</b></span>` +
+        formattedOut;
+      i--;
+    } else if (operations[i][j] === "+") {
+      formattedRef =
+        `<span class="accepted-thin"><b>${testResult.ref[j - 1]}</b></span>` +
+        formattedRef;
+      j--;
     } else {
+      formattedOut =
+        `<span class="failed-thin"><b>${testResult.out[i - 1]}</b></span>` +
+        formattedOut;
+      formattedRef =
+        `<span class="accepted-thin"><b>${testResult.ref[j - 1]}</b></span>` +
+        formattedRef;
+      i--;
+      j--;
     }
   }
-
-  // Find one of the longest increasing subsequences
-  const lis = longestIncreasingSubsequence(firstApparition);
-
-  if (lis[0] === -1) {
-    lis.shift();
-  }
-
-  console.log(lis);
-
-  formattedOut = Array.from(testResult.out)
-    .map((x, idx) => {
-      if (lis.includes(firstApparition[idx])) {
-        return x;
-      }
-
-      return `<span class="failed-thin">${x}</span>`;
-    })
-    .join("");
-
-  for (let i = 0; i < testResult.out.length; ++i) {}
 
   return `
 <h2> <span class=${
@@ -400,7 +407,7 @@ const getTestResultHTML = (
 <h3>Output:</h3>
 <pre>${formattedOut}</pre>
 <h3>Expected:</h3>
-<pre>${testResult.ref}</pre>
+<pre>${formattedRef}</pre>
 <hr>
 `;
 };
