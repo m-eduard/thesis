@@ -9,6 +9,7 @@ import {
   RunOutput,
   SpecificProblem,
   SubmissionResult,
+  User,
 } from "../models";
 
 /**
@@ -45,6 +46,11 @@ export class HTTPClient {
       })
     );
 
+    console.log({
+      email: email,
+      password: password,
+    });
+
     const responseData: Record<string, unknown> =
       (await response.json()) as Record<string, unknown>;
 
@@ -64,11 +70,13 @@ export class HTTPClient {
           subject !== undefined ? "?subject_abbreviation=" + subject : ""
         }`
       )
-      // new Route("GET", "/contests/index_archived?academic_year=2022-2023")
     );
 
-    const contestsData: Record<string, unknown> =
-      (await response.json()) as Record<string, unknown>;
+    const contestsData = (await response.json().catch((error) => {
+      console.log(error);
+
+      throw new Error(`${response.statusText} (${response.status})`);
+    })) as Record<string, unknown>;
 
     if (contestsData["contests"] !== undefined) {
       return contestsData["contests"] as Contest[];
@@ -87,8 +95,11 @@ export class HTTPClient {
       )
     );
 
-    const contestsData: Record<string, unknown> =
-      (await response.json()) as Record<string, unknown>;
+    const contestsData = (await response.json().catch((error) => {
+      console.log(error);
+
+      throw new Error(`${response.statusText} (${response.status})`);
+    })) as Record<string, unknown>;
 
     return contestsData["contests"] as Contest[];
   }
@@ -106,8 +117,11 @@ export class HTTPClient {
       )
     );
 
-    const contestsData: Record<string, unknown> =
-      (await response.json()) as Record<string, unknown>;
+    const contestsData = (await response.json().catch((error) => {
+      console.log(error);
+
+      throw new Error(`${response.statusText} (${response.status})`);
+    })) as Record<string, unknown>;
 
     return contestsData["contests"] as Contest[];
   }
@@ -115,7 +129,14 @@ export class HTTPClient {
   async getEnrollmentStatus(contestId: number): Promise<EnrollmentStatus> {
     const response = await this.request(
       new Route("GET", `/contests/${contestId}`)
-    );
+    ).catch((error) => {
+      console.log("Error thworn by API", error);
+      return undefined;
+    });
+
+    if (response === undefined) {
+      return EnrollmentStatus.NOT_ENROLLED;
+    }
 
     return response.status === 200
       ? EnrollmentStatus.ENROLLED
@@ -243,7 +264,9 @@ export class HTTPClient {
       })
     );
 
-    const enrollmentData = await response.json();
+    const enrollmentData = await response.json().catch((error) => {
+      throw new Error(`${response.statusText} (${response.status})`);
+    });
 
     if (response.status !== 200) {
       throw new Error(
@@ -254,7 +277,9 @@ export class HTTPClient {
     }
   }
 
-  async createContest(contestContent: ContestCreate): Promise<ContestCreateResponse> {
+  async createContest(
+    contestContent: ContestCreate
+  ): Promise<ContestCreateResponse> {
     const response = await this.request(
       new Route("POST", "/contests"),
       JSON.stringify(contestContent)
@@ -275,8 +300,13 @@ export class HTTPClient {
     return contestCreateData as ContestCreateResponse;
   }
 
-  async editContest(contestId: number, contestContent: ContestCreate): Promise<void> {
-    const response = await this.request(new Route("PUT", `/contests/${contestId}`));
+  async editContest(
+    contestId: number,
+    contestContent: ContestCreate
+  ): Promise<void> {
+    const response = await this.request(
+      new Route("PUT", `/contests/${contestId}`)
+    );
 
     const contestEditData = await response.json();
 
@@ -287,6 +317,26 @@ export class HTTPClient {
         }`
       );
     }
+  }
+
+  async getUsers(): Promise<User[]> {
+    const response = await this.request(new Route("GET", `/users`));
+
+    const usersData = (await response.json().catch((error) => {
+      console.log("Error when getting users", error);
+
+      throw new Error(`${response.statusText} (${response.status})`);
+    })) as Record<string, User>[];
+
+    if (response.status !== 200) {
+      throw new Error(
+        `${response.statusText} (${response.status}): ${
+          (usersData as unknown as Record<string, unknown>)["message"]
+        }`
+      );
+    }
+
+    return usersData.map((user) => user["user"]) as User[];
   }
 
   async checkTokenValidity(): Promise<boolean> {
@@ -301,7 +351,7 @@ export class HTTPClient {
 
 class Route {
   // private static readonly base = "https://apibeta.lambdachecker.io";
-  private static readonly base = "http://localhost:3000";
+  private static readonly base = "http://192.168.124.4:5000";
 
   public method: string;
   public url: string;

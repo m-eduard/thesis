@@ -1,9 +1,13 @@
+import * as vscode from "vscode";
 import {
+  BaseProblem,
+  ContestSubject,
   ProblemTest,
   RunOutput,
   SpecificProblem,
   SubmissionResult,
   TestResult,
+  User,
 } from "../api";
 
 const styles = `
@@ -511,7 +515,12 @@ export const getProblemHTML = (
 ) => {
   const title = `${problemData.id}. ${problemData.name}`;
 
-  console.log("Registered contest id", contestId);
+  console.log(
+    "From getting problem HTML: Registered contest id",
+    contestId,
+    "for problem ",
+    problemData
+  );
 
   return `
 <!DOCTYPE html>
@@ -580,9 +589,14 @@ export const getProblemHTML = (
     <script>
       const vscode = acquireVsCodeApi();
 
-      vscode.setState(${JSON.stringify(problemData)});
+      vscode.setState(${JSON.stringify({
+        problem: problemData,
+        contestId: contestId,
+      })});
 
       function send(cmd) {
+        console.log("pressed ", cmd);
+
         vscode.postMessage({
           action: cmd,
           contestId: ${contestId},
@@ -594,7 +608,29 @@ export const getProblemHTML = (
 `;
 };
 
-export const getContestCreationHTML = () => {
+const stringifyDateSlim = (date: Date) => {
+  const day = date.getDay().toString().padStart(2, "0");
+  const month = date.getMonth().toString().padStart(2, "0");
+  const year = date.getFullYear().toString();
+
+  const hour = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+
+  return `${year}-${month}-${day}T${hour}:${minutes}`;
+};
+
+const getSubjectOptionsHTML = () => {
+  return Object.values(ContestSubject).map(
+    (subject) => `<option width=100px value='${subject}'>${subject}</option>`
+  );
+};
+
+export const getContestCreationHTML = (
+  resourcesPath: vscode.Uri,
+  stylesUri: vscode.Uri
+) => {
+  console.log("styles uri is ", stylesUri);
+
   return `
   <!DOCTYPE html>
   <html lang="en">
@@ -605,242 +641,78 @@ export const getContestCreationHTML = () => {
     <title>Create Contest</title>
     
     ${styles}
+
+    ${problemButtonsStyle}
   
-    <style>
-      h1 {
-        font-size: 26px;
-      }
-  
-      body.vscode-light {
-        color: black;
-      }
-  
-      body.vscode-dark {
-        color: white;
-      }
-  
-      code, svg, li, .highlight, p {
-        font-size: 14px;
-      }
-  
-      .error {
-        font-size: 14px;
-        word-break: break-all;
-        display: block;
-        font-family: monospace;
-        white-space: pre-wrap;
-      }
-  
-      .meta {
-        font-size: 12px;
-        font-weight: normal;
-      }
-  
-      .normal {
-        font-size: 14px;
-        font-weight: normal;
-      }
-  
-      span {
-        font-size: 14px;
-      }
-  
-      code, svg, li, .highlight, p, pre {
-        font-size: 14px;
-      }
-  
-      pre {
-        background-color: rgba(0, 0, 0, 0.4);
-        padding: 10px;
-        border-radius: 10px;
-      }
-      .error {
-        background-color: rgba(0, 0, 0, 0.4);
-        padding: 10px;
-        border-radius: 10px;
-      }
-  
-      p, li {
-        line-height: 1.7;
-      }
-  
-      .buttons::after {
-        content: "";
-        display: table;
-        clear: both;
-      }
-  
-      button {
-        color: inherit;
-      }
-  
-      .btn {
-        font-size: 14px;
-        padding: 8px 0px;
-        border: none;
-        cursor: pointer;
-        font-weight: 500;
-        border-radius: 0px;
-        display: inline-block;
-        background-color: transparent;
-      }
-  
-      .copy-code {
-        float: right;
-        padding: 8px 25px;
-      }
-  
-      .copy-code svg {
-        width: 14px;
-        height: 14px;
-        margin-right: 5px;
-      }
-  
-      .all-submissions {
-        float: left;
-      }
-  
-      .all-submissions svg {
-        width: 14px;
-        height: 14px;
-        margin-right: 5px;
-      }
-  
-      div {
-        padding-top: 5px;
-        min-height: 20px;
-      }
-  
-      form {
-        width: 100%;
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-        background-color: var(--vscode-editor-background);
-        border-radius: 8px;
-      }
-  
-      label {
-        display: block;
-        margin-bottom: 10px;
-        font-size: 16px;
-      }
-  
-      input, textarea, select {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 20px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-size: 14px;
-      }
-  
-      button[type="submit"] {
-        font-size: 16px;
-        padding: 10px 20px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-      }
-  
-      button[type="submit"]:hover {
-        background-color: #45a049;
-      }
-  
-    </style>
+    <link rel='stylesheet' type='text/css' href='${stylesUri}'>
   </head>
   <body>
     <h1>Create Contest</h1>
-    <form id="contestForm">
-      <label for="name">Name:</label>
-      <input type="text" id="name" name="name" placeholder=<svg>
-      <path d="m19 9 1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"></path>
-      </svg> "Contest Name*" required>
+    <form id="contestForm" onsubmit="submitForm()">
+      <label for="name-input">Contest Name*</label>
+
+      <input class="name-input purple-border" type="text" id="name-input" name="name-input" placeholder="Contest Name" required>
+
+      <div class="date-input-container">
+        <label for="start-date">Start Date</label>
+        <label for="end-date">End Date</label>
+      </div>
+
+      <div class="date-input-container">
+        <input class="purple-border" type="datetime-local" id="start-date" name="start-date" value="${stringifyDateSlim(
+          new Date()
+        )}" required>
+        <input class="purple-border" type="datetime-local" id="end-date" name="end-date" value="${stringifyDateSlim(
+          new Date(new Date().getTime() + 60 * 60 * 1000)
+        )}" required>
+      </div>
   
-      <label for="start_date">Start Date:</label>
-      <input type="datetime-local" id="start_date" name="start_date" value="${new Date()}" required>
+      <label for="collab-input">Collaborator</label>
+      <div class="autocomplete-container">
+        <input class="collab-input purple-border" type="text" id="collab-input" name="collab-input" placeholder="Username, name or email address">
+        <ul class="suggestions" id="suggestions"></ul>
+      </div>
   
-      <label for="end_date">End Date:</label>
-      <input type="datetime-local" id="end_date" name="end_date" value="2024-06-14T22:25" required>
+      <label for="subject-input">Subject</label>
+      <div class="autocomplete-container">
+          <input class="subject-input purple-border" type="text" id="subject-input" name="subject-input" placeholder="SDA" required>
+          <ul class="suggestions" id="subject-suggestions"></ul>
+      </div>
   
-      <label for="user_id">User ID:</label>
-      <input type="number" id="user_id" name="user_id" value="0" required>
+      <label for="description-input">Description*</label>
+      <textarea class="purple-border" id="description-input" name="description-input" rows="2" placeholder="Description" required></textarea>
   
-      <label for="collab_username">Collaborator Username:</label>
-      <input type="text" id="collab_username" name="collab_username">
+      <label for="password-input">Password</label>
+
+      <div class="password-container">
+        <input class="password-input purple-border" type="password" id="password-input" name="password-input" placeholder="Optional Password">
+        <button type="button" class="toggle-password" onclick="revealPassword()">
+          <svg id="eye-icon" width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'>
+            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"></path>
+          </svg>
+        </button>
+      </div>
   
-      <label for="subject_abbreviation">Subject Abbreviation:</label>
-      <select id="subject_abbreviation" name="subject_abbreviation" required>
-        <option value="DSA">DSA</option>
-        <!-- Add other options as needed -->
-      </select>
+      <label for="problems">Problems</label>
+      <div class="autocomplete-container">
+        <div id="input-wrapper" class="problems-input-wrapper input-wrapper"></div>
+        <input class="problems-input purple-border" type="text" id="problems-input" name="problems" placeholder="1. Hello ...">
+        <ul class="suggestions problems-suggestions" id="problems-suggestions"></ul>
+      </div>
   
-      <label for="description">Description:</label>
-      <textarea id="description" name="description" rows="4" required>una description</textarea>
-  
-      <label for="password">Password:</label>
-      <input type="password" id="password" name="password" value="password" required>
-  
-      <label for="problems">Problems (comma-separated IDs):</label>
-      <input type="text" id="problems" name="problems" value="1,129" required>
-  
-      <label for="quotas">Quotas (comma-separated values):</label>
-      <input type="text" id="quotas" name="quotas" value="1,1" required>
-  
-      <button type="submit">Create Contest</button>
+      <label for="quotas-input">Quotas (comma-separated values)</label>
+      <input class="purple-border" type="text" id="quotas-input" name="quotas-input" placeholder="Quotas">
+
+      <button type="submit" id="code" class="btn code">Create Contest</button>
     </form>
   
     <script>
-      document.getElementById('contestForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const formData = new FormData(event.target);
-        const data = {
-          name: formData.get('name'),
-          start_date: new Date(formData.get('start_date')).toISOString(),
-          end_date: new Date(formData.get('end_date')).toISOString(),
-          user_id: parseInt(formData.get('user_id'), 10),
-          collab_username: formData.get('collab_username') || '',
-          subject_abbreviation: formData.get('subject_abbreviation'),
-          description: formData.get('description'),
-          password: formData.get('password'),
-          problems: formData.get('problems').split(',').map(Number),
-          quotas: formData.get('quotas').split(',').map(Number),
-        };
-        console.log('Contest Data:', data);
-        // Here you would send data to your backend or process it as needed.
-      });
+      const subjects = [${Object.values(ContestSubject).map(
+        (subject) => `"${subject}"`
+      )}];
     </script>
+    <script src="${resourcesPath}"></script>
   </body>
   </html>
-`
-
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Contest</title>
-    ${styles}
-    <style>
-      body {
-        border-left: 3px solid #8c30f5;
-      }
-    </style>
-
-    ${problemButtonsStyle}
-  </head>
-  <body>
-    <textarea>
-    <svg>
-    <path d="m19 9 1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"></path>
-    <svg>
-    </textarea>
-
-      Gringosan
-  </body>
-</html>`;
-}
+`;
+};

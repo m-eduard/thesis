@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { HTTPClient } from "../api";
+import { LambdaChecker } from "../commands";
 import { defaultFolderIcon, fileIconMapping } from "../icons";
 import {
   Contest,
@@ -11,7 +12,6 @@ import {
 } from "../models";
 import { ContestItem } from "./contestItem";
 import { ProblemItem } from "./problemItem";
-import { LambdaChecker } from "../commands";
 
 export class ContestDataProvider
   implements vscode.TreeDataProvider<ContestItem | ProblemItem>
@@ -103,6 +103,8 @@ export class ContestDataProvider
         return values.flat();
       });
     } catch (error: any) {
+      console.log("Error fetching contests: ", error);
+
       vscode.window
         .showErrorMessage(
           "Error fetching contests. Would you like to log in again?",
@@ -110,7 +112,7 @@ export class ContestDataProvider
           "No"
         )
         .then((selection) => {
-          if (selection !== "No") {
+          if (selection !== undefined && selection !== "No") {
             vscode.commands.executeCommand("lambdachecker.login");
           }
         });
@@ -122,7 +124,12 @@ export class ContestDataProvider
     const statusPromises = await Promise.all(
       contests.map(
         async (contest) =>
-          await this.lambdacheckerClient.getEnrollmentStatus(contest.id)
+          await this.lambdacheckerClient
+            .getEnrollmentStatus(contest.id)
+            .catch((error) => {
+              console.log("Something went wrong with ", contest, error);
+              return undefined;
+            })
       )
     );
 

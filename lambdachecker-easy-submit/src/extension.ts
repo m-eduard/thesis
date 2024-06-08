@@ -19,6 +19,7 @@ interface ProblemProps {
 export async function activate(context: vscode.ExtensionContext) {
   try {
     Storage.setContext(context);
+    LambdaChecker.context = context;
 
     context.subscriptions.push(
       vscode.commands.registerCommand(
@@ -37,7 +38,7 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(
         "lambdachecker.create-contest",
         LambdaChecker.createContest
-      ),
+      )
     );
     context.subscriptions.push(StatusBar.statusBarItem);
     context.subscriptions.push(
@@ -69,11 +70,20 @@ export async function activate(context: vscode.ExtensionContext) {
     const loggedInUsername = await LambdaChecker.getLoginStatus();
     if (loggedInUsername !== undefined) {
       StatusBar.updateStatus(loggedInUsername);
-      const role = (LambdaChecker.userDataCache.get("user") as unknown as Record<string, unknown>)["role"];
+      const role = (
+        LambdaChecker.userDataCache.get("user") as unknown as Record<
+          string,
+          unknown
+        >
+      )["role"];
 
       // Update the role seen by the extension
-      if (role == "teacher") {
-        vscode.commands.executeCommand('setContext', 'lambdachecker.teacher', true);
+      if (role === "teacher") {
+        vscode.commands.executeCommand(
+          "setContext",
+          "lambdachecker.teacher",
+          true
+        );
       }
 
       const contestsTreeView = vscode.window.createTreeView(

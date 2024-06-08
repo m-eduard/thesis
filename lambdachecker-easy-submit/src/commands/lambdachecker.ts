@@ -1,25 +1,41 @@
+import path from "path";
 import * as vscode from "vscode";
 import { HTTPClient } from "../api";
 import {
+  BaseProblem,
   ContestSubject,
   Language,
   ProblemTest,
   RunOutput,
+  SpecificProblem,
   StatusBar,
   Storage,
   SubmissionResult,
+  User,
   getProblemWebviewContent,
   getSubmissionResultWebviewContent,
 } from "../models";
-import { getContestCreationHTML, getProblemHTML } from "../models/webview/htmlTemplates";
+import {
+  getContestCreationHTML,
+  getProblemHTML,
+} from "../models/webview/htmlTemplates";
 import { ContestDataProvider, ProblemItem } from "../treeview";
 import { ProblemEditor, ProblemSubmissionWebviewListener } from "../webview";
 import { ProblemWebview } from "../webview/problemWebview";
 
 export class LambdaChecker {
+  static context: vscode.ExtensionContext;
   static client: HTTPClient;
   static userDataCache = new Storage();
   static contestDataProvider: ContestDataProvider;
+  static users: User[] = [];
+  static problems: BaseProblem[] = [];
+
+  static {
+    // LambdaChecker.client.getUsers().then((users) => {
+    //   LambdaChecker.users = users;
+    // });
+  }
 
   static async getLoginStatus(): Promise<string | undefined> {
     const loggedIn =
@@ -77,10 +93,21 @@ export class LambdaChecker {
       StatusBar.updateStatus(await LambdaChecker.getLoginStatus());
 
       // Update the role seen by the extension
-      if ((response["user"] as unknown as Record<string, unknown>)["role"] == "teacher") {
-        vscode.commands.executeCommand('setContext', 'lambdachecker.teacher', true);
+      if (
+        (response["user"] as unknown as Record<string, unknown>)["role"] ===
+        "teacher"
+      ) {
+        vscode.commands.executeCommand(
+          "setContext",
+          "lambdachecker.teacher",
+          true
+        );
       } else {
-        vscode.commands.executeCommand('setContext', 'lambdachecker.teacher', false);
+        vscode.commands.executeCommand(
+          "setContext",
+          "lambdachecker.teacher",
+          false
+        );
       }
 
       // Update the contests status
@@ -128,8 +155,11 @@ export class LambdaChecker {
       }
     );
 
+    // Create the listener once (more efficient than creating a new
+    // listener for each message received)
+    const problemWebview = new ProblemWebview(problem, problemPanel);
+
     problemPanel.webview.onDidReceiveMessage(async (message) => {
-      const problemWebview = new ProblemWebview(problem, problemPanel);
       problemWebview.webviewListener(message);
     });
     problemPanel.webview.html = getProblemHTML(problem, contestId);
@@ -235,10 +265,64 @@ export class LambdaChecker {
       {
         enableScripts: true,
         enableFindWidget: true,
+        localResourceRoots: [
+          vscode.Uri.joinPath(LambdaChecker.context.extensionUri, "resources"),
+        ],
+        retainContextWhenHidden: true,
       }
     );
 
-    createContestPanel.webview.html = getContestCreationHTML();
+    LambdaChecker.client.getUsers().then((users) => {
+      LambdaChecker.users = users;
+      console.log("Sent the fresh data to html");
+      console.log("Example user:", users[0]);
+      createContestPanel.webview.postMessage({
+        users: users.filter((user) => user.role === "teacher"),
+      });
+    });
+
+    LambdaChecker.client.getProblems().then((problems) => {
+      LambdaChecker.problems = problems;
+      console.log("Example problem:", problems[0]);
+      createContestPanel.webview.postMessage({
+        problems: problems,
+      });
+    });
+
+    const revealPassswordPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "scripts",
+      "contestCreation.js"
+    );
+    const stylesPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "styles",
+      "contestCreation.css"
+    );
+
+    console.log("Showing the html");
+    createContestPanel.webview.html = getContestCreationHTML(
+      createContestPanel.webview.asWebviewUri(revealPassswordPath),
+      createContestPanel.webview.asWebviewUri(stylesPath)
+    );
+
+    createContestPanel.onDidChangeViewState((event) => {
+      console.log("Form was submitted and state changed:", event);
+    });
+
+    createContestPanel.onDidDispose(() => {
+      console.log("Form disposed");
+    });
+
+    createContestPanel.webview.onDidReceiveMessage((message) => {
+      if (message.state === "submitted") {
+        createContestPanel.dispose();
+
+        console.log("Data is:", message.data);
+      }
+    });
 
     // try {
     //   const response = await LambdaChecker.client.createContest({
