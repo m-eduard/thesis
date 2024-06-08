@@ -283,7 +283,10 @@ function removeSelectedItem(index, containerIdPrefix) {
   updateSelectedItemsUI(containerIdPrefix);
 }
 
-
+function dateToUTC(dateString) {
+  const localDate = new Date(dateString);
+  return localDate.toISOString();
+}
 
 function submitForm() {
   const contestName = document.getElementById('name-input').value;
@@ -303,8 +306,8 @@ function submitForm() {
     state: "submitted",
     data: {
       name: contestName,
-      start_date: startDate,
-      end_date: endDate,
+      start_date: dateToUTC(startDate),
+      end_date: dateToUTC(endDate),
       collab_username: collabInput,
       subject_abbreviation: subjectInput,
       description: descriptionInput,

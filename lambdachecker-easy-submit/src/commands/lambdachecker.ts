@@ -110,6 +110,14 @@ export class LambdaChecker {
         );
       }
 
+      // Update the current user's id (used to allow assistants
+      // to edit contests/problems in Treeview)
+      vscode.commands.executeCommand(
+        "setContext",
+        "lambdachecker.id",
+        (response["user"] as unknown as Record<string, unknown>)["id"]
+      );
+
       // Update the contests status
       LambdaChecker.contestDataProvider.refresh();
 
@@ -316,48 +324,39 @@ export class LambdaChecker {
       console.log("Form disposed");
     });
 
-    createContestPanel.webview.onDidReceiveMessage((message) => {
+    createContestPanel.webview.onDidReceiveMessage(async (message) => {
       if (message.state === "submitted") {
         createContestPanel.dispose();
 
         console.log("Data is:", message.data);
+
+        try {
+          const response = await LambdaChecker.client.createContest(
+            message.data
+          );
+
+          LambdaChecker.contestDataProvider.refresh();
+
+          vscode.window.showInformationMessage(
+            `Successfully created Contest ${response.id}: ${message.data.name}!`
+          );
+        } catch (error: any) {
+          console.log("here", error);
+
+          vscode.window
+            .showErrorMessage(error.message, "Try again")
+            .then((selection) => {
+              if (selection === "Try again") {
+                // vscode.commands.executeCommand(
+                //   "lambdachecker.enroll-in-contest",
+                //   contestId,
+                //   hasPassword,
+                //   contestDataProvider
+                // );
+              }
+            });
+        }
       }
     });
-
-    // try {
-    //   const response = await LambdaChecker.client.createContest({
-    //     // name: "abc" + Math.random().toString(),
-    //     name: "contest name",
-    //     start_date: "2024-06-05T22:26:22.136Z",
-    //     end_date: "2024-06-14T22:25:22.000Z",
-    //     user_id: 0,
-    //     collab_username: "",
-    //     subject_abbreviation: ContestSubject.DSA,
-    //     description: "test description",
-    //     password: "password",
-    //     problems: [1, 129],
-    //     quotas: [1, 1],
-    //   });
-
-    //   console.log("Id is: ", response.id);
-
-    //   LambdaChecker.contestDataProvider.refresh();
-    // } catch (error: any) {
-    //   console.log("here", error);
-
-    //   vscode.window
-    //     .showErrorMessage(error.message, "Try again")
-    //     .then((selection) => {
-    //       if (selection === "Try again") {
-    //         console.log("hahah no work");
-    //         // vscode.commands.executeCommand(
-    //         //   "lambdachecker.enroll-in-contest",
-    //         //   contestId,
-    //         //   hasPassword,
-    //         //   contestDataProvider
-    //         // );
-    //       }
-    //     });
-    // }
   }
 }
