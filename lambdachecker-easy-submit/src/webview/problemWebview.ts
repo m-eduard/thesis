@@ -50,7 +50,9 @@ export class ProblemWebview {
       return LambdaChecker.client
         .getSubmissions(this.problem.id)
         .catch((error) => {
+          console.log(error);
           vscode.window.showErrorMessage(error.message);
+
           return [] as SubmissionResult[];
         });
     };
@@ -70,12 +72,18 @@ export class ProblemWebview {
           let poller = setTimeout(async function loop() {
             const currentSubmissions = await getSubmissionsSafe();
 
-            if (currentSubmissions.length > submissions.length || stopPolling) {
+            if (currentSubmissions.length > submissions.length) {
               clearInterval(poller);
               const lastSubmissionResult =
                 currentSubmissions[currentSubmissions.length - 1];
 
               resolve(lastSubmissionResult);
+              return;
+            }
+
+            if (stopPolling) {
+              clearInterval(poller);
+              resolve(undefined);
               return;
             }
 

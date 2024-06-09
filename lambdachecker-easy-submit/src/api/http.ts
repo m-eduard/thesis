@@ -227,18 +227,17 @@ export class HTTPClient {
       })
     );
 
-    const submissionData = await response.json().catch((error) => {
-      console.log(error);
+    try {
+      const submissionResponse = await response.text();
 
-      throw new Error(`${response.statusText} (${response.status})`);
-    });
-
-    if (response.status !== 200) {
-      throw new Error(
-        `${response.statusText} (${response.status}): ${
-          (submissionData as Record<string, unknown>)["message"]
-        }`
-      );
+      if (response.status !== 200) {
+        console.log(
+          `${response.status} ${submissionResponse || response.statusText}`
+        );
+        throw new Error(submissionResponse || response.statusText);
+      }
+    } catch (error: any) {
+      throw new Error(`[Lambda Checker API]: ${error.message}`);
     }
   }
 
