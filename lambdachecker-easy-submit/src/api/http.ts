@@ -6,11 +6,14 @@ import {
   ContestCreateResponse,
   ContestSubject,
   EnrollmentStatus,
+  Language,
   RunOutput,
   SpecificProblem,
+  SubmissionApiEndpoints,
   SubmissionResult,
   User,
 } from "../models";
+import { SubmitProps } from "../models/api/submit";
 
 /**
  * An HTTP client sending HTTP requests to the LambdaChecker API.
@@ -27,10 +30,33 @@ export class HTTPClient {
       headers["Authorization"] = "Bearer " + this.token;
     }
 
-    return fetch(route.url, {
+    // Fetch might throw an error only if there are network issues
+    // for (let i = 0; i < 5; ++i) {
+    //   console.log("Retrying for ", route);
+
+    //   try {
+    //     return await fetch(route.url, {
+    //       method: route.method,
+    //       headers: headers,
+    //       body: body,
+    //     }).then((a) => {
+    //       console.log("It was successful");
+    //       return a;
+    //     });
+    //   } catch (error) {
+    //     console.log("It was a puta network error");
+    //   }
+    // }
+
+    return await fetch(route.url, {
       method: route.method,
       headers: headers,
       body: body,
+    }).catch((error) => {
+      console.log("chiingado");
+      throw new Error(
+        `Error while fetching response from API: ${error.message}`
+      );
     });
   }
 
@@ -350,8 +376,8 @@ export class HTTPClient {
 }
 
 class Route {
-  // private static readonly base = "https://apibeta.lambdachecker.io";
-  private static readonly base = "http://192.168.124.4:5000";
+  private static readonly base = "https://apibeta.lambdachecker.io";
+  // private static readonly base = "http://192.168.124.4:5000";
 
   public method: string;
   public url: string;
@@ -359,5 +385,56 @@ class Route {
   constructor(method: string, path: string) {
     this.method = method;
     this.url = Route.base + path;
+  }
+}
+
+/**
+ * An HTTP client sending HTTP requests to the Submissions API.
+ */
+export class SubmissionsApiClient {
+  constructor(
+    private endpoints: SubmissionApiEndpoints,
+    private signature: string
+  ) {}
+
+  async submit(
+    language: Language,
+    submitProps: SubmitProps
+  ): Promise<RunOutput> {
+    let headers: { [key: string]: string } = {
+      "Content-Type": "application/json",
+      signature: this.signature,
+    };
+
+    let endpoint = (() => {
+      switch (language) {
+        case Language.C:
+          return this.endpoints.c;
+        case Language.Java:
+          return this.endpoints.java;
+      }
+    })();
+
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(submitProps),
+      });
+
+      const submissionData = await response.text();
+      console.log(submissionData);
+
+      if (response?.status !== 200) {
+        console.log(`${response.status} ${submissionData}`);
+        throw new Error(submissionData);
+      }
+
+      const submissionDataJSON = JSON.parse(submissionData);
+
+      return submissionDataJSON as RunOutput;
+    } catch (error: any) {
+      throw new Error(`[Submission API]: ${error.message})`);
+    }
   }
 }

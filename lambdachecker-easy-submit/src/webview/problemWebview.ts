@@ -62,7 +62,7 @@ export class ProblemWebview {
     const res = await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: "Compiling and running your source code...",
+        title: `[${this.problem.name}] Submitting your source code...`,
         cancellable: false,
       },
       (progress) => {
@@ -106,6 +106,28 @@ export class ProblemWebview {
         this.submissionFile.openInEditor();
         break;
       case "run":
+        const executionResultPromise = LambdaChecker.submissionApiClient.submit(
+          this.problem.language,
+          {
+            code: (await this.submissionFile.readSubmissionFile()).toString(),
+            flags: [],
+            tests: this.problem.tests,
+          }
+        );
+
+        const progressNotification = await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: `[${this.problem.name}] Compiling and running your source code...`,
+            cancellable: false,
+          },
+          () =>
+            executionResultPromise.catch((error) => {
+              console.log(error);
+              vscode.window.showErrorMessage(error.message);
+            })
+        );
+
         break;
       case "submit":
         const submissionResult = await this.waitForSubmitionProcessing(

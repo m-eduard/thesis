@@ -16,14 +16,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "lambdachecker.helloWorld",
-        "title": "Hello World"
-      },
-      {
-        "command": "lambdachecker.submit",
-        "title": "Submit Solution"
-      },
-      {
         "command": "lambdachecker.login",
         "title": "Login",
         "category": "Lambda Checker"
