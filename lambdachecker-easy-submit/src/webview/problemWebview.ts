@@ -43,7 +43,17 @@ export class ProblemWebview {
       )
       .catch((error) => {
         stopPolling = true;
-        vscode.window.showErrorMessage(error.message);
+        vscode.window
+          .showErrorMessage(error.message, "Go to output")
+          .then((selection) => {
+            if (selection === "Go to output") {
+              const outputChannel = vscode.window.createOutputChannel(
+                "LambdaChecker Output"
+              );
+
+              outputChannel.show();
+            }
+          });
       });
 
     const getSubmissionsSafe = async () => {
