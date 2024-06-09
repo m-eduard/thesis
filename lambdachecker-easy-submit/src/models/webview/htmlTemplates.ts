@@ -292,7 +292,7 @@ ${getBringCodeToEditorButton()}
 </span>
 </div>
 
-<h1> <span class="failed">Compile Error</span>
+<h1> <span class="failed">Compilation Error</span>
   <div class="meta">Submitted on ${stringifyDate(submissionDate)}</div>
 </h1>
 
@@ -395,6 +395,20 @@ const getTestResultHTML = (
     }
   }
 
+  while (i > 0) {
+    formattedOut =
+      `<span class="failed-thin"><b>${testResult.out[i - 1]}</b></span>` +
+      formattedOut;
+    i--;
+  }
+
+  while (j > 0) {
+    formattedRef =
+      `<span class="accepted-thin"><b>${testResult.ref[j - 1]}</b></span>` +
+      formattedRef;
+    j--;
+  }
+
   return `
 <h2> <span class=${
     testResult.status === "PASSED" ? "accepted" : "failed"
@@ -405,11 +419,44 @@ const getTestResultHTML = (
 <h3>Input:</h3>
 <pre>${test.input}</pre>
 <h3>Output:</h3>
-<pre>${formattedOut}</pre>
+<pre>${
+    testResult.status === "TIMEOUT"
+      ? '<span class="failed-normal"><b>~ Error: Time Limit Exceeded</b></span>'
+      : ""
+  }${formattedOut}</pre>
 <h3>Expected:</h3>
 <pre>${formattedRef}</pre>
 <hr>
 `;
+};
+
+const getExecutionStatus = (testsResults: TestResult[]) => {
+  const passedTestsCount = testsResults.filter(
+    (result) => result.status === "PASSED"
+  ).length;
+  const totalTestsCount = testsResults.length;
+  const accepted = totalTestsCount === passedTestsCount;
+
+  // Possible states are PASSED, FAILED, RUNTIME_ERROR, TIMEOUT
+  const timeLimitExceeded = testsResults.some(
+    (result) => result.status === "TIMEOUT"
+  );
+  const wrongAnswer = testsResults.some((result) => result.status === "FAILED");
+  const runtimeError = testsResults.some(
+    (result) => result.status === "RUNTIME_ERROR"
+  );
+
+  const status = accepted
+    ? "Accepted"
+    : wrongAnswer
+    ? "Wrong Answer"
+    : timeLimitExceeded
+    ? "Time Limit Exceeded"
+    : runtimeError
+    ? "Runtime Error"
+    : "Internal Error";
+
+  return status;
 };
 
 export const getExecutionResultHTML = (
@@ -417,14 +464,14 @@ export const getExecutionResultHTML = (
   submissionDate: string,
   tests: ProblemTest[]
 ) => {
-  // Possible states are PASSED, FAILED, RUNTIME_ERROR
+  const executionStatus = getExecutionStatus(testsResults);
+  const accepted = executionStatus === "Accepted";
+
   const passedTestsCount = testsResults.filter(
     (result) => result.status === "PASSED"
   ).length;
   const totalTestsCount = testsResults.length;
-  const accepted = totalTestsCount === passedTestsCount;
 
-  const header = accepted ? "Accepted" : "Wrong Answer";
   const headerClass = accepted ? "accepted" : "failed";
   const testsResultsHTML = testsResults
     .map((testResult, idx) => getTestResultHTML(idx, testResult, tests[idx]))
@@ -450,7 +497,7 @@ ${getBringCodeToEditorButton()}
 <h1> 
 <div>
 <span class="${headerClass}">
-  ${header}
+  ${executionStatus}
   </span>
 
   <span class="normal">${
@@ -499,12 +546,11 @@ const getSubmissionsTableEntryHTML = (
   const totalTestsCount = submissionResult.run_output.results?.length;
   let accepted = totalTestsCount === passedTestsCount;
 
-  let status = "Accepted";
+  let status = getExecutionStatus(submissionResult.run_output.results || []);
+
   if (submissionResult.run_output.compiled === false) {
     status = "Compilation Error";
     accepted = false;
-  } else if (!accepted) {
-    status = "Wrong Answer";
   }
 
   const headerClass = accepted ? "accepted-normal" : "failed-normal";
