@@ -1,0 +1,68 @@
+.header-btn {
+  font-size: 14px;
+  padding: 8px 0px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  border-radius: 0px;
+
+  display: inline-block;
+  background-color: transparent;
+}
+
+.all-submissions {
+  float: left;
+}
+
+.all-submissions svg {
+  width: 14px;
+  height: 14px;
+  margin-right: 3px;
+}
+
+.download-tests svg {
+  margin-right: 3px;
+}
+
+input.test-input {
+  font-size: 14px;
+  font-family: 'Courier New', Courier, monospace;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: inherit;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+textarea.test-input {
+  font-size: 14px;
+  font-family: 'Courier New', Courier, monospace;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: inherit;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  resize:none;
+  box-sizing: border-box;
+  width: 100%;
+  resize: none;
+}
+
+#textarea {
+  display: block;
+  margin: 0;
+  padding: 8px;
+  border: 2px solid black;
+}
+
+.hidden {
+  display: none;
+}
+
+.test-btn svg {
+  vertical-align: text-top;
+}

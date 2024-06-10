@@ -129,7 +129,7 @@ export class ProblemWebview {
           {
             code: (await this.submissionFile.readSubmissionFile()).toString(),
             flags: [],
-            tests: this.problem.tests,
+            tests: message.tests!,
           }
         );
 
@@ -160,12 +160,6 @@ export class ProblemWebview {
             this.problem.language
           );
         }
-        break;
-      case "view-description":
-        this.panel.webview.html = getProblemHTML(
-          this.problem,
-          message.contestId
-        );
         break;
       case "view-submissions":
         if (this.createdWebview === false) {

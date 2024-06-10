@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { LambdaChecker } from "../commands";
 import { SpecificProblem, getProblemWebviewContent } from "../models";
 import { getProblemHTML } from "../models/webview/htmlTemplates";
 import { ProblemWebview } from "./problemWebview";
@@ -12,6 +13,25 @@ export class ProblemWebviewSerializer implements vscode.WebviewPanelSerializer {
       const problemWebview = new ProblemWebview(problem, webviewPanel);
       problemWebview.webviewListener(message);
     });
-    webviewPanel.webview.html = getProblemHTML(problem, contestId);
+
+    const scriptsPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "scripts",
+      "problemView.js"
+    );
+    const stylesPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "styles",
+      "problemView.css"
+    );
+
+    webviewPanel.webview.html = getProblemHTML(
+      webviewPanel.webview.asWebviewUri(scriptsPath),
+      webviewPanel.webview.asWebviewUri(stylesPath),
+      problem,
+      contestId
+    );
   }
 }

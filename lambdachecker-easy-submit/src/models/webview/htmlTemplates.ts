@@ -13,7 +13,7 @@ import {
 const styles = `
 <style>
   h1 {
-    font-size: 26px;
+    font-size: 24px;
   }
 
   body.vscode-light {
@@ -96,6 +96,10 @@ const styles = `
     color: #D2042D;
   }
 
+  .buttons {
+    padding: 10px 0px;
+  }
+
   .buttons::after {
     content: "";
     display: table;
@@ -116,6 +120,11 @@ const styles = `
 
     display: inline-block;
     background-color: transparent;
+    color: var(--vscode-input-foreground);
+  }
+
+  .btn:hover {
+    color: inherit;
   }
 
   .copy-code {
@@ -177,8 +186,31 @@ const styles = `
     cursor: pointer;
     font-weight: 500;
     border-radius: 3px;
+    margin-top: 14px;
   }
 
+  .test-btn {
+    font-size: 14px;
+    padding: 8px 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: strong;
+    border-radius: 3px;
+    color: var(--vscode-input-foreground);
+
+    display: inline-block;
+    background-color: transparent;
+  }
+
+  .test-btn:hover {
+    color: inherit;
+  }
+
+  .test-btn-active-text {
+    text-decoration: underline;
+    text-underline-position: under;
+    text-underline-offset: 2px;
+  }
 </style>`;
 
 const problemButtonsStyle = `
@@ -639,7 +671,50 @@ const getSubmissionsButton = () => {
 </buton>`;
 };
 
+const getDownloadTestsButton = () => {
+  return `
+  <button id="download-tests" class="btn download-tests" onclick="send('download-tests')">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M11.9565 6H12.0064C12.8004 6 13.5618 6.31607 14.1232 6.87868C14.6846 7.44129 15 8.20435 15 9C15 9.79565 14.6846 10.5587 14.1232 11.1213C13.5618 11.6839 12.8004 12 12.0064 12V11C12.5357 11 13.0434 10.7893 13.4176 10.4142C13.7919 10.0391 14.0021 9.53044 14.0021 9C14.0021 8.46957 13.7919 7.96086 13.4176 7.58579C13.0434 7.21072 12.5357 7 12.0064 7H11.0924L10.9687 6.143C10.8938 5.60541 10.6456 5.10711 10.2618 4.72407C9.87801 4.34103 9.37977 4.09427 8.84303 4.02143C8.30629 3.94859 7.76051 4.05365 7.2889 4.3206C6.81729 4.58754 6.44573 5.00173 6.23087 5.5L5.89759 6.262L5.08933 6.073C4.90382 6.02699 4.71364 6.0025 4.52255 6C3.86093 6 3.22641 6.2634 2.75858 6.73224C2.29075 7.20108 2.02792 7.83696 2.02792 8.5C2.02792 9.16304 2.29075 9.79893 2.75858 10.2678C3.22641 10.7366 3.86093 11 4.52255 11H5.02148V12H4.52255C4.02745 12.0043 3.5371 11.903 3.08403 11.7029C2.63096 11.5028 2.22553 11.2084 1.89461 10.8394C1.5637 10.4703 1.31488 10.0349 1.16465 9.56211C1.01442 9.08932 0.966217 8.58992 1.02324 8.09704C1.08026 7.60416 1.24121 7.12906 1.4954 6.70326C1.74959 6.27745 2.09121 5.91068 2.49762 5.62727C2.90402 5.34385 3.36591 5.15027 3.85264 5.05937C4.33938 4.96847 4.83984 4.98232 5.32083 5.1C5.6241 4.40501 6.14511 3.82799 6.80496 3.45635C7.4648 3.08472 8.22753 2.9387 8.9776 3.04044C9.72768 3.14217 10.4242 3.4861 10.9618 4.02014C11.4993 4.55418 11.8485 5.24923 11.9565 6ZM6.70719 11.1214L8.0212 12.4354V7H9.01506V12.3992L10.2929 11.1214L11 11.8285L8.85356 13.9749H8.14645L6.00008 11.8285L6.70719 11.1214Z" fill="#C5C5C5"/>
+    </svg>Download Tests</button>`;
+};
+
+const getInitialTestsButtons = (countInitialTests: number) => {
+  let buttonsStr = "";
+
+  for (let i = 1; i <= countInitialTests; ++i) {
+    buttonsStr += `
+<span class="separator">|</span>
+<button id="test${i}" class="test-btn" onclick="revealTest(${i})"><span id="test-${i}-btn">Test ${i}</span></button>`;
+  }
+
+  return buttonsStr;
+};
+
+const getInitialTestsHTML = (tests: ProblemTest[]) => {
+  console.log("Adding element: ", tests);
+
+  return tests
+    .map(
+      (test, idx) => `
+<div class="hidden" id="test-${idx + 1}-content">
+  <h3>Input:</h3>
+  <textarea class="test-input" style="max-height: 300px; " id="test-${
+    idx + 1
+  }-input" rows=1>${test.input || ""}</textarea>
+
+  <h3>Output:</h3>
+  <textarea class="test-input" style="max-height: 300px; " id="test-${
+    idx + 1
+  }-output" rows=1>${test.output || ""}</textarea>
+</div>`
+    )
+    .join("");
+};
+
 export const getProblemHTML = (
+  scriptsUri: vscode.Uri,
+  stylesUri: vscode.Uri,
   problemData: SpecificProblem,
   contestId?: number
 ) => {
@@ -665,54 +740,53 @@ export const getProblemHTML = (
       body {
         border-left: 3px solid #8c30f5;
       }
+
+      hr {
+        border-color: black;
+      }
     </style>
 
     ${problemButtonsStyle}
-      
-    <style>
-      .header-btn {
-        font-size: 14px;
-        padding: 8px 0px;
-        border: none;
-        cursor: pointer;
-        font-weight: 500;
-        border-radius: 0px;
-    
-        display: inline-block;
-        background-color: transparent;
-      }
 
-      .all-submissions {
-        float: left;
-      }
-    
-      .all-submissions svg {
-        width: 14px;
-        height: 14px;
-        margin-right: 3px;
-      }
-    </style>
+    <link rel='stylesheet' type='text/css' href='${stylesUri}'>
   </head>
   <body>
     <div class="button-container">
-      ${getDescriptionButton()}
-      <span class="separator">|</span>
       ${getSubmissionsButton()}
+      <span class="separator">|</span>
+      ${getDownloadTestsButton()}
     </div>
 
     <h1>${title}</h1>
     <p>${problemData.description}</p>
 
-    <h2>Exemplu:</h2>
-    <h3>Input:</h3>
-    <pre>${problemData.example?.input || ""}</pre>
+    <div class="buttons">
+      <button id="example" class="test-btn" onclick="revealTest(0)"><span class="test-btn-active-text" id="example-btn">Example</span></button>
+      ${getInitialTestsButtons(Math.min(3, problemData.tests.length))}
+      <button class="test-btn" onclick="addTest()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14.0004 7V8H8.00037V14H7.00037V8H1.00037V7H7.00037V1H8.00037V7H14.0004Z" fill="#424242"/>
+        </svg>
+      </button>
+    </div>
 
-    <h3>Output:</h3>
-    <pre>${problemData.example?.output || ""}</pre>
+    <div id="example-content">
+      <h3>Input:</h3>
+      <textarea class="test-input" style="max-height: 300px; " name="example-input" id="example-input" rows=1 readonly>${
+        problemData.example?.input || ""
+      }</textarea>
+
+      <h3>Output:</h3>
+      <textarea class="test-input" style="max-height: 300px; " name="example-output" id="example-output" rows=1 readonly>${
+        problemData.example?.output || ""
+      }</textarea>
+    </div>
+
+    ${getInitialTestsHTML(problemData.tests.slice(0, 3))}
 
     <div class="buttons">
       <button id="submit" class="bottom-btn submit" onclick="send('submit')">Submit</button>
-      <button id="run" class="bottom-btn run" onclick="send('run')">Run</button>
+      <button id="run" class="bottom-btn run" onclick="run()">Run</button>
       <button id="code" class="bottom-btn code" onclick="send('code')">Code</button>
     </div>
 
@@ -725,14 +799,21 @@ export const getProblemHTML = (
       })});
 
       function send(cmd) {
-        console.log("pressed ", cmd);
-
         vscode.postMessage({
           action: cmd,
           contestId: ${contestId},
         });
       }
+
+      function run() {
+        vscode.postMessage({
+          action: 'run',
+          tests: getTestData(),
+        });
+      }
     </script>
+
+    <script src="${scriptsUri}"></script>
   </body>
 </html>
 `;

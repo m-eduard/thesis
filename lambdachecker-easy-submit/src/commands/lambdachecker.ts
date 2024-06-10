@@ -1,6 +1,6 @@
 import path from "path";
 import * as vscode from "vscode";
-import { HTTPClient } from "../api";
+import { HTTPClient, SubmissionsApiClient } from "../api";
 import {
   BaseProblem,
   ContestSubject,
@@ -26,6 +26,7 @@ import { ProblemWebview } from "../webview/problemWebview";
 export class LambdaChecker {
   static context: vscode.ExtensionContext;
   static client: HTTPClient;
+  static submissionApiClient: SubmissionsApiClient;
   static userDataCache = new Storage();
   static contestDataProvider: ContestDataProvider;
   static users: User[] = [];
@@ -45,6 +46,16 @@ export class LambdaChecker {
       if (LambdaChecker.client === undefined) {
         LambdaChecker.client = new HTTPClient(
           LambdaChecker.userDataCache.get("token") as string
+        );
+      }
+
+      if (LambdaChecker.submissionApiClient === undefined) {
+        LambdaChecker.submissionApiClient = new SubmissionsApiClient(
+          {
+            c: "aws-lambda-c-path",
+            java: "aws-lambda-java-path",
+          },
+          "the-secret-was-removed:)"
         );
       }
 
@@ -152,6 +163,10 @@ export class LambdaChecker {
       {
         enableScripts: true,
         enableFindWidget: true,
+        localResourceRoots: [
+          vscode.Uri.joinPath(LambdaChecker.context.extensionUri, "resources"),
+        ],
+        retainContextWhenHidden: true,
       }
     );
 
@@ -162,7 +177,26 @@ export class LambdaChecker {
     problemPanel.webview.onDidReceiveMessage(async (message) => {
       problemWebview.webviewListener(message);
     });
-    problemPanel.webview.html = getProblemHTML(problem, contestId);
+
+    const scriptsPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "scripts",
+      "problemView.js"
+    );
+    const stylesPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "styles",
+      "problemView.css"
+    );
+
+    problemPanel.webview.html = getProblemHTML(
+      problemPanel.webview.asWebviewUri(scriptsPath),
+      problemPanel.webview.asWebviewUri(stylesPath),
+      problem,
+      contestId
+    );
   }
 
   static async showSubmissionResult(
@@ -173,7 +207,7 @@ export class LambdaChecker {
   ) {
     // console.log(JSON.parse(submissionResult.run_output) as RunOutput);
 
-    const problemPanel = vscode.window.createWebviewPanel(
+    const submissionResultPanel = vscode.window.createWebviewPanel(
       "lambdachecker.webview.results",
       `${submissionResult.problem_id}. ${problemName}`,
       {
@@ -192,15 +226,15 @@ export class LambdaChecker {
       problemName,
       problemLanguage,
       submissionResult.code,
-      problemPanel,
+      submissionResultPanel,
       problemTests
     );
 
-    problemPanel.webview.onDidReceiveMessage(async (message) => {
+    submissionResultPanel.webview.onDidReceiveMessage(async (message) => {
       currentProblemResultListener.webviewListener(message);
     });
 
-    problemPanel.webview.html = getSubmissionResultWebviewContent(
+    submissionResultPanel.webview.html = getSubmissionResultWebviewContent(
       submissionResult,
       problemTests
     );
@@ -307,10 +341,6 @@ export class LambdaChecker {
       createContestPanel.webview.asWebviewUri(revealPassswordPath),
       createContestPanel.webview.asWebviewUri(stylesPath)
     );
-
-    createContestPanel.onDidChangeViewState((event) => {
-      console.log("Form was submitted and state changed:", event);
-    });
 
     createContestPanel.onDidDispose(() => {
       console.log("Form disposed");
