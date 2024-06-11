@@ -709,8 +709,8 @@ const getInitialTestsButtons = (countInitialTests: number) => {
 <span class="test-btn-wrapper" id="test-${i}-btn-wrapper">
   <span class="separator">|</span>
 
-  <button id="test-${i}-btn" class="test-btn" onclick="revealTest(${i})"><span id="test-${i}-btn">Test ${i}</span></button>
-  <button class="test-btn-remove" id="test-${i}-btn-remove" onclick="removeTest(${i})">
+  <button id="test-${i}-btn" class="test-btn" onclick="revealTestById('test-${i}')"><span id="test-${i}-btn">Test ${i}</span></button>
+  <button class="test-btn-remove" id="test-${i}-btn-remove" onclick="removeTestById('test-${i}')">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M15 8H1V7H15V8Z" fill="#C5C5C5"/>
     </svg>
@@ -796,7 +796,7 @@ export const getProblemHTML = (
 
     <div class="buttons">
       <span id="test-buttons-container">
-        <button id="example" class="test-btn test-btn-example" onclick="revealTest(0)"><span class="test-btn-active-text" id="example-btn">Example</span></button>
+        <button id="example" class="test-btn test-btn-example" onclick="revealTestById('example')"><span class="test-btn-active-text" id="example-btn">Example</span></button>
         ${getInitialTestsButtons(Math.min(3, problemData.tests.length))}
       </span>
       <button class="test-btn-add test-btn" onclick="addTest()">
