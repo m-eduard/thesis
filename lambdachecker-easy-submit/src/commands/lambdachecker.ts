@@ -234,7 +234,23 @@ export class LambdaChecker {
       currentProblemResultListener.webviewListener(message);
     });
 
+    const stylesPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "styles",
+      "submissionView.css"
+    );
+
+    const scriptsPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "scripts",
+      "submissionView.js"
+    );
+
     submissionResultPanel.webview.html = getSubmissionResultWebviewContent(
+      submissionResultPanel.webview.asWebviewUri(stylesPath),
+      submissionResultPanel.webview.asWebviewUri(scriptsPath),
       submissionResult,
       problemTests
     );

@@ -13,6 +13,8 @@ import { SubmissionFile } from "../storage";
 export class ProblemSubmissionWebviewListener {
   public submissionFile: SubmissionFile;
   public allSubmissions: SubmissionResult[] = [];
+  private stylesUri: vscode.Uri;
+  private scriptsUri: vscode.Uri;
 
   constructor(
     public problemId: number,
@@ -28,6 +30,23 @@ export class ProblemSubmissionWebviewListener {
       problemLanguage,
       problemCode
     );
+
+    const stylesPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "styles",
+      "submissionView.css"
+    );
+
+    const scriptsPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "scripts",
+      "submissionView.js"
+    );
+
+    this.stylesUri = this.panel.webview.asWebviewUri(stylesPath);
+    this.scriptsUri = this.panel.webview.asWebviewUri(scriptsPath);
   }
 
   async webviewListener(message: ProblemSubmissionWebviewMessage) {
@@ -64,6 +83,8 @@ export class ProblemSubmissionWebviewListener {
         break;
       case "view-submission":
         this.panel.webview.html = getSubmissionResultWebviewContent(
+          this.stylesUri,
+          this.scriptsUri,
           this.allSubmissions[message.submissionIdx!],
           this.problemTests
         );

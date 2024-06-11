@@ -69,23 +69,23 @@ const styles = `
   }
   .accepted {
     color: #0BDA51;
-    font-weight: strong;
+    font-weight: bold;
     font-size: 26px;
   }
   .failed {
     color: #D2042D;
-    font-weight: strong;
+    font-weight: bold;
     font-size: 26px;
   }
 
   .accepted-normal {
     color: #0BDA51;
-    font-weight: strong;
+    font-weight: bold;
   }
 
   .failed-normal {
     color: #D2042D;
-    font-weight: strong;
+    font-weight: bold;
   }
 
   .accepted-thin {
@@ -97,7 +97,7 @@ const styles = `
   }
 
   .buttons {
-    padding: 10px 0px;
+    padding: 0px 0px;
   }
 
   .buttons::after {
@@ -191,7 +191,8 @@ const styles = `
 
   .test-btn {
     font-size: 14px;
-    padding: 8px 6px;
+    padding: 2px 0px 2px 6px;
+    
     border: none;
     cursor: pointer;
     font-weight: strong;
@@ -258,7 +259,7 @@ const problemButtonsStyle = `
 }
 
 .separator {
-  margin: 0 10px;
+  margin: 0px 4px 0px 0px;
   font-size: 18px;
   color: #333;
 }
@@ -448,16 +449,22 @@ const getTestResultHTML = (
     test.grade
   } pts</span>
 </h2>
+
 <h3>Input:</h3>
-<pre>${test.input}</pre>
+<textarea class="test-input" style="max-height: 300px; " id="test-${testNo}-input" rows=1 readonly>${
+    test.input || ""
+  }</textarea>
+
 <h3>Output:</h3>
-<pre>${
+<textarea class="test-input" style="max-height: 300px; " id="test-${testNo}-output" rows=1 readonly>${
     testResult.status === "TIMEOUT"
       ? '<span class="failed-normal"><b>~ Error: Time Limit Exceeded</b></span>'
       : ""
-  }${formattedOut}</pre>
+  }${formattedOut}</textarea>
+
 <h3>Expected:</h3>
-<pre>${formattedRef}</pre>
+<textarea class="test-input" style="max-height: 300px; " id="test-${testNo}-expected" rows=1 readonly>${formattedRef}</textarea>
+
 <hr>
 `;
 };
@@ -492,6 +499,8 @@ const getExecutionStatus = (testsResults: TestResult[]) => {
 };
 
 export const getExecutionResultHTML = (
+  stylesUri: vscode.Uri,
+  scriptsUri: vscode.Uri,
   testsResults: TestResult[],
   submissionDate: string,
   tests: ProblemTest[]
@@ -513,7 +522,18 @@ export const getExecutionResultHTML = (
 <!DOCTYPE html>
 <html lang="en">
 <html>
-${head}
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submission Result</title>
+
+  ${styles}
+
+  <link rel='stylesheet' type='text/css' href='${stylesUri}'>
+  
+</head>
+
 <body>
 
 <div>
@@ -546,6 +566,7 @@ ${getBringCodeToEditorButton()}
 
   <script>
     const vscode = acquireVsCodeApi();
+    const testsIds = [${testsResults.map((_, idx) => `"test-${idx}"`)}];
 
     function send(cmd) {
       vscode.postMessage({
@@ -563,6 +584,7 @@ ${getBringCodeToEditorButton()}
       }
     });
   </script>
+  <script src="${scriptsUri}"></script>
 </body>
 </html>`;
 };
@@ -684,16 +706,23 @@ const getInitialTestsButtons = (countInitialTests: number) => {
 
   for (let i = 1; i <= countInitialTests; ++i) {
     buttonsStr += `
-<span class="separator">|</span>
-<button id="test${i}" class="test-btn" onclick="revealTest(${i})"><span id="test-${i}-btn">Test ${i}</span></button>`;
+<span class="test-btn-wrapper" id="test-${i}-btn-wrapper">
+  <span class="separator">|</span>
+
+  <button id="test-${i}-btn" class="test-btn" onclick="revealTest(${i})"><span id="test-${i}-btn">Test ${i}</span></button>
+  <button class="test-btn-remove" id="test-${i}-btn-remove" onclick="removeTest(${i})">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 8H1V7H15V8Z" fill="#C5C5C5"/>
+    </svg>
+  </button>
+</span>
+`;
   }
 
   return buttonsStr;
 };
 
 const getInitialTestsHTML = (tests: ProblemTest[]) => {
-  console.log("Adding element: ", tests);
-
   return tests
     .map(
       (test, idx) => `
@@ -744,6 +773,11 @@ export const getProblemHTML = (
       hr {
         border-color: black;
       }
+
+      div.tests-container {
+        padding-top: 0px;
+        min-height: 0px !important;
+      }
     </style>
 
     ${problemButtonsStyle}
@@ -761,28 +795,32 @@ export const getProblemHTML = (
     <p>${problemData.description}</p>
 
     <div class="buttons">
-      <button id="example" class="test-btn" onclick="revealTest(0)"><span class="test-btn-active-text" id="example-btn">Example</span></button>
-      ${getInitialTestsButtons(Math.min(3, problemData.tests.length))}
-      <button class="test-btn" onclick="addTest()">
+      <span id="test-buttons-container">
+        <button id="example" class="test-btn test-btn-example" onclick="revealTest(0)"><span class="test-btn-active-text" id="example-btn">Example</span></button>
+        ${getInitialTestsButtons(Math.min(3, problemData.tests.length))}
+      </span>
+      <button class="test-btn-add test-btn" onclick="addTest()">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M14.0004 7V8H8.00037V14H7.00037V8H1.00037V7H7.00037V1H8.00037V7H14.0004Z" fill="#424242"/>
+          <path d="M14.0001 7V8H8.00012V14H7.00012V8H1.00012V7H7.00012V1H8.00012V7H14.0001Z" fill="#C5C5C5"/>
         </svg>
       </button>
     </div>
 
-    <div id="example-content">
-      <h3>Input:</h3>
-      <textarea class="test-input" style="max-height: 300px; " name="example-input" id="example-input" rows=1 readonly>${
-        problemData.example?.input || ""
-      }</textarea>
+    <div id="tests-container">
+      <div id="example-content">
+        <h3>Input:</h3>
+        <textarea class="test-input" style="max-height: 300px; " name="example-input" id="example-input" rows=1 readonly>${
+          problemData.example?.input || ""
+        }</textarea>
 
-      <h3>Output:</h3>
-      <textarea class="test-input" style="max-height: 300px; " name="example-output" id="example-output" rows=1 readonly>${
-        problemData.example?.output || ""
-      }</textarea>
+        <h3>Output:</h3>
+        <textarea class="test-input" style="max-height: 300px; " name="example-output" id="example-output" rows=1 readonly>${
+          problemData.example?.output || ""
+        }</textarea>
+      </div>
+
+      ${getInitialTestsHTML(problemData.tests.slice(0, 3))}
     </div>
-
-    ${getInitialTestsHTML(problemData.tests.slice(0, 3))}
 
     <div class="buttons">
       <button id="submit" class="bottom-btn submit" onclick="send('submit')">Submit</button>

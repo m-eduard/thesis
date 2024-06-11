@@ -63,6 +63,32 @@ textarea.test-input {
   display: none;
 }
 
-.test-btn svg {
+.test-btn-example {
+  padding-right: 8px;
+}
+
+.test-btn-add svg {
   vertical-align: text-top;
+  padding-left: 8px;
+}
+
+.test-btn-remove svg {
+  width: 10px;
+  height: 10px;
+  vertical-align: top;
+}
+
+.test-btn-remove {
+  visibility: hidden;
+  padding: 0px 0px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 3px;
+  color: var(--vscode-input-foreground);
+  background-color: transparent;
+}
+
+.test-btn:hover + .test-btn-remove, .test-btn-remove:hover {
+  visibility: visible;
 }
