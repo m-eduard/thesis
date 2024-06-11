@@ -19,3 +19,8 @@ textarea.test-input {
   padding: 8px;
   border: 2px solid black;
 }
+
+pre {
+  overflow: auto;
+  max-height: 300px;
+}

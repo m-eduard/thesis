@@ -451,19 +451,17 @@ const getTestResultHTML = (
 </h2>
 
 <h3>Input:</h3>
-<textarea class="test-input" style="max-height: 300px; " id="test-${testNo}-input" rows=1 readonly>${
-    test.input || ""
-  }</textarea>
+<pre>${test.input || ""}</pre>
 
 <h3>Output:</h3>
-<textarea class="test-input" style="max-height: 300px; " id="test-${testNo}-output" rows=1 readonly>${
+<pre>${
     testResult.status === "TIMEOUT"
       ? '<span class="failed-normal"><b>~ Error: Time Limit Exceeded</b></span>'
       : ""
-  }${formattedOut}</textarea>
+  }${formattedOut}</pre>
 
 <h3>Expected:</h3>
-<textarea class="test-input" style="max-height: 300px; " id="test-${testNo}-expected" rows=1 readonly>${formattedRef}</textarea>
+<pre>${formattedRef}</pre>
 
 <hr>
 `;
