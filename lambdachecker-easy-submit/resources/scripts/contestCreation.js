@@ -20,7 +20,7 @@ window.addEventListener("message", event => {
 });
 
 function revealPassword() {
-  const passwordBox = document.getElementById("password");
+  const passwordBox = document.getElementById("password-input");
   const eyeIcon = document.getElementById("eye-icon");
 
   if (passwordBox.type === "password") {
