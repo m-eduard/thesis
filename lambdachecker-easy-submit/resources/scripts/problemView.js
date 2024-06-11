@@ -1,12 +1,13 @@
-// Initial resize for all the text areas, for example and also
-// for the input and output content of the shown tests
 let testsDisplayed = ['example', 'test-1', 'test-2', 'test-3'];
+let totalNumberOfShownTests = 0;
 
 // Use a mapping as a link to the original name
 // for a test, since they have to be reindexed
 // after each deletion
 let testsNamesMapping = [];
 
+// Initial resize for all the text areas, for example and also
+// for the input and output content of the shown tests
 testsDisplayed.forEach((element) => {
     const inputTextbox = document.getElementById(`${element}-input`);
     const outputTextbox = document.getElementById(`${element}-output`);
@@ -28,6 +29,7 @@ testsDisplayed.forEach((element) => {
     });
 
     testsNamesMapping.push(element);
+    totalNumberOfShownTests++;
 });
 
 function activateTestDisplay(testDiv, testBtn, removeTestBtn) {
@@ -113,10 +115,10 @@ function getTestData() {
 }
 
 function addTest() {
-    const testIndex = testsDisplayed.length;
+    const testIndex = totalNumberOfShownTests;
+    totalNumberOfShownTests++;
 
     testsNamesMapping.push(`test-${testIndex}`);
-    testsDisplayed.push(`test-${testIndex}`);
 
     createTestButtton(testIndex);
     createTestContent(testIndex);
