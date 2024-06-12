@@ -120,25 +120,31 @@ function addTest() {
 
     testsNamesMapping.push(`test-${testIndex}`);
 
-    createTestButtton(testIndex);
+    createTestButton(testIndex);
     createTestContent(testIndex);
 
     revealTestById(`test-${testIndex}`);
 }
 
-function createTestButtton(testIndex) {
+function createTestButton(testIndex) {
     const testButtonsContainer = document.getElementById('test-buttons-container');
-    testButtonsContainer.innerHTML += `
+
+    const newTestButton = document.createElement('span');
+    newTestButton.id = `test-${testIndex}-btn-wrapper`;
+    newTestButton.classList.add('test-btn-wrapper');
+    newTestButton.innerHTML = `
 <span class="test-btn-wrapper" id="test-${testIndex}-btn-wrapper">
   <span class="separator">|</span>
 
-  <button id="test-${testIndex}-btn" class="test-btn" onclick="revealTestById('test-${testIndex}')"><span id="test-${testIndex}-btn">Test ${testsNamesMapping.length - 1}</span></button>
-    <button class="test-btn-remove" id="test-${testIndex}-btn-remove" onclick="removeTestById('test-${testIndex}')">
+  <button id="test-${testIndex}-btn" class="test-btn" onclick="revealTestById('test-${testIndex}')">Test ${testsNamesMapping.length - 1}</button>
+  <button class="test-btn-remove" id="test-${testIndex}-btn-remove" onclick="removeTestById('test-${testIndex}')">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M15 8H1V7H15V8Z" fill="#C5C5C5"/>
     </svg>
   </button>
 </span>`;
+
+    testButtonsContainer.appendChild(newTestButton);
 }
 
 function createTestContent(testIndex, input, output) {
