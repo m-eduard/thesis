@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import {
   BaseProblem,
   ContestSubject,
+  Difficulty,
+  Language,
   ProblemTest,
   RunOutput,
   SpecificProblem,
@@ -959,6 +961,113 @@ export const getContestCreationHTML = (
       )}];
     </script>
     <script src="${resourcesPath}"></script>
+  </body>
+  </html>
+`;
+};
+
+export const getProblemCreationHTML = (
+  stylesUri: vscode.Uri,
+  scriptsUri: vscode.Uri
+) => {
+  return `
+  <!DOCTYPE html>
+  <html lang="en">
+  <html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Problem</title>
+    
+    ${styles}
+
+    ${problemButtonsStyle}
+  
+    <link rel='stylesheet' type='text/css' href='${stylesUri}'>
+  </head>
+  <body>
+    <h1>Create Problem</h1>
+    <form id="problem-form" onsubmit="submitForm()">
+      <label for="name-input">Problem Name</label>
+      <input class="name-input purple-border" type="text" id="name-input" name="name-input" placeholder="Problem Name" required>
+
+      <label for="language-input">Language</label>
+      <div class="autocomplete-container">
+          <input class="language-input purple-border" type="text" id="language-input" name="language-input" placeholder="C" required>
+          <ul class="suggestions" id="language-suggestions"></ul>
+      </div>
+
+      <label for="difficulty-input">Difficulty</label>
+      <div class="autocomplete-container">
+          <input class="difficulty-input purple-border" type="text" id="difficulty-input" name="difficulty-input" placeholder="Medium" required>
+          <ul class="suggestions" id="difficulty-suggestions"></ul>
+      </div>
+
+      <label for="categories">Categories</label>
+      <div class="autocomplete-container">
+        <div id="input-wrapper" class="categories-input-wrapper input-wrapper"></div>
+        <input class="categories-input purple-border" type="text" id="categories-input" name="categories" placeholder="SDA">
+      </div>
+
+      <label for="description-input">Description</label>
+      <textarea class="purple-border" id="description-input" name="description-input" style="max-height: 300px; " rows=2 placeholder="Description" required></textarea>
+
+      <label for="visibility-input">Visibility</label>
+      <div class="hidden-toggles">
+				<input name="visibility-level" type="radio" id="visibility-public" class="hidden-toggles__input" checked>
+				<label for="visibility-public" class="hidden-toggles__label">Public</label>
+				
+				<input name="visibility-level" type="radio" id="visibility-private" class="hidden-toggles__input">
+				<label for="visibility-private" class="hidden-toggles__label">Private</label>	
+			</div>
+
+      <label for="skeleton-input">Skeleton</label>
+      <div class="buttons">
+        <span id="skeleton-buttons-container">
+          <button type="button" id="write-skel-btn" class="test-btn test-btn-example test-btn-active-text" onclick="writeSkeleton()">Write Here</button>
+          <span class="separator">|</span>
+          <button type="button" id="open-skel-btn" class="test-btn test-btn-example" onclick="openSkeletonFile()">Open in Editor</button>
+          <span class="separator">|</span>
+          <button type="button" id="upload-skel-btn" class="test-btn test-btn-example" onclick="uploadSkeletonFile()">Upload</button>
+        </span>
+      </div>
+      <textarea class="purple-border skeleton-input" id="skeleton-input" style="max-height: 300px; " rows=2 placeholder="Skeleton"></textarea>
+
+      <label for="tests-input">Tests</label>
+      <div class="buttons">
+        <span id="test-buttons-container">
+          <button type="button" id="example" class="test-btn test-btn-example" onclick="revealTestById('example')"><span class="test-btn-active-text" id="example-btn">Example</span></button>
+        </span>
+        <button type="button" class="test-btn-add test-btn" onclick="addTest()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14.0001 7V8H8.00012V14H7.00012V8H1.00012V7H7.00012V1H8.00012V7H14.0001Z" fill="#C5C5C5"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="tests-container" id="tests-container">
+        <div id="example-content">
+          <h3>Input:</h3>
+          <textarea class="test-input" style="max-height: 300px; " name="example-input" id="example-input" rows=1></textarea>
+
+          <h3>Output:</h3>
+          <textarea class="test-input" style="max-height: 300px; " name="example-output" id="example-output" rows=1></textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="btn code">Create Problem</button>
+    </form>
+  
+    <script>
+      const languages = [${Object.values(Language).map(
+        (language) => `"${language}"`
+      )}];
+
+      const difficulties = [${Object.values(Difficulty).map(
+        (language) => `"${language}"`
+      )}];
+    </script>
+    <script src="${scriptsUri}"></script>
   </body>
   </html>
 `;
