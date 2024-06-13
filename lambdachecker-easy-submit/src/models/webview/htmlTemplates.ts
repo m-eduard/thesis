@@ -987,7 +987,7 @@ export const getProblemCreationHTML = (
   </head>
   <body>
     <h1>Create Problem</h1>
-    <form id="problem-form" onsubmit="submitForm()">
+    <form id="problem-form">
       <label for="name-input">Problem Name</label>
       <input class="name-input purple-border" type="text" id="name-input" name="name-input" placeholder="Problem Name" required>
 

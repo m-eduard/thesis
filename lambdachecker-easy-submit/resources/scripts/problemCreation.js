@@ -273,6 +273,7 @@ function uploadTestFile(textareaId) {
 }
 
 
+
 ///// Tests input related logic
 let testsDisplayed = ['example'];
 let totalNumberOfShownTests = 0;
@@ -463,6 +464,8 @@ function removeTestById(testIdPrefix) {
     console.log(testsNamesMapping);
 }
 
+
+
 ///// Form related functions
 function getFormData() {
   const problemName = document.getElementById('name-input').value;
@@ -510,18 +513,12 @@ function getFormData() {
   };
 }
 
-function submitForm() {
+function submitForm(e) {
+  e.preventDefault();
   vscode.postMessage({
     action: "sendRequestToApi",
     problemData: getFormData()
   });
 }
 
-function saveFormData() {
-  const contestName = document.getElementById('contest-name').value;
-  // localStorage.setItem('contestName', contestName);
-
-  vscode.setState({
-    contestName
-  });
-}
+document.getElementById('problem-form').addEventListener('submit', submitForm);
