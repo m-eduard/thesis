@@ -78,15 +78,15 @@ button[type="submit"] {
 }
 
 
-.password-container {
+.upload-container {
   position: relative;
   width: 100%;
 }
 
-.toggle-password {
+.upload {
   position: absolute;
-  right: 6px;
-  top: 40%;
+  right: 12px;
+  top: 50%;
   transform: translateY(-50%);
   border: none;
   background: inherit;

@@ -18,13 +18,32 @@ export class CreateProblemListener {
     //     });
     // };
 
+    const uploadOptions: vscode.OpenDialogOptions = {
+      canSelectFiles: true,
+      canSelectFolders: false,
+      title: "Upload From",
+    };
+
     switch (message.action) {
+      case "uploadTestFile":
+        vscode.window.showOpenDialog(uploadOptions).then(async (fileUri) => {
+          if (fileUri && fileUri[0]) {
+            const fileContent = await vscode.workspace.fs.readFile(fileUri[0]);
+
+            this.panel.webview.postMessage({
+              action: "uploadTestFileResponse",
+              testId: message.testId,
+              data: fileContent.toString(),
+            });
+          }
+        });
+        break;
       case "openSkeletonFile":
         if (this.submissionFile === undefined) {
           this.submissionFile = new SubmissionFile(
             0,
-            message.data.name,
-            message.data.language,
+            message.problemData!.name,
+            message.problemData!.language,
             ""
           );
         }
@@ -32,13 +51,7 @@ export class CreateProblemListener {
 
         break;
       case "uploadSkeletonFile":
-        const options: vscode.OpenDialogOptions = {
-          canSelectFiles: true,
-          canSelectFolders: false,
-          title: "Upload Skeleton From",
-        };
-
-        vscode.window.showOpenDialog(options).then(async (fileUri) => {
+        vscode.window.showOpenDialog(uploadOptions).then(async (fileUri) => {
           if (fileUri && fileUri[0]) {
             // Read the file
             const fileContent = await vscode.workspace.fs.readFile(fileUri[0]);
@@ -69,14 +82,14 @@ export class CreateProblemListener {
 
         break;
       case "sendRequestToApi":
-        const { skeleton_source_is_local, ...createProblemData } = message.data;
+        const { skeleton_source_is_local, ...createProblemData } =
+          message.problemData!;
 
         if (skeleton_source_is_local === true) {
           createProblemData.skeleton =
             (await this.submissionFile?.readSubmissionFile())?.toString() || "";
         }
 
-        console.log(message.data);
         console.log(createProblemData);
 
         this.panel.dispose();

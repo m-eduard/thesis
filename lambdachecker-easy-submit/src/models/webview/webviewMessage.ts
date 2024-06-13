@@ -26,5 +26,6 @@ export interface ProblemSubmissionWebviewMessage {
 
 export interface CreateProblemWebviewMessage {
   action: string;
-  data: ProblemCreate;
+  problemData?: ProblemCreate;
+  testId?: string;
 }
