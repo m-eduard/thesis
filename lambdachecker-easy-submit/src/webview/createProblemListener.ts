@@ -71,6 +71,7 @@ export class CreateProblemListener {
             createProblemData
           );
 
+          LambdaChecker.problemDataProvider.refresh();
           vscode.window.showInformationMessage(
             `Successfully created Problem ${message.problemData!.name}!`
           );

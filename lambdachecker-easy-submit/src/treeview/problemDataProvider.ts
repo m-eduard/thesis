@@ -1,19 +1,30 @@
 import * as vscode from "vscode";
 
 import { HTTPClient } from "../api";
+import { LambdaChecker } from "../commands";
 import { defaultFolderIcon, fileIconMapping } from "../icons";
-import { BaseProblem, Difficulty, Language } from "../models";
+import { BaseProblem, Difficulty, Language, SpecificProblem } from "../models";
 import { ProblemItem } from "./problemItem";
 
 export class ProblemDataProvider
   implements vscode.TreeDataProvider<ProblemItem>
 {
+  private _onDidChangeTreeData = new vscode.EventEmitter<
+    ProblemItem | undefined | null | void
+  >();
+
   root: ProblemItem[];
   lambdacheckerClient: HTTPClient;
   problemsPromise: Promise<ProblemItem[]>;
 
+  // Attribute useful only for teachers, to allow
+  // editing only the problems created by them
+  private ownedProblemsPromise: Promise<SpecificProblem[]>;
+
   constructor(client: HTTPClient) {
     this.lambdacheckerClient = client;
+    LambdaChecker.problemDataProvider = this;
+
     this.root = Object.values(Language).map((language) => {
       const childrenItems = Object.values(Difficulty).map(
         (difficulty) =>
@@ -31,7 +42,19 @@ export class ProblemDataProvider
       });
     });
 
-    this.problemsPromise = this.lambdacheckerClient
+    this.problemsPromise = this.getAllProblems();
+    this.ownedProblemsPromise = LambdaChecker.client.getOwnedProblems();
+  }
+
+  refresh() {
+    this.problemsPromise = this.getAllProblems();
+    this.ownedProblemsPromise = LambdaChecker.client.getOwnedProblems();
+
+    this._onDidChangeTreeData.fire();
+  }
+
+  async getAllProblems(): Promise<ProblemItem[]> {
+    return this.lambdacheckerClient
       .getProblems()
       .then((problems: BaseProblem[]) => {
         return problems.map(
@@ -45,18 +68,20 @@ export class ProblemDataProvider
         );
       })
       .catch((error: any) => {
-        vscode.window
+        return vscode.window
           .showErrorMessage(
-            "Error fetching problems. Would you like to log in again?",
-            error.message,
+            "Error fetching problems. Would you like to log in again?\n" +
+              error.message,
+            "Yes",
             "No"
           )
           .then((selection) => {
-            if (selection !== "No") {
-              vscode.commands.executeCommand("lambdachecker.login");
+            if (selection === "Yes") {
+              return this.getAllProblems();
             }
+
+            return [];
           });
-        return [];
       });
   }
 

@@ -20,7 +20,11 @@ import {
   getProblemCreationHTML,
   getProblemHTML,
 } from "../models/webview/htmlTemplates";
-import { ContestDataProvider, ProblemItem } from "../treeview";
+import {
+  ContestDataProvider,
+  ProblemDataProvider,
+  ProblemItem,
+} from "../treeview";
 import { ProblemEditor, ProblemSubmissionWebviewListener } from "../webview";
 import { CreateProblemListener } from "../webview/createProblemListener";
 import { ProblemWebview } from "../webview/problemWebview";
@@ -31,6 +35,7 @@ export class LambdaChecker {
   static submissionApiClient: SubmissionsApiClient;
   static userDataCache = new Storage();
   static contestDataProvider: ContestDataProvider;
+  static problemDataProvider: ProblemDataProvider;
   static users: User[] = [];
   static problems: BaseProblem[] = [];
 
