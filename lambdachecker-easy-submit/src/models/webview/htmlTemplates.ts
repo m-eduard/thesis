@@ -1068,6 +1068,9 @@ export const getProblemCreationHTML = (
               </svg>
             </button>
           </div>
+
+          <h3>Grade:</h3>
+          <textarea class="test-input" name="example-grade" id="example-grade" rows=1></textarea>
         </div>
       </div>
 

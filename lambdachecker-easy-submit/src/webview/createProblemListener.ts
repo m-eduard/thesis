@@ -9,15 +9,6 @@ export class CreateProblemListener {
   constructor(public panel: vscode.WebviewPanel) {}
 
   async webviewListener(message: CreateProblemWebviewMessage) {
-    // const getSubmissionsSafe = async () => {
-    //   return LambdaChecker.client
-    //     .getSubmissions(this.problemId)
-    //     .catch((error) => {
-    //       vscode.window.showErrorMessage(error.message);
-    //       return [] as SubmissionResult[];
-    //     });
-    // };
-
     const uploadOptions: vscode.OpenDialogOptions = {
       canSelectFiles: true,
       canSelectFolders: false,
@@ -63,23 +54,6 @@ export class CreateProblemListener {
             });
           }
         });
-
-        // // Second, when the current batch is ready, replace the
-        // // old HTML content with this one
-        // getSubmissionsSafe().then((submissions) => {
-        //   this.allSubmissions = submissions;
-        //   this.panel.webview.html = getSubmissionsTableHTML(
-        //     this.allSubmissions,
-        //     this.problemTests
-        //   );
-        // });
-
-        // // First, show the old batch of submissions
-        // this.panel.webview.html = getSubmissionsTableHTML(
-        //   this.allSubmissions,
-        //   this.problemTests
-        // );
-
         break;
       case "sendRequestToApi":
         const { skeleton_source_is_local, ...createProblemData } =
@@ -92,24 +66,18 @@ export class CreateProblemListener {
 
         console.log(createProblemData);
 
-        this.panel.dispose();
+        try {
+          const response = await LambdaChecker.client.createProblem(
+            createProblemData
+          );
 
-        // try {
-        //   const response = await LambdaChecker.client.createContest(
-        //     message.data
-        //   );
-
-        //   LambdaChecker.contestDataProvider.refresh();
-
-        //   vscode.window.showInformationMessage(
-        //     `Successfully created Contest ${response.id}: ${message.data.name}!`
-        //   );
-        // } catch (error: any) {
-        //   this.panel.dispose();
-        //   console.log("here", error);
-
-        //   vscode.window.showErrorMessage(error.message);
-        // }
+          vscode.window.showInformationMessage(
+            `Successfully created Problem ${message.problemData!.name}!`
+          );
+          this.panel.dispose();
+        } catch (error: any) {
+          vscode.window.showErrorMessage(error.message);
+        }
 
         break;
     }

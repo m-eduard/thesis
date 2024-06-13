@@ -64,7 +64,7 @@ export interface ProblemCreate {
   description: string;
   visible: boolean;
   skeleton: string;
-  example?: ProblemTest;
+  example: ProblemTest;
   tests: ProblemTest[];
   skeleton_source_is_local?: boolean;
 }

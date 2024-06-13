@@ -7,6 +7,8 @@ import {
   ContestSubject,
   EnrollmentStatus,
   Language,
+  ProblemCreate,
+  ProblemCreateResponse,
   RunOutput,
   SpecificProblem,
   SubmissionApiEndpoints,
@@ -341,6 +343,28 @@ export class HTTPClient {
           (contestEditData as Record<string, unknown>)["message"]
         }`
       );
+    }
+  }
+
+  async createProblem(
+    problemContent: Omit<ProblemCreate, "skeleton_source_is_local">
+  ): Promise<ProblemCreateResponse> {
+    const response = await this.request(
+      new Route("POST", "/problems"),
+      JSON.stringify(problemContent)
+    );
+
+    try {
+      const problemCreateData = await response.text();
+      console.log("content:", problemCreateData);
+
+      if (response.status !== 200) {
+        throw new Error(problemCreateData);
+      }
+
+      return JSON.parse(problemCreateData) as ProblemCreateResponse;
+    } catch (error: any) {
+      throw new Error(`[Lambda Checker API]: ${error.message}`);
     }
   }
 
