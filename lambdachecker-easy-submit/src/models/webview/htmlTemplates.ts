@@ -1013,16 +1013,18 @@ export const getProblemCreationHTML = (
       <textarea class="purple-border" id="description-input" name="description-input" style="max-height: 300px; " rows=2 placeholder="Description" required></textarea>
 
       <label for="visibility-input">Visibility</label>
-      <div class="hidden-toggles">
-				<input name="visibility-level" type="radio" id="visibility-public" class="hidden-toggles__input" checked>
-				<label for="visibility-public" class="hidden-toggles__label">Public</label>
-				
-				<input name="visibility-level" type="radio" id="visibility-private" class="hidden-toggles__input">
-				<label for="visibility-private" class="hidden-toggles__label">Private</label>	
-			</div>
+      <div class="centered">
+        <div class="hidden-toggles">
+          <input name="visibility-level" type="radio" id="visibility-public" class="hidden-toggles__input" checked>
+          <label for="visibility-public" class="hidden-toggles__label">Public</label>
+          
+          <input name="visibility-level" type="radio" id="visibility-private" class="hidden-toggles__input">
+          <label for="visibility-private" class="hidden-toggles__label">Private</label>	
+        </div>
+      </div>
 
       <label for="skeleton-input">Skeleton</label>
-      <div class="buttons">
+      <div class="buttons skeleton-buttons">
         <span id="skeleton-buttons-container">
           <button type="button" id="write-skel-btn" class="test-btn test-btn-example test-btn-active-text" onclick="writeSkeleton()">Write Here</button>
           <span class="separator">|</span>

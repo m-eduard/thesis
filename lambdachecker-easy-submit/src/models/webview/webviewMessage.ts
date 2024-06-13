@@ -1,4 +1,4 @@
-import { ProblemTest } from "../api";
+import { ProblemCreate, ProblemTest } from "../api";
 
 export interface WebviewMessage {
   /**
@@ -22,4 +22,9 @@ export interface WebviewMessage {
 export interface ProblemSubmissionWebviewMessage {
   action: string;
   submissionIdx?: number;
+}
+
+export interface CreateProblemWebviewMessage {
+  action: string;
+  data: ProblemCreate;
 }

@@ -55,3 +55,21 @@ export interface ProblemTest {
   output: string;
   grade: number;
 }
+
+export interface ProblemCreate {
+  name: string;
+  language: Language;
+  difficulty: Difficulty;
+  categories: string;
+  description: string;
+  visible: boolean;
+  skeleton: string;
+  example?: ProblemTest;
+  tests: ProblemTest[];
+  skeleton_source_is_local?: boolean;
+}
+
+export interface ProblemCreateResponse {
+  status: string;
+  message: string;
+}

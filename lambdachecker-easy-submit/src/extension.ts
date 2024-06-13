@@ -38,6 +38,10 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(
         "lambdachecker.create-contest",
         LambdaChecker.createContest
+      ),
+      vscode.commands.registerCommand(
+        "lambdachecker.create-problem",
+        LambdaChecker.createProblem
       )
     );
     context.subscriptions.push(StatusBar.statusBarItem);

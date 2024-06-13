@@ -36,7 +36,7 @@ export class SubmissionFile {
     return path.join(
       SubmissionFile.getSubmissionsFolderPath(),
       `${this.problemId}_${this.problemName.trim().replaceAll(" ", "_")}${
-        languageExtensions[this.problemLanguage]
+        languageExtensions[this.problemLanguage] || ".tmp"
       }`
     );
   }

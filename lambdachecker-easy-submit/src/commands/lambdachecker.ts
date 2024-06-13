@@ -17,10 +17,12 @@ import {
 } from "../models";
 import {
   getContestCreationHTML,
+  getProblemCreationHTML,
   getProblemHTML,
 } from "../models/webview/htmlTemplates";
 import { ContestDataProvider, ProblemItem } from "../treeview";
 import { ProblemEditor, ProblemSubmissionWebviewListener } from "../webview";
+import { CreateProblemListener } from "../webview/createProblemListener";
 import { ProblemWebview } from "../webview/problemWebview";
 
 export class LambdaChecker {
@@ -381,20 +383,52 @@ export class LambdaChecker {
         } catch (error: any) {
           console.log("here", error);
 
-          vscode.window
-            .showErrorMessage(error.message, "Try again")
-            .then((selection) => {
-              if (selection === "Try again") {
-                // vscode.commands.executeCommand(
-                //   "lambdachecker.enroll-in-contest",
-                //   contestId,
-                //   hasPassword,
-                //   contestDataProvider
-                // );
-              }
-            });
+          vscode.window.showErrorMessage(error.message);
         }
       }
+    });
+  }
+
+  static async createProblem() {
+    const createProblemPanel = vscode.window.createWebviewPanel(
+      "lambdachecker.webview.create-problem",
+      "Create Problem",
+      {
+        viewColumn: vscode.ViewColumn.One,
+        preserveFocus: false,
+      },
+      {
+        enableScripts: true,
+        enableFindWidget: true,
+        localResourceRoots: [
+          vscode.Uri.joinPath(LambdaChecker.context.extensionUri, "resources"),
+        ],
+        retainContextWhenHidden: true,
+      }
+    );
+
+    const stylesPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "styles",
+      "problemCreation.css"
+    );
+    const scriptsPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "scripts",
+      "problemCreation.js"
+    );
+
+    console.log("Showing the html");
+    createProblemPanel.webview.html = getProblemCreationHTML(
+      createProblemPanel.webview.asWebviewUri(stylesPath),
+      createProblemPanel.webview.asWebviewUri(scriptsPath)
+    );
+
+    const createProblemListener = new CreateProblemListener(createProblemPanel);
+    createProblemPanel.webview.onDidReceiveMessage(async (message) => {
+      createProblemListener.webviewListener(message);
     });
   }
 }

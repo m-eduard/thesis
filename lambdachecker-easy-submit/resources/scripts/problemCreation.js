@@ -2,6 +2,10 @@ const vscode = acquireVsCodeApi();
 
 let categories = [];
 
+const skelButtonsIds = ['write-skel-btn', 'open-skel-btn', 'upload-skel-btn'];
+let activeSkelMode = 'write-skel-btn';
+
+
 document.getElementById('problem-form').addEventListener('keypress', (e) => {
   if (e.key === 'Enter' && e.target.type !== 'textarea') {
     e.preventDefault();
@@ -187,15 +191,11 @@ function removeSelectedItem(index, containerIdPrefix) {
 
 
 ///// Skeleton related functions 
-let activeSkelMode = 'write-skel-btn';
-
 document.getElementById('skeleton-input').addEventListener('input', (e) => {
   resizeTextArea(e.target);
 });
 
 function highlightSkelButton(buttonId) {
-  const skelButtonsIds = ['write-skel-btn', 'open-skel-btn', 'upload-skel-btn'];
-
   skelButtonsIds.forEach((id) => {
     const button = document.getElementById(id);
     button.classList.remove('test-btn-active-text');
@@ -209,33 +209,53 @@ function highlightSkelButton(buttonId) {
 // Logic to allow writing the skeleton in form
 function writeSkeleton() {
   highlightSkelButton('write-skel-btn');
+
+  // Show the skeleton textarea
+  const skeletonInput = document.getElementById('skeleton-input');
+  skeletonInput.classList.remove('hidden');
 }
 
 // Logic to initiate the opening of a new window for skeleton
 function openSkeletonFile() {
+  // Send the request to open a new editor tab
+  vscode.postMessage({
+    action: "openSkeletonFile",
+    data: getFormData()
+  });
+
   highlightSkelButton('open-skel-btn');
 
-  const filename = document.getElementById('name-input').value;
-
-  vscode.postMessage({
-    state: "openSkeletonFile",
-    data: {
-      problem_name: filename
-    }
-  });
+  // Hide the textarea box
+  const skeletonInput = document.getElementById('skeleton-input');
+  skeletonInput.classList.add('hidden');
 }
 
 // Logic to initiate the uploading of a new window for skeleton
 function uploadSkeletonFile() {
   highlightSkelButton('upload-skel-btn');
 
+  // Show the skeleton textarea
+  const skeletonInput = document.getElementById('skeleton-input');
+  skeletonInput.classList.remove('hidden');
+
   vscode.postMessage({
-    state: "uploadSkeletonFile",
-    data: {
-      skeleton_path: "asd"
-    }
+    action: "uploadSkeletonFile"
   });
 }
+
+window.addEventListener('message', event => {
+  const message = event.data;
+
+  switch (message.action) {
+    case 'uploadSkeletonFileResponse':
+      // Populate the skeleton textarea with the received content
+      const skeletonInput = document.getElementById('skeleton-input');
+      skeletonInput.value = message.data;
+      resizeTextArea(skeletonInput);
+      
+      break;
+  }
+});
 
 
 
@@ -341,7 +361,7 @@ function createTestButtton(testIndex) {
 <span class="test-btn-wrapper" id="test-${testIndex}-btn-wrapper">
   <span class="separator">|</span>
 
-  <button type="button" id="test-${testIndex}-btn" class="test-btn" onclick="revealTestById('test-${testIndex}')"><span id="test-${testIndex}-btn">Test ${testsNamesMapping.length - 1}</span></button>
+  <button type="button" id="test-${testIndex}-btn" class="test-btn" onclick="revealTestById('test-${testIndex}')">Test ${testsNamesMapping.length - 1}</button>
     <button type="button" class="test-btn-remove" id="test-${testIndex}-btn-remove" onclick="removeTestById('test-${testIndex}')">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M15 8H1V7H15V8Z" fill="#C5C5C5"/>
@@ -360,7 +380,12 @@ function createTestContent(testIndex, input, output) {
   <h3>Output:</h3>
   <textarea class="test-input" style="max-height: 300px; " id="test-${
     testIndex
-  }-output" rows=1></textarea>`;
+  }-output" rows=1></textarea>
+  
+  <h3>Grade:</h3>
+  <textarea class="test-input" id="test-${
+    testIndex
+  }-grade" rows=1></textarea>`;
 
     const testsContainer = document.getElementById('tests-container');
 
@@ -411,54 +436,57 @@ function removeTestById(testIdPrefix) {
     console.log(testsNamesMapping);
 }
 
-
-
 ///// Form related functions
-function getTestData() {
-  const testData = [];
-
-  testsNamesMapping.forEach((element) => {
-      const inputTextbox = document.getElementById(`${element}-input`);
-      const outputTextbox = document.getElementById(`${element}-output`);
-  
-      if (inputTextbox === null || outputTextbox === null) {
-          return;
-      }
-  
-      testData.push({
-          input: inputTextbox.value,
-          output: outputTextbox.value
-      });
-  });
-
-  console.log(testData);
-
-  return testData;
-}
-
-function submitForm() {
+function getFormData() {
   const problemName = document.getElementById('name-input').value;
   const languageInput = document.getElementById('language-input').value;
   const difficultyInput = document.getElementById('difficulty-input').value;
-  const categoriesInput = document.getElementById('categories-input').value;
+  const categoriesInput = categories.map(item => item.text).join(';');
   const descriptionInput = document.getElementById('description-input').value;
+  const isPublicInput = document.getElementById('visibility-public').checked;
+  
+  const skeletonSource = skelButtonsIds.filter(id =>
+    document.getElementById(id).classList.contains('test-btn-active-text')
+  )[0];
+
+  console.log("Source is ", skeletonSource);
+
+  const skeleton = skeletonSource === 'open-skel-btn'
+    ? ''
+    : document.getElementById('skeleton-input').value;
 
 
-  // const problemsInput = categories.map(item => parseInt(item.text));
-  // const quotasInput = document.getElementById('quotas-input').value;
-  // const quotas = quotasInput.split(',').filter(quota => quota.length > 0).map(quota => parseInt(quota));
+  const example = {
+    input: document.getElementById('example-input').value,
+    output: document.getElementById('example-output').value
+  };
 
+  const tests = testsNamesMapping.slice(1).map(testId => {
+    return {
+      testInput: document.getElementById(`${testId}-input`).value,
+      testOutput: document.getElementById(`${testId}-output`).value,
+      testGrad: document.getElementById(`${testId}-grade`).value,
+    };
+  });
+
+  return {
+    name: problemName,
+    language: languageInput,
+    difficulty: difficultyInput,
+    categories: categoriesInput,
+    description: descriptionInput,
+    visible: isPublicInput,
+    skeleton: skeleton,
+    skeleton_source_is_local: skeletonSource === 'open-skel-btn',
+    example: example,
+    tests: tests
+  };
+}
+
+function submitForm() {
   vscode.postMessage({
-    state: "submitted",
-    data: {
-      name: problemName,
-      collab_username: collabInput,
-      subject_abbreviation: categoriesInput,
-      description: descriptionInput,
-      password: passwordInput,
-      problems: problemsInput,
-      quotas: quotas
-    }
+    action: "sendRequestToApi",
+    data: getFormData()
   });
 }
 
