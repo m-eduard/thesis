@@ -13,7 +13,11 @@ export interface ProblemItemProps {
 export class ProblemItem extends vscode.TreeItem {
   props: ProblemItemProps;
 
-  constructor(label: string, props: ProblemItemProps) {
+  constructor(
+    label: string,
+    props: ProblemItemProps,
+    public partialPath?: string
+  ) {
     let collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
 
     if (props.type === "problem") {

@@ -22,7 +22,11 @@ export interface ContestItemProps {
 export class ContestItem extends vscode.TreeItem {
   props: ContestItemProps;
 
-  constructor(label: string, props: ContestItemProps) {
+  constructor(
+    label: string,
+    props: ContestItemProps,
+    public partialPath: string
+  ) {
     let collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
 
     if (props.type === "problem") {

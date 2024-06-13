@@ -9,6 +9,8 @@ import {
   EnrollmentStatus,
   Language,
   getAcademicYearsRange,
+  languageExtensions,
+  languageExtensionsById,
   languageIdMapping,
 } from "../models";
 import { ContestItem } from "./contestItem";
@@ -17,13 +19,11 @@ import { ProblemItem } from "./problemItem";
 export class ContestDataProvider
   implements vscode.TreeDataProvider<ContestItem | ProblemItem>
 {
-  private _onDidChangeTreeData: vscode.EventEmitter<
+  private _onDidChangeTreeData = new vscode.EventEmitter<
     ContestItem | undefined | null | void
-  > = new vscode.EventEmitter<ContestItem | undefined | null | void>();
+  >();
 
-  readonly onDidChangeTreeData:
-    | vscode.Event<ContestItem | null | undefined | void>
-    | undefined = this._onDidChangeTreeData.event;
+  readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   root: ContestItem[];
   lambdacheckerClient: HTTPClient;
@@ -41,16 +41,24 @@ export class ContestDataProvider
     this.root = Object.values(ContestSubject).map((subject) => {
       const childrenItems = getAcademicYearsRange().map(
         (year) =>
-          new ContestItem(year, {
-            type: "academic_year",
-            subject: subject,
-          })
+          new ContestItem(
+            year,
+            {
+              type: "academic_year",
+              subject: subject,
+            },
+            path.join("/", "contests", subject)
+          )
       );
 
-      return new ContestItem(subject, {
-        type: "subject",
-        children: childrenItems,
-      });
+      return new ContestItem(
+        subject,
+        {
+          type: "subject",
+          children: childrenItems,
+        },
+        path.join("/", "contests", subject)
+      );
     });
 
     this.currentUserId = (
@@ -123,8 +131,10 @@ export class ContestDataProvider
 
       vscode.window
         .showErrorMessage(
-          "Error fetching contests. Would you like to log in again?",
-          error.message,
+          "Error fetching contests. Would you like to log in again?" +
+            "\n" +
+            error.message,
+          "Yes",
           "No"
         )
         .then((selection) => {
@@ -151,16 +161,20 @@ export class ContestDataProvider
 
     const contestsTreeItems = contests.map(
       (contest, idx) =>
-        new ContestItem(contest["name"] as string, {
-          type: "contest",
-          problems: contest.problems,
-          contestId: contest.id,
-          startDate: contest.start_date,
-          status: statusPromises[idx],
-          hasPassword: contest.password,
-          userId: contest.user_id,
-          collabId: contest.collab_id,
-        })
+        new ContestItem(
+          contest["name"] as string,
+          {
+            type: "contest",
+            problems: contest.problems,
+            contestId: contest.id,
+            startDate: contest.start_date,
+            status: statusPromises[idx],
+            hasPassword: contest.password,
+            userId: contest.user_id,
+            collabId: contest.collab_id,
+          },
+          path.join("/", "contests", subject, contest.name)
+        )
     );
 
     return contestsTreeItems;
@@ -209,13 +223,20 @@ export class ContestDataProvider
 
         return element.props.problems!.map(
           (problem) =>
-            new ProblemItem(`${problem.id}. ${problem.name}` as string, {
-              type: "problem",
-              difficulty: problem.difficulty,
-              language: languageIdMapping[problem.language_id],
-              problemMetadata: problem,
-              contestId: element.props.contestId,
-            })
+            new ProblemItem(
+              `${problem.id}. ${problem.name}` as string,
+              {
+                type: "problem",
+                difficulty: problem.difficulty,
+                language: languageIdMapping[problem.language_id],
+                problemMetadata: problem,
+                contestId: element.props.contestId,
+              },
+              path.join(
+                element.partialPath,
+                `${problem.id}${languageExtensionsById[problem.language_id]}`
+              )
+            )
         );
       case "problem":
         return [];
@@ -228,8 +249,8 @@ export class ContestDataProvider
     element: ContestItem | ProblemItem
   ): vscode.TreeItem | Thenable<vscode.TreeItem> {
     if (element instanceof ProblemItem) {
-      element.iconPath =
-        fileIconMapping[element.props.language as Language].path;
+      // element.iconPath =
+      //   fileIconMapping[element.props.language as Language].path;
 
       element.command = {
         command: "lambdachecker.show-problem",
@@ -240,6 +261,7 @@ export class ContestDataProvider
       element.resourceUri = vscode.Uri.from({
         scheme: "lambdachecker",
         authority: element.props.type,
+        path: element.partialPath,
         query: `type=${element.props.type}`,
       });
     } else {
@@ -261,7 +283,7 @@ export class ContestDataProvider
       element.resourceUri = vscode.Uri.from({
         scheme: "lambdachecker",
         authority: element.props.type,
-        path: `/${element.props.type}/${element.props.userId}/${element.label}`,
+        path: element.partialPath,
         query: `status=${element.props.status!}&type=${element.props.type}`,
       });
 

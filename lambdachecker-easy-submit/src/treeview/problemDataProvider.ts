@@ -162,7 +162,7 @@ export class ProblemDataProvider
         "/",
         element.props.language as string,
         element.props.difficulty as string,
-        `${element.props.problemMetadata!.id}.${
+        `${element.props.problemMetadata!.id}${
           languageExtensions[element.props.language as Language]
         }`
       );
