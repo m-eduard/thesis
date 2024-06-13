@@ -32,7 +32,7 @@ function revealPassword() {
   }
 }
 
-document.getElementById('contestForm').addEventListener('keypress', (e) => {
+document.getElementById('contest-form').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
   }
@@ -288,7 +288,10 @@ function dateToUTC(dateString) {
   return localDate.toISOString();
 }
 
-function submitForm() {
+function submitForm(e) {
+  // Avoid disposing the form HTML page on submit
+  e.preventDefault();
+
   const contestName = document.getElementById('name-input').value;
   const collabInput = document.getElementById('collab-input').value;
   const subjectInput = document.getElementById('subject-input').value;
@@ -303,8 +306,8 @@ function submitForm() {
   const quotas = quotasInput.split(',').filter(quota => quota.length > 0).map(quota => parseInt(quota));
 
   vscode.postMessage({
-    state: "submitted",
-    data: {
+    action: "submitContestForm",
+    contestData: {
       name: contestName,
       start_date: dateToUTC(startDate),
       end_date: dateToUTC(endDate),
@@ -317,3 +320,5 @@ function submitForm() {
     }
   });
 }
+
+document.getElementById('contest-form').addEventListener('submit', submitForm);

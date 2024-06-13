@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { HTTPClient, SubmissionsApiClient } from "../api";
 import {
   BaseProblem,
+  Contest,
   ContestSubject,
   Language,
   ProblemTest,
@@ -26,6 +27,7 @@ import {
   ProblemItem,
 } from "../treeview";
 import { ProblemEditor, ProblemSubmissionWebviewListener } from "../webview";
+import { CreateContestListener } from "../webview/createContestListener";
 import { CreateProblemListener } from "../webview/createProblemListener";
 import { ProblemWebview } from "../webview/problemWebview";
 
@@ -346,52 +348,33 @@ export class LambdaChecker {
       });
     });
 
-    const revealPassswordPath = vscode.Uri.joinPath(
-      LambdaChecker.context.extensionUri,
-      "resources",
-      "scripts",
-      "contestCreation.js"
-    );
     const stylesPath = vscode.Uri.joinPath(
       LambdaChecker.context.extensionUri,
       "resources",
       "styles",
       "contestCreation.css"
     );
+    const scriptsPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "scripts",
+      "contestCreation.js"
+    );
 
     console.log("Showing the html");
     createContestPanel.webview.html = getContestCreationHTML(
-      createContestPanel.webview.asWebviewUri(revealPassswordPath),
-      createContestPanel.webview.asWebviewUri(stylesPath)
+      createContestPanel.webview.asWebviewUri(stylesPath),
+      createContestPanel.webview.asWebviewUri(scriptsPath)
     );
 
     createContestPanel.onDidDispose(() => {
       console.log("Form disposed");
     });
 
-    createContestPanel.webview.onDidReceiveMessage(async (message) => {
-      if (message.state === "submitted") {
-        createContestPanel.dispose();
-
-        console.log("Data is:", message.data);
-
-        try {
-          const response = await LambdaChecker.client.createContest(
-            message.data
-          );
-
-          LambdaChecker.contestDataProvider.refresh();
-
-          vscode.window.showInformationMessage(
-            `Successfully created Contest ${response.id}: ${message.data.name}!`
-          );
-        } catch (error: any) {
-          console.log("here", error);
-
-          vscode.window.showErrorMessage(error.message);
-        }
-      }
-    });
+    const createContestListener = new CreateContestListener(createContestPanel);
+    createContestPanel.webview.onDidReceiveMessage(async (message) =>
+      createContestListener.webviewListener(message)
+    );
   }
 
   static async createProblem() {
@@ -425,7 +408,6 @@ export class LambdaChecker {
       "problemCreation.js"
     );
 
-    console.log("Showing the html");
     createProblemPanel.webview.html = getProblemCreationHTML(
       createProblemPanel.webview.asWebviewUri(stylesPath),
       createProblemPanel.webview.asWebviewUri(scriptsPath)
