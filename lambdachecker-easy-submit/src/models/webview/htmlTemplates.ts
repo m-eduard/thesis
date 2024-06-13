@@ -797,7 +797,7 @@ export const getProblemHTML = (
     <div class="buttons">
       <span id="test-buttons-container">
         <button id="example" class="test-btn test-btn-example" onclick="revealTestById('example')"><span class="test-btn-active-text" id="example-btn">Example</span></button>
-        ${getInitialTestsButtons(Math.min(3, problemData.tests.length))}
+        ${getInitialTestsButtons(Math.min(3, problemData.tests.length - 1))}
       </span>
       <button class="test-btn-add test-btn" onclick="addTest()">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -809,17 +809,17 @@ export const getProblemHTML = (
     <div id="tests-container">
       <div id="example-content">
         <h3>Input:</h3>
-        <textarea class="test-input" style="max-height: 300px; " name="example-input" id="example-input" rows=1 readonly>${
+        <textarea class="test-input" style="max-height: 300px; " name="example-input" id="example-input" rows=1>${
           problemData.example?.input || ""
         }</textarea>
 
         <h3>Output:</h3>
-        <textarea class="test-input" style="max-height: 300px; " name="example-output" id="example-output" rows=1 readonly>${
+        <textarea class="test-input" style="max-height: 300px; " name="example-output" id="example-output" rows=1>${
           problemData.example?.output || ""
         }</textarea>
       </div>
 
-      ${getInitialTestsHTML(problemData.tests.slice(0, 3))}
+      ${getInitialTestsHTML(problemData.tests.slice(1, 4))}
     </div>
 
     <div class="buttons">
