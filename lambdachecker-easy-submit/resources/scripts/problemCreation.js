@@ -318,6 +318,7 @@ window.addEventListener('message', event => {
       });
 
       revealTestById('example');
+      nameInput.focus();
   }
 });
 

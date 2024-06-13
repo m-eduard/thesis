@@ -36,7 +36,7 @@ window.addEventListener("message", event => {
       endDateInput.value = stringifyDateSlim(new Date(message.data.end_date));
 
       const collabInput = document.getElementById('collab-input');
-      collabInput.value = message.data.collab_username;
+      collabInput.value = message.data.collab_username || '';
 
       const subjectInput = document.getElementById('subject-input');
       subjectInput.value = message.data.subject_abbreviation;
@@ -47,6 +47,8 @@ window.addEventListener("message", event => {
       message.data.problems.forEach((problem, index) => {
         addSelectedItem(`${problem.id}. ${problem.name}`, 'problems');
       });
+
+      nameInput.focus();
       
       break;
   }
@@ -66,8 +68,24 @@ function revealPassword() {
 }
 
 document.getElementById('contest-form').addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') {
+  if (e.key === 'Enter' && e.target.type !== 'textarea') {
     e.preventDefault();
+
+    const form = document.getElementById('contest-form');
+    const index = [...form].indexOf(e.target);
+
+    if (form.elements[index].parentNode.classList.contains('autocomplete-container')) {
+      const suggestionItems = form.elements[index].parentNode.getElementsByClassName('suggestion-item');
+
+      if (suggestionItems.length > 0) {
+        console.log(form.elements[index].parentNode.getElementsByClassName('suggestion-item'));
+        form.elements[index].parentNode.getElementsByClassName('suggestion-item')[0].click();
+      } else {
+        form.elements[index + 1].focus();
+      }
+    } else {
+      form.elements[index + 1].focus();
+    }
   }
 });
 
@@ -169,6 +187,11 @@ function searchMatchingUsers(querySubstring, data) {
           document.getElementById('collab-input').value = item.username;
           suggestionsContainer.innerHTML = '';
       });
+
+      suggestionItem.addEventListener('click', () => {
+        document.getElementById('collab-input').value = item.username;
+        suggestionsContainer.innerHTML = '';
+      });
       
       suggestionsContainer.appendChild(suggestionItem);
     });
@@ -185,32 +208,48 @@ function searchMatchingStrings(querySubstring, data, containerIdPrefix, hasConte
       const matches = data.filter(item => item.toLowerCase().includes(querySubstring));
       
       matches.forEach(item => {
-          const startIndex = item.toLowerCase().indexOf(querySubstring);
-          const endIndex = startIndex + querySubstring.length;
-
-          if (item.toLowerCase().includes(querySubstring)) {
-            formattedItem = item.substring(0, startIndex) + '<span class="highlight">' + item.substring(startIndex, endIndex) + '</span>' + item.substring(endIndex);
+        if (hasContentWrapper === true) {
+          if (selectedItems.some(selected => selected.text === item)) {
+            return;
           }
-          
-          const suggestionItem = document.createElement('div');
-          suggestionItem.classList.add('suggestion-item');
-          suggestionItem.innerHTML = `
-            <a tabindex="-1" role="menuitemradio">
-              <li class="suggestion-item"><div>${formattedItem}</div></li>
-            </a>
-          `;
+        }
 
-          suggestionItem.addEventListener('mousedown', () => {
-            if (hasContentWrapper === true) {
-              addSelectedItem(item, containerIdPrefix);
-            } else {
-              document.getElementById(containerIdPrefix + '-input').value = item;
-            }
+        const startIndex = item.toLowerCase().indexOf(querySubstring);
+        const endIndex = startIndex + querySubstring.length;
 
-            suggestionsContainer.innerHTML = '';
-          });
-          
-          suggestionsContainer.appendChild(suggestionItem);
+        if (item.toLowerCase().includes(querySubstring)) {
+          formattedItem = item.substring(0, startIndex) + '<span class="highlight">' + item.substring(startIndex, endIndex) + '</span>' + item.substring(endIndex);
+        }
+        
+        const suggestionItem = document.createElement('div');
+        suggestionItem.classList.add('suggestion-item');
+        suggestionItem.innerHTML = `
+          <a tabindex="-1" role="menuitemradio">
+            <li class="suggestion-item"><div>${formattedItem}</div></li>
+          </a>
+        `;
+
+        suggestionItem.addEventListener('mousedown', () => {
+          if (hasContentWrapper === true) {
+            addSelectedItem(item, containerIdPrefix);
+          } else {
+            document.getElementById(containerIdPrefix + '-input').value = item;
+          }
+
+          suggestionsContainer.innerHTML = '';
+        });
+
+        suggestionItem.addEventListener('click', () => {
+          if (hasContentWrapper === true) {
+            addSelectedItem(item, containerIdPrefix);
+          } else {
+            document.getElementById(containerIdPrefix + '-input').value = item;
+          }
+
+          suggestionsContainer.innerHTML = '';
+        });
+        
+        suggestionsContainer.appendChild(suggestionItem);
       });
   }
 }
