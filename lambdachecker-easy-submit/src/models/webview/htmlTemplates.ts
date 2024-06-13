@@ -968,7 +968,8 @@ export const getContestCreationHTML = (
 
 export const getProblemCreationHTML = (
   stylesUri: vscode.Uri,
-  scriptsUri: vscode.Uri
+  scriptsUri: vscode.Uri,
+  editMode: boolean = false
 ) => {
   return `
   <!DOCTYPE html>
@@ -977,7 +978,7 @@ export const getProblemCreationHTML = (
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Problem</title>
+    <title>${editMode ? "Edit Problem" : "Create Problem"}</title>
     
     ${styles}
 
@@ -986,7 +987,7 @@ export const getProblemCreationHTML = (
     <link rel='stylesheet' type='text/css' href='${stylesUri}'>
   </head>
   <body>
-    <h1>Create Problem</h1>
+    <h1>${editMode ? "Edit Problem" : "Create Problem"}</h1>
     <form id="problem-form">
       <label for="name-input">Problem Name</label>
       <input class="name-input purple-border" type="text" id="name-input" name="name-input" placeholder="Problem Name" required>
@@ -1074,7 +1075,9 @@ export const getProblemCreationHTML = (
         </div>
       </div>
 
-      <button type="submit" class="btn code">Create Problem</button>
+      <button type="submit" class="btn code">${
+        editMode ? "Edit Problem" : "Create Problem"
+      }</button>
     </form>
   
     <script>

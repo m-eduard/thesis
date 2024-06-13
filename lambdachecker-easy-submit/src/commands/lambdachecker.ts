@@ -436,4 +436,59 @@ export class LambdaChecker {
       createProblemListener.webviewListener(message);
     });
   }
+
+  static async editProblem(problemData: SpecificProblem) {
+    console.log(problemData);
+
+    const editProblemPanel = vscode.window.createWebviewPanel(
+      "lambdachecker.webview.edit-problem",
+      `${problemData.id}. Edit Problem`,
+      {
+        viewColumn: vscode.ViewColumn.One,
+        preserveFocus: false,
+      },
+      {
+        enableScripts: true,
+        enableFindWidget: true,
+        localResourceRoots: [
+          vscode.Uri.joinPath(LambdaChecker.context.extensionUri, "resources"),
+        ],
+        retainContextWhenHidden: true,
+      }
+    );
+
+    const stylesPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "styles",
+      "problemCreation.css"
+    );
+    const scriptsPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "scripts",
+      "problemCreation.js"
+    );
+
+    editProblemPanel.webview.html = getProblemCreationHTML(
+      editProblemPanel.webview.asWebviewUri(stylesPath),
+      editProblemPanel.webview.asWebviewUri(scriptsPath),
+      true
+    );
+
+    // Populate the form with data
+    editProblemPanel.webview.postMessage({
+      action: "populateProblemForm",
+      data: JSON.stringify(problemData),
+    });
+
+    const createProblemListener = new CreateProblemListener(
+      editProblemPanel,
+      false,
+      problemData
+    );
+    editProblemPanel.webview.onDidReceiveMessage(async (message) => {
+      createProblemListener.webviewListener(message);
+    });
+  }
 }

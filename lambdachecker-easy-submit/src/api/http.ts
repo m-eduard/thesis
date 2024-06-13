@@ -386,6 +386,31 @@ export class HTTPClient {
     }
   }
 
+  async editProblem(
+    problemId: number,
+    problemContent: Omit<ProblemCreate, "skeleton_source_is_local">
+  ): Promise<ProblemCreateResponse> {
+    console.log("Content is ", problemContent);
+
+    const response = await this.request(
+      new Route("PUT", `/problems/${problemId}`),
+      JSON.stringify(problemContent)
+    );
+
+    try {
+      const problemEditData = await response.text();
+      console.log("content:", problemEditData);
+
+      if (response.status !== 200) {
+        throw new Error(problemEditData);
+      }
+
+      return JSON.parse(problemEditData) as ProblemCreateResponse;
+    } catch (error: any) {
+      throw new Error(`[Lambda Checker API]: ${error.message}`);
+    }
+  }
+
   async getUsers(): Promise<User[]> {
     const response = await this.request(new Route("GET", `/users`));
 

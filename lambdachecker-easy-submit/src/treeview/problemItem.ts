@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
-import { BaseProblem, Difficulty, Language } from "../models";
+import { BaseProblem, Difficulty, Language, SpecificProblem } from "../models";
 
 export interface ProblemItemProps {
   type: string;
   difficulty?: Difficulty;
   language?: Language;
-  problemMetadata?: BaseProblem;
+  problemMetadata?: BaseProblem | SpecificProblem;
   children?: ProblemItem[];
   contestId?: number;
 }

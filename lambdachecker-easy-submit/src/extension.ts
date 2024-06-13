@@ -2,7 +2,12 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { LambdaChecker } from "./commands";
-import { EnrollmentStatus, StatusBar, Storage } from "./models";
+import {
+  EnrollmentStatus,
+  SpecificProblem,
+  StatusBar,
+  Storage,
+} from "./models";
 import {
   ContestDataProvider,
   ProblemDataProvider,
@@ -42,6 +47,15 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(
         "lambdachecker.create-problem",
         LambdaChecker.createProblem
+      ),
+      vscode.commands.registerCommand(
+        "lambdachecker.edit-problem",
+        (context: ProblemItem) => {
+          console.log(context);
+          return LambdaChecker.editProblem(
+            context.props.problemMetadata as SpecificProblem
+          );
+        }
       )
     );
     context.subscriptions.push(StatusBar.statusBarItem);

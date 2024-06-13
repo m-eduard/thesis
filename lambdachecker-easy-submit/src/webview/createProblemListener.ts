@@ -1,12 +1,16 @@
 import * as vscode from "vscode";
 import { LambdaChecker } from "../commands";
-import { CreateProblemWebviewMessage } from "../models";
+import { CreateProblemWebviewMessage, SpecificProblem } from "../models";
 import { SubmissionFile } from "../storage";
 
 export class CreateProblemListener {
   private submissionFile?: SubmissionFile;
 
-  constructor(public panel: vscode.WebviewPanel) {}
+  constructor(
+    public panel: vscode.WebviewPanel,
+    private newProblem: boolean = true,
+    private problemData?: SpecificProblem
+  ) {}
 
   async webviewListener(message: CreateProblemWebviewMessage) {
     const uploadOptions: vscode.OpenDialogOptions = {
@@ -67,13 +71,18 @@ export class CreateProblemListener {
         console.log(createProblemData);
 
         try {
-          const response = await LambdaChecker.client.createProblem(
-            createProblemData
-          );
+          const response = await (this.newProblem
+            ? LambdaChecker.client.createProblem(createProblemData)
+            : LambdaChecker.client.editProblem(
+                this.problemData!.id,
+                createProblemData
+              ));
 
           LambdaChecker.problemDataProvider.refresh();
           vscode.window.showInformationMessage(
-            `Successfully created Problem ${message.problemData!.name}!`
+            `Successfully ${this.newProblem ? "created" : "edited"} Problem ${
+              message.problemData!.name
+            }!`
           );
           this.panel.dispose();
         } catch (error: any) {

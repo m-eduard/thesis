@@ -85,7 +85,7 @@ export class ProblemDataProvider
       .catch((error: any) => {
         return vscode.window
           .showErrorMessage(
-            "Error fetching problems. Would you like to log in again?\n" +
+            "Error fetching problems. Would you like to try again?\n" +
               error.message,
             "Yes",
             "No"
@@ -148,11 +148,19 @@ export class ProblemDataProvider
         arguments: [element],
       };
 
-      element.contextValue = this.ownedProblems.includes(
-        element.props.problemMetadata!.id
-      )
-        ? "editable-problem"
-        : "problem";
+      if (this.ownedProblems.includes(element.props.problemMetadata!.id)) {
+        element.contextValue = "editable-problem";
+
+        // Enrich the current metadata stored in the TreeNode
+        // with full problem data (skeleton, tests, ...)
+        LambdaChecker.client
+          .getProblem(element.props.problemMetadata!.id)
+          .then((problem) => {
+            element.props.problemMetadata = problem;
+          });
+      } else {
+        element.contextValue = "problem";
+      }
     } else {
       element.contextValue = element.props.type;
     }
