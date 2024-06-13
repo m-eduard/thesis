@@ -44,8 +44,8 @@
         "command": "lambdachecker.edit-contest",
         "title": "Edit Contest",
         "icon": {
-          "light": "resources/icons/light/add.svg",
-          "dark": "resources/icons/dark/add.svg"
+          "light": "resources/icons/light/edit.svg",
+          "dark": "resources/icons/dark/edit.svg"
         },
         "category": "Lambda Checker",
         "when": "lambdachecker.teacher"
@@ -76,6 +76,12 @@
         {
           "command": "lambdachecker.login",
           "when": "true"
+        }, {
+          "command": "lambdachecker.edit-contest",
+          "when": "false"
+        }, {
+          "command": "lambdachecker.edit-problem",
+          "when": "false"
         }
       ],
       "view/title": [

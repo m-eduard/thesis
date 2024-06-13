@@ -12,9 +12,12 @@ export class CreateContestListener {
   async webviewListener(message: CreateContestWebviewMessage) {
     if (message.action === "submitContestForm") {
       try {
-        const response = await LambdaChecker.client.createContest(
-          message.contestData
-        );
+        const response = await (this.newContest
+          ? LambdaChecker.client.createContest(message.contestData)
+          : LambdaChecker.client.editContest(
+              this.contestId!,
+              message.contestData
+            ));
 
         LambdaChecker.contestDataProvider.refresh();
         vscode.window.showInformationMessage(

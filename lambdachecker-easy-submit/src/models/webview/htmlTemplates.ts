@@ -875,11 +875,10 @@ const getSubjectOptionsHTML = () => {
 };
 
 export const getContestCreationHTML = (
-  resourcesPath: vscode.Uri,
-  stylesUri: vscode.Uri
+  stylesUri: vscode.Uri,
+  scriptsPath: vscode.Uri,
+  editMode: boolean = false
 ) => {
-  console.log("styles uri is ", stylesUri);
-
   return `
   <!DOCTYPE html>
   <html lang="en">
@@ -887,7 +886,7 @@ export const getContestCreationHTML = (
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Create Contest</title>
+    <title>${editMode ? "Edit Contest" : "Create Contest"}</title>
     
     ${styles}
 
@@ -896,11 +895,11 @@ export const getContestCreationHTML = (
     <link rel='stylesheet' type='text/css' href='${stylesUri}'>
   </head>
   <body>
-    <h1>Create Contest</h1>
-    <form id="contestForm" onsubmit="submitForm()">
-      <label for="name-input">Contest Name*</label>
+    <h1>${editMode ? "Edit Contest" : "Create Contest"}</h1>
+    <form id="contest-form">
+      <label for="name-input">Contest Name</label>
 
-      <input class="name-input purple-border" type="text" id="name-input" name="name-input" placeholder="Contest Name" required>
+      <input class="name-input purple-border" type="text" id="name-input" name="name-input" placeholder="Contest Name*" required>
 
       <div class="date-input-container">
         <label for="start-date">Start Date</label>
@@ -924,12 +923,12 @@ export const getContestCreationHTML = (
   
       <label for="subject-input">Subject</label>
       <div class="autocomplete-container">
-          <input class="subject-input purple-border" type="text" id="subject-input" name="subject-input" placeholder="SDA" required>
+          <input class="subject-input purple-border" type="text" id="subject-input" name="subject-input" placeholder="Subject*" required>
           <ul class="suggestions" id="subject-suggestions"></ul>
       </div>
   
-      <label for="description-input">Description*</label>
-      <textarea class="purple-border" id="description-input" name="description-input" rows="2" placeholder="Description" required></textarea>
+      <label for="description-input">Description</label>
+      <textarea class="purple-border" id="description-input" name="description-input" rows="2" placeholder="Description*" required></textarea>
   
       <label for="password-input">Password</label>
 
@@ -952,7 +951,9 @@ export const getContestCreationHTML = (
       <label for="quotas-input">Quotas (comma-separated values)</label>
       <input class="purple-border" type="text" id="quotas-input" name="quotas-input" placeholder="Quotas">
 
-      <button type="submit" id="code" class="btn code">Create Contest</button>
+      <button type="submit" id="code" class="btn code">${
+        editMode ? "Edit Contest" : "Create Contest"
+      }</button>
     </form>
   
     <script>
@@ -960,7 +961,7 @@ export const getContestCreationHTML = (
         (subject) => `"${subject}"`
       )}];
     </script>
-    <script src="${resourcesPath}"></script>
+    <script src="${scriptsPath}"></script>
   </body>
   </html>
 `;

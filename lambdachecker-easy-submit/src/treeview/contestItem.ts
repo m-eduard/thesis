@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import {
+  Contest,
   ContestSubject,
   EnrollmentStatus,
   ProblemMetadataContestContext,
@@ -9,14 +10,11 @@ import { ProblemItem, ProblemItemProps } from "./problemItem";
 export interface ContestItemProps {
   type: string;
   subject?: ContestSubject;
-  problems?: ProblemMetadataContestContext[];
-  contestId?: number;
-  children?: ContestItem[];
-  startDate?: string;
-  status?: EnrollmentStatus;
+  contestMetadata?: Contest;
   hasPassword?: boolean;
-  userId?: number;
-  collabId?: number;
+
+  children?: ContestItem[];
+  status?: EnrollmentStatus;
 }
 
 export class ContestItem extends vscode.TreeItem {

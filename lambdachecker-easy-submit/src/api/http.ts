@@ -348,19 +348,22 @@ export class HTTPClient {
   async editContest(
     contestId: number,
     contestContent: ContestCreate
-  ): Promise<void> {
+  ): Promise<ContestCreateResponse> {
     const response = await this.request(
-      new Route("PUT", `/contests/${contestId}`)
+      new Route("PUT", `/contests/${contestId}`),
+      JSON.stringify(contestContent)
     );
 
-    const contestEditData = await response.json();
+    try {
+      const contestEditData = await response.text();
 
     if (response.status !== 200) {
-      throw new Error(
-        `${response.statusText} (${response.status}): ${
-          (contestEditData as Record<string, unknown>)["message"]
-        }`
-      );
+        throw new Error(contestEditData);
+      }
+
+      return JSON.parse(contestEditData) as ContestCreateResponse;
+    } catch (error: any) {
+      throw new Error(`[Lambda Checker API]: ${error.message}`);
     }
   }
 

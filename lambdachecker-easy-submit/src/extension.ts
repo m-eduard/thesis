@@ -10,6 +10,7 @@ import {
 } from "./models";
 import {
   ContestDataProvider,
+  ContestItem,
   ProblemDataProvider,
   ProblemItem,
 } from "./treeview";
@@ -45,17 +46,20 @@ export async function activate(context: vscode.ExtensionContext) {
         LambdaChecker.createContest
       ),
       vscode.commands.registerCommand(
+        "lambdachecker.edit-contest",
+        (context: ContestItem) =>
+          LambdaChecker.editContest(context.props.contestMetadata!)
+      ),
+      vscode.commands.registerCommand(
         "lambdachecker.create-problem",
         LambdaChecker.createProblem
       ),
       vscode.commands.registerCommand(
         "lambdachecker.edit-problem",
-        (context: ProblemItem) => {
-          console.log(context);
-          return LambdaChecker.editProblem(
+        (context: ProblemItem) =>
+          LambdaChecker.editProblem(
             context.props.problemMetadata as SpecificProblem
-          );
-        }
+          )
       )
     );
     context.subscriptions.push(StatusBar.statusBarItem);

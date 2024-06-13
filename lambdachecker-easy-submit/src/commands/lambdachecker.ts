@@ -336,6 +336,7 @@ export class LambdaChecker {
       console.log("Sent the fresh data to html");
       console.log("Example user:", users[0]);
       createContestPanel.webview.postMessage({
+        action: "updateUsers",
         users: users.filter((user) => user.role === "teacher"),
       });
     });
@@ -344,6 +345,7 @@ export class LambdaChecker {
       LambdaChecker.problems = problems;
       console.log("Example problem:", problems[0]);
       createContestPanel.webview.postMessage({
+        action: "updateProblems",
         problems: problems,
       });
     });
@@ -471,6 +473,79 @@ export class LambdaChecker {
     );
     editProblemPanel.webview.onDidReceiveMessage(async (message) => {
       createProblemListener.webviewListener(message);
+    });
+  }
+
+  static async editContest(contestData: Contest) {
+    console.log(contestData);
+
+    const editContestPanel = vscode.window.createWebviewPanel(
+      "lambdachecker.webview.edit-problem",
+      `${contestData.id}. Edit Contest`,
+      {
+        viewColumn: vscode.ViewColumn.One,
+      },
+      {
+        enableScripts: true,
+        enableFindWidget: true,
+        localResourceRoots: [
+          vscode.Uri.joinPath(LambdaChecker.context.extensionUri, "resources"),
+        ],
+        retainContextWhenHidden: true,
+      }
+    );
+
+    LambdaChecker.client.getUsers().then((users) => {
+      LambdaChecker.users = users;
+      console.log("Sent the fresh data to html");
+      console.log("Example user:", users[0]);
+      editContestPanel.webview.postMessage({
+        action: "updateUsers",
+        users: users.filter((user) => user.role === "teacher"),
+      });
+    });
+
+    LambdaChecker.client.getProblems().then((problems) => {
+      LambdaChecker.problems = problems;
+      console.log("Example problem:", problems[0]);
+      editContestPanel.webview.postMessage({
+        action: "updateProblems",
+        problems: problems,
+      });
+    });
+
+    const stylesPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "styles",
+      "contestCreation.css"
+    );
+    const scriptsPath = vscode.Uri.joinPath(
+      LambdaChecker.context.extensionUri,
+      "resources",
+      "scripts",
+      "contestCreation.js"
+    );
+
+    editContestPanel.webview.html = getContestCreationHTML(
+      editContestPanel.webview.asWebviewUri(stylesPath),
+      editContestPanel.webview.asWebviewUri(scriptsPath),
+      true
+    );
+
+    // Populate the form with data
+    editContestPanel.webview.postMessage({
+      action: "populateContestForm",
+      data: contestData,
+    });
+
+    const createContestListener = new CreateContestListener(
+      editContestPanel,
+      false,
+      contestData.id
+    );
+    editContestPanel.webview.onDidReceiveMessage(async (message) => {
+      createContestListener.webviewListener(message);
     });
   }
 }

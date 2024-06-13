@@ -2,20 +2,53 @@ const vscode = acquireVsCodeApi();
 var freshUsers = [];
 var freshProblems = [];
 
-const previousState = vscode.getState();
-console.log("Previous state: ", previousState);
+const stringifyDateSlim = (date) => {
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear().toString();
+
+  const hour = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+
+  return `${year}-${month}-${day}T${hour}:${minutes}`;
+};
 
 window.addEventListener("message", event => {
-  console.log("received data from API", event.data);
+  const message = event.data;
 
-  if (event.data.users !== undefined) {
-    freshUsers = event.data.users;
-  }
+  switch (message.action) {
+    case 'updateUsers':
+      freshUsers = message.users;
+      break;
+    case 'updateProblems':
+      freshProblems = message.problems.reverse().map((problem) => `${problem.id}. ${problem.name}`);
+      break;
+    case 'populateContestForm':
+      console.log("Populating with ", message.data);
 
-  if (event.data.problems !== undefined) {
-    console.log(event.data.problems);
+      const nameInput = document.getElementById('name-input');
+      nameInput.value = message.data.name;
 
-    freshProblems = event.data.problems.reverse().map((problem) => `${problem.id}. ${problem.name}`);
+      const startDateInput = document.getElementById('start-date');
+      startDateInput.value = stringifyDateSlim(new Date(message.data.start_date));
+
+      const endDateInput = document.getElementById('end-date');
+      endDateInput.value = stringifyDateSlim(new Date(message.data.end_date));
+
+      const collabInput = document.getElementById('collab-input');
+      collabInput.value = message.data.collab_username;
+
+      const subjectInput = document.getElementById('subject-input');
+      subjectInput.value = message.data.subject_abbreviation;
+
+      const descriptionInput = document.getElementById('description-input');
+      descriptionInput.value = message.data.description;
+
+      message.data.problems.forEach((problem, index) => {
+        addSelectedItem(`${problem.id}. ${problem.name}`, 'problems');
+      });
+      
+      break;
   }
 });
 
@@ -205,6 +238,8 @@ function handleDeleteKey(e, containerIdPrefix) {
 function addSelectedItem(item, containerIdPrefix) {
   // Add a problem maximum once
   if (!selectedItems.some(selected => selected.text === item)) {
+    console.log("Selected items is", selectedItems);
+
       selectedItems.push({ text: item, grayed: false });
       updateSelectedItemsUI(containerIdPrefix);
   }

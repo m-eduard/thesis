@@ -165,13 +165,9 @@ export class ContestDataProvider
           contest["name"] as string,
           {
             type: "contest",
-            problems: contest.problems,
-            contestId: contest.id,
-            startDate: contest.start_date,
-            status: statusPromises[idx],
+            contestMetadata: contest,
             hasPassword: contest.password,
-            userId: contest.user_id,
-            collabId: contest.collab_id,
+            status: statusPromises[idx],
           },
           path.join("/", "contests", subject, contest.name)
         )
@@ -196,8 +192,8 @@ export class ContestDataProvider
           ?.then((contests) => {
             contests.sort(
               (x, y) =>
-                new Date(y.props.startDate!).getTime() -
-                new Date(x.props.startDate!).getTime()
+                new Date(y.props.contestMetadata!.start_date).getTime() -
+                new Date(x.props.contestMetadata!.start_date).getTime()
             );
 
             // Reverse a copy of the list of children
@@ -210,8 +206,8 @@ export class ContestDataProvider
           ?.then((contests) => {
             contests.sort(
               (x, y) =>
-                new Date(y.props.startDate!).getTime() -
-                new Date(x.props.startDate!).getTime()
+                new Date(y.props.contestMetadata!.start_date).getTime() -
+                new Date(x.props.contestMetadata!.start_date).getTime()
             );
 
             return contests;
@@ -221,7 +217,7 @@ export class ContestDataProvider
           return [];
         }
 
-        return element.props.problems!.map(
+        return element.props.contestMetadata!.problems.map(
           (problem) =>
             new ProblemItem(
               `${problem.id}. ${problem.name}` as string,
@@ -230,7 +226,7 @@ export class ContestDataProvider
                 difficulty: problem.difficulty,
                 language: languageIdMapping[problem.language_id],
                 problemMetadata: problem,
-                contestId: element.props.contestId,
+                contestId: element.props.contestMetadata!.id,
               },
               path.join(
                 element.partialPath,
@@ -257,48 +253,51 @@ export class ContestDataProvider
         title: "Show Problem",
         arguments: [element, element.props.contestId],
       };
-
-      element.resourceUri = vscode.Uri.from({
-        scheme: "lambdachecker",
-        authority: element.props.type,
-        path: element.partialPath,
-        query: `type=${element.props.type}`,
-      });
     } else {
-      // Update the status for the contest if it was unlocked during this session
-      if (this.sessionUnlockedContests.has(element.props.contestId!)) {
-        element.props.status = EnrollmentStatus.ENROLLED;
-      }
+      if (element.props.type === "contest") {
+        // Update the status for the contest if it was unlocked during this session
+        if (
+          this.sessionUnlockedContests.has(element.props.contestMetadata!.id)
+        ) {
+          element.props.status = EnrollmentStatus.ENROLLED;
+        }
 
-      if (element.props.status === EnrollmentStatus.NOT_ENROLLED) {
-        element.command = {
-          command: "lambdachecker.enroll-in-contest",
-          title: "Enroll",
-          arguments: [element.props.contestId, element.props.hasPassword, this],
-        };
-      } else {
-        element.command = undefined;
-      }
+        if (element.props.status === EnrollmentStatus.NOT_ENROLLED) {
+          element.command = {
+            command: "lambdachecker.enroll-in-contest",
+            title: "Enroll",
+            arguments: [
+              element.props.contestMetadata!.id,
+              element.props.hasPassword,
+              this,
+            ],
+          };
+        } else {
+          element.command = undefined;
+        }
 
-      element.resourceUri = vscode.Uri.from({
-        scheme: "lambdachecker",
-        authority: element.props.type,
-        path: element.partialPath,
-        query: `status=${element.props.status!}&type=${element.props.type}`,
-      });
-
-      element.contextValue = `${element.props.type}-${
-        element.props.userId || ""
-      }-${element.props.collabId || ""}-${element.label}`;
-
-      // Allow only the creator or the owner to edit a contest
-      if (
-        element.props.userId === this.currentUserId ||
-        element.props.collabId === this.currentUserId
-      ) {
-        element.contextValue = "editable-contest";
+        // Allow only the creator or the owner to edit a contest
+        if (
+          element.props.contestMetadata!.user_id === this.currentUserId ||
+          element.props.contestMetadata!.collab_id === this.currentUserId
+        ) {
+          element.contextValue = "editable-contest";
+        }
       }
     }
+
+    element.resourceUri = vscode.Uri.from({
+      scheme: "lambdachecker",
+      authority: element.props.type,
+      path: element.partialPath,
+      query: `${
+        element instanceof ProblemItem
+          ? ""
+          : element.props.status
+          ? "status=" + element.props.status + "&"
+          : ""
+      }type=${element.props.type}`,
+    });
 
     return element;
   }
