@@ -262,6 +262,65 @@ window.addEventListener('message', event => {
     }
 });
 
+window.addEventListener('message', event => {
+  const message = event.data;
+
+  switch (message.action) {
+    case 'populateProblemForm':
+      message.data = JSON.parse(message.data);
+
+      console.log("Received ", message.data);
+
+      const nameInput = document.getElementById('name-input');
+      nameInput.value = message.data.name;
+
+      const languageInput = document.getElementById('language-input');
+      languageInput.value = message.data.language;
+
+      const difficultyInput = document.getElementById('difficulty-input');
+      difficultyInput.value = message.data.difficulty;
+
+      message.data.categories.split(';').forEach(category => addNewCategory(category));
+
+      const descriptionInput = document.getElementById('description-input');
+      descriptionInput.value = message.data.description;
+      resizeTextArea(descriptionInput);
+
+      document.getElementById('visibility-public').checked = message.data.visible;
+      document.getElementById('visibility-private').checked = !message.data.visible;
+
+      if (message.data.skeleton !== undefined) {
+        const skeletonInput = document.getElementById('skeleton-input');
+        skeletonInput.value = message.data.skeleton.code;
+        resizeTextArea(skeletonInput);
+      }
+
+      const exampleInput = document.getElementById('example-input');
+      exampleInput.value = message.data.example.input;
+      resizeTextArea(exampleInput);
+      const exampleOutput = document.getElementById('example-output');
+      exampleOutput.value = message.data.example.output;
+      resizeTextArea(exampleOutput);
+      const exampleGrade = document.getElementById('example-grade');
+      exampleGrade.value = message.data.example.grade;
+
+      message.data.tests.slice(1).forEach((test, index) => {
+        addTest();
+
+        const testInput = document.getElementById(`test-${index + 1}-input`);
+        testInput.value = test.input;
+        resizeTextArea(testInput);
+        const exampleOutput = document.getElementById(`test-${index + 1}-output`);
+        exampleOutput.value = test.output;
+        resizeTextArea(exampleOutput);
+        const exampleGrade = document.getElementById(`test-${index + 1}-grade`);
+        exampleGrade.value = test.grade;
+      });
+
+      revealTestById('example');
+  }
+});
+
 
 
 ///// Input-output upload related functions
@@ -303,8 +362,8 @@ testsDisplayed.forEach((element) => {
 });
 
 // Add the first test
-addTest();
-revealTestById('example');
+// addTest();
+// revealTestById('example');
 
 function activateTestDisplay(testDiv, testBtn, removeTestBtn) {
     testDiv.classList.remove('hidden');
