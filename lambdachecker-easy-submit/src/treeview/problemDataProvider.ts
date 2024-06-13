@@ -1,9 +1,14 @@
 import * as vscode from "vscode";
 
+import path from "path";
 import { HTTPClient } from "../api";
 import { LambdaChecker } from "../commands";
-import { defaultFolderIcon, fileIconMapping } from "../icons";
-import { BaseProblem, Difficulty, Language, SpecificProblem } from "../models";
+import {
+  BaseProblem,
+  Difficulty,
+  Language,
+  languageExtensions,
+} from "../models";
 import { ProblemItem } from "./problemItem";
 
 export class ProblemDataProvider
@@ -30,18 +35,26 @@ export class ProblemDataProvider
     this.root = Object.values(Language).map((language) => {
       const childrenItems = Object.values(Difficulty).map(
         (difficulty) =>
-          new ProblemItem(difficulty, {
-            type: "difficulty",
-            difficulty: difficulty,
-            language: language,
-          })
+          new ProblemItem(
+            difficulty,
+            {
+              type: "difficulty",
+              difficulty: difficulty,
+              language: language,
+            },
+            path.join("/", "problems", language, difficulty)
+          )
       );
 
-      return new ProblemItem(language, {
-        type: "programming-language",
-        language: language,
-        children: childrenItems,
-      });
+      return new ProblemItem(
+        language,
+        {
+          type: "programming-language",
+          language: language,
+          children: childrenItems,
+        },
+        path.join("/", "problems", language)
+      );
     });
 
     this.problemsPromise = this.getAllProblems();
@@ -139,14 +152,20 @@ export class ProblemDataProvider
     element: ProblemItem
   ): vscode.TreeItem | Thenable<vscode.TreeItem> {
     if (element.props.type === "problem") {
-      element.iconPath =
-        fileIconMapping[element.props.language as Language].path;
-
       element.command = {
         command: "lambdachecker.show-problem",
         title: "Show Problem",
         arguments: [element],
       };
+
+      element.partialPath = path.join(
+        "/",
+        element.props.language as string,
+        element.props.difficulty as string,
+        `${element.props.problemMetadata!.id}.${
+          languageExtensions[element.props.language as Language]
+        }`
+      );
 
       if (this.ownedProblems.includes(element.props.problemMetadata!.id)) {
         element.contextValue = "editable-problem";
@@ -168,6 +187,7 @@ export class ProblemDataProvider
     element.resourceUri = vscode.Uri.from({
       scheme: "lambdachecker",
       authority: element.props.type,
+      path: element.partialPath,
     });
 
     return element;
