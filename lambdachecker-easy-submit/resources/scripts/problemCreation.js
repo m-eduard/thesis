@@ -493,12 +493,20 @@ function getFormData() {
   };
 
   const tests = testsNamesMapping.slice(1).map(testId => {
+    const testInput = document.getElementById(`${testId}-input`).value;
+    const testOutput = document.getElementById(`${testId}-output`).value;
+    const testGrade = document.getElementById(`${testId}-grade`).value;
+
+    if (testInput === '' && testOutput === '' && testGrade === '') {
+      return undefined;
+    }
+
     return {
-      input: document.getElementById(`${testId}-input`).value,
-      output: document.getElementById(`${testId}-output`).value,
-      grade: document.getElementById(`${testId}-grade`).value,
+      input: testInput,
+      output: testOutput,
+      grade: testGrade,
     };
-  });
+  }).filter(test => test !== undefined);
 
   return {
     name: problemName,
