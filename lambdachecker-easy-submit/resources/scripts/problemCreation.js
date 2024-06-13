@@ -164,7 +164,7 @@ function updateCategoriesUI(containerIdPrefix) {
 
       itemElement.innerHTML = `
           <span>${item.text}</span> <span class="remove-btn" onclick="removeSelectedItem(${index}, '${containerIdPrefix}')">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" id="close">
+            <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" id="close">
               <path fill-rule="evenodd" clip-rule="evenodd" d="M4.28 3.22a.75.75 0 0 0-1.06 1.06L6.94 8l-3.72 3.72a.75.75 0 1 0 1.06 1.06L8 9.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L9.06 8l3.72-3.72a.75.75 0 0 0-1.06-1.06L8 6.94 4.28 3.22z"/>
             </svg>
           </span>
@@ -488,14 +488,15 @@ function getFormData() {
 
   const example = {
     input: document.getElementById('example-input').value,
-    output: document.getElementById('example-output').value
+    output: document.getElementById('example-output').value,
+    grade: document.getElementById('example-grade').value,
   };
 
   const tests = testsNamesMapping.slice(1).map(testId => {
     return {
-      testInput: document.getElementById(`${testId}-input`).value,
-      testOutput: document.getElementById(`${testId}-output`).value,
-      testGrad: document.getElementById(`${testId}-grade`).value,
+      input: document.getElementById(`${testId}-input`).value,
+      output: document.getElementById(`${testId}-output`).value,
+      grade: document.getElementById(`${testId}-grade`).value,
     };
   });
 

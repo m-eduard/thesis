@@ -177,7 +177,7 @@ label {
 .selected-item {
   display: flex;
   align-items: center;
-  padding: 5px 10px;
+  padding: 5px 5px;
   background-color: var(--vscode-sideBar-background);
   border-radius: 3px;
   margin: 2px;
