@@ -215,6 +215,24 @@ export class HTTPClient {
     return problemData as SpecificProblem;
   }
 
+  async getOwnedProblems(): Promise<SpecificProblem[]> {
+    const response = await this.request(
+      new Route("GET", `/problems/show_ownership`)
+    );
+
+    try {
+      const ownedProblemsData = await response.text();
+
+      if (response.status !== 200) {
+        throw new Error(ownedProblemsData);
+      }
+
+      return JSON.parse(ownedProblemsData) as SpecificProblem[];
+    } catch (error: any) {
+      throw new Error(`[Lambda Checker API]: ${error.message}`);
+    }
+  }
+
   async submitSolution(
     problemId: number,
     contestId: number,

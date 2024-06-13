@@ -12,6 +12,7 @@ export class ProblemDataProvider
   private _onDidChangeTreeData = new vscode.EventEmitter<
     ProblemItem | undefined | null | void
   >();
+  readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   root: ProblemItem[];
   lambdacheckerClient: HTTPClient;
@@ -19,7 +20,8 @@ export class ProblemDataProvider
 
   // Attribute useful only for teachers, to allow
   // editing only the problems created by them
-  private ownedProblemsPromise: Promise<SpecificProblem[]>;
+  private ownedProblems: number[] = [];
+  private currentUserRole: string = "student";
 
   constructor(client: HTTPClient) {
     this.lambdacheckerClient = client;
@@ -36,19 +38,32 @@ export class ProblemDataProvider
       );
 
       return new ProblemItem(language, {
-        type: "language",
+        type: "programming-language",
         language: language,
         children: childrenItems,
       });
     });
 
     this.problemsPromise = this.getAllProblems();
-    this.ownedProblemsPromise = LambdaChecker.client.getOwnedProblems();
+    this.refresh();
   }
 
   refresh() {
     this.problemsPromise = this.getAllProblems();
-    this.ownedProblemsPromise = LambdaChecker.client.getOwnedProblems();
+    this.currentUserRole = (
+      LambdaChecker.userDataCache.get("user") as unknown as Record<
+        string,
+        unknown
+      >
+    )["role"] as string;
+
+    if (this.currentUserRole === "teacher") {
+      LambdaChecker.client.getOwnedProblems().then((problems) => {
+        this.ownedProblems = problems.map((problem) => problem.id);
+        this._onDidChangeTreeData.fire();
+        return this.ownedProblems;
+      });
+    }
 
     this._onDidChangeTreeData.fire();
   }
@@ -106,7 +121,7 @@ export class ProblemDataProvider
     }
 
     switch (element.props.type) {
-      case "language":
+      case "programming-language":
         return element.props.children;
       case "difficulty":
         return this.getProblemsByDifficultyAndLanguage(
@@ -124,8 +139,6 @@ export class ProblemDataProvider
     element: ProblemItem
   ): vscode.TreeItem | Thenable<vscode.TreeItem> {
     if (element.props.type === "problem") {
-      console.log(element.props.language);
-
       element.iconPath =
         fileIconMapping[element.props.language as Language].path;
 
@@ -134,11 +147,19 @@ export class ProblemDataProvider
         title: "Show Problem",
         arguments: [element],
       };
+
+      element.contextValue = this.ownedProblems.includes(
+        element.props.problemMetadata!.id
+      )
+        ? "editable-problem"
+        : "problem";
+    } else {
+      element.contextValue = element.props.type;
     }
 
     element.resourceUri = vscode.Uri.from({
       scheme: "lambdachecker",
-      authority: element.props.type === "problem" ? "leaf" : "node",
+      authority: element.props.type,
     });
 
     return element;

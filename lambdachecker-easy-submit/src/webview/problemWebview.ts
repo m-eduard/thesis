@@ -26,7 +26,7 @@ export class ProblemWebview {
       problem.id,
       problem.name,
       problem.language,
-      problem.skeleton.code
+      problem.skeleton?.code || ""
     );
   }
 

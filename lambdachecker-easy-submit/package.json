@@ -49,6 +49,16 @@
         },
         "category": "Lambda Checker",
         "when": "lambdachecker.teacher"
+      },
+      {
+        "command": "lambdachecker.create-problem",
+        "title": "Create Problem",
+        "icon": {
+          "light": "resources/icons/light/add.svg",
+          "dark": "resources/icons/dark/add.svg"
+        },
+        "category": "Lambda Checker",
+        "when": "lambdachecker.teacher"
       }
     ],
     "menus": {
@@ -63,6 +73,11 @@
           "command": "lambdachecker.create-contest",
           "group": "navigation",
           "when": "lambdachecker.teacher && view == lambdachecker.contests"
+        },
+        {
+          "command": "lambdachecker.create-problem",
+          "group": "navigation",
+          "when": "lambdachecker.teacher && view == lambdachecker.problems"
         }
       ],
       "view/item/context": [
@@ -70,6 +85,11 @@
           "command": "lambdachecker.edit-contest",
           "group": "inline",
           "when": "lambdachecker.teacher && viewItem == editable-contest && view == lambdachecker.contests"
+        },
+        {
+          "command": "lambdachecker.create-problem",
+          "group": "inline",
+          "when": "lambdachecker.teacher && viewItem == editable-problem && view == lambdachecker.problems"
         }
       ]
     },

@@ -40,7 +40,7 @@ export interface ProblemMetadataContestContext extends BaseProblem {
 // for a specific problem
 export interface SpecificProblem extends Required<BaseProblem> {
   user: Record<string, unknown>;
-  skeleton: ProblemSkeleton;
+  skeleton?: ProblemSkeleton;
   example: ProblemTest;
   tests: ProblemTest[];
   is_owner: boolean;
