@@ -221,7 +221,7 @@ function openSkeletonFile() {
   // Send the request to open a new editor tab
   vscode.postMessage({
     action: "openSkeletonFile",
-    data: getFormData()
+    problemData: getFormData()
   });
 
   highlightSkelButton('open-skel-btn');
@@ -513,7 +513,7 @@ function getFormData() {
 function submitForm() {
   vscode.postMessage({
     action: "sendRequestToApi",
-    data: getFormData()
+    problemData: getFormData()
   });
 }
 
