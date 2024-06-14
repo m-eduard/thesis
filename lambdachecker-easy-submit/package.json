@@ -69,6 +69,23 @@
         },
         "category": "Lambda Checker",
         "when": "lambdachecker.teacher"
+      }, {
+        "command": "lambdachecker.refresh-contests",
+        "title": "Refresh Contests",
+        "icon": {
+          "light": "resources/icons/light/refresh.svg",
+          "dark": "resources/icons/dark/refresh.svg"
+        },
+        "category": "Lambda Checker"
+      }, 
+      {
+        "command": "lambdachecker.refresh-problems",
+        "title": "Refresh Problems",
+        "icon": {
+          "light": "resources/icons/light/refresh.svg",
+          "dark": "resources/icons/dark/refresh.svg"
+        },
+        "category": "Lambda Checker"
       }
     ],
     "menus": {
@@ -94,6 +111,16 @@
           "command": "lambdachecker.create-problem",
           "group": "navigation",
           "when": "lambdachecker.teacher && view == lambdachecker.problems"
+        },
+        {
+          "command": "lambdachecker.refresh-contests",
+          "group": "navigation",
+          "when": "view == lambdachecker.contests"
+        },
+        {
+          "command": "lambdachecker.refresh-problems",
+          "group": "navigation",
+          "when": "view == lambdachecker.problems"
         }
       ],
       "view/item/context": [

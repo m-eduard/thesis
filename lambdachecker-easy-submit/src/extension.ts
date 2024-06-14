@@ -60,6 +60,12 @@ export async function activate(context: vscode.ExtensionContext) {
           LambdaChecker.editProblem(
             context.props.problemMetadata as SpecificProblem
           )
+      ),
+      vscode.commands.registerCommand("lambdachecker.refresh-contests", () =>
+        LambdaChecker.contestDataProvider.refresh()
+      ),
+      vscode.commands.registerCommand("lambdachecker.refresh-problems", () =>
+        LambdaChecker.problemDataProvider.refresh()
       )
     );
     context.subscriptions.push(StatusBar.statusBarItem);
