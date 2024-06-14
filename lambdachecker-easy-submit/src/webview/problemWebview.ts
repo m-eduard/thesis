@@ -124,6 +124,10 @@ export class ProblemWebview {
       case "code":
         this.submissionFile.openInEditor();
         break;
+      case "restore-skeleton":
+        this.submissionFile.problemSkel = this.problem.skeleton?.code || "";
+        this.submissionFile.openInEditor(true);
+        break;
       case "run":
         const executionResultPromise = LambdaChecker.submissionApiClient.submit(
           this.problem.language,
