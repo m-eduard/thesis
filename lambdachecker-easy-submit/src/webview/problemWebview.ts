@@ -7,15 +7,15 @@ import {
   SubmissionResult,
   WebviewMessage,
 } from "../models";
-import { getProblemHTML } from "../models/webview/htmlTemplates";
 import { SubmissionFile } from "../storage";
 import { ProblemSubmissionWebviewListener } from "./problemSubmissionWebviewListener";
+import { ViewType, WebviewFactory } from "./webviewFactory";
 
 export class ProblemWebview {
   public submissionFile: SubmissionFile;
   private static apiCooldown = 100;
   private static maxApiConsecutiveRequests = 50;
-  private createdWebview = false;
+  private createdAllSubmissionsWebview = false;
   private submissionsPanel?: vscode.WebviewPanel;
   private submissionsListener?: ProblemSubmissionWebviewListener;
 
@@ -173,22 +173,15 @@ export class ProblemWebview {
         }
         break;
       case "view-submissions":
-        if (this.createdWebview === false) {
-          this.createdWebview = true;
+        if (this.createdAllSubmissionsWebview === false) {
+          this.createdAllSubmissionsWebview = true;
 
-          // Create a new webview panel for the submissions status
-          this.submissionsPanel = vscode.window.createWebviewPanel(
-            "lambdachecker.webview.results",
-            `${this.problem.id}. ${this.problem.name}`,
-            {
-              viewColumn: vscode.ViewColumn.Two,
-              preserveFocus: false,
-            },
-            {
-              enableScripts: true,
-              enableFindWidget: true,
-            }
+          // Create only one webview panel for the submissions table
+          const submissionsWebviewWrapper = WebviewFactory.createWebview(
+            ViewType.UserAllSubmissions,
+            `${this.problem.id}. ${this.problem.name}`
           );
+          this.submissionsPanel = submissionsWebviewWrapper.webviewPanel;
 
           this.submissionsListener = new ProblemSubmissionWebviewListener(
             this.problem.id,
@@ -204,7 +197,7 @@ export class ProblemWebview {
           });
 
           this.submissionsPanel.onDidDispose(() => {
-            this.createdWebview = false;
+            this.createdAllSubmissionsWebview = false;
           });
 
           // Message sent by postMessage doesn't reach

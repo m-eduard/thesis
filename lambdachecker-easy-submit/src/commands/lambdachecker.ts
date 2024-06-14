@@ -27,7 +27,11 @@ import {
   ProblemDataProvider,
   ProblemItem,
 } from "../treeview";
-import { ProblemEditor, ProblemSubmissionWebviewListener } from "../webview";
+import {
+  ProblemSubmissionWebviewListener,
+  ViewType,
+  WebviewFactory,
+} from "../webview";
 import { CreateContestListener } from "../webview/createContestListener";
 import { CreateProblemListener } from "../webview/createProblemListener";
 import { ProblemWebview } from "../webview/problemWebview";
@@ -222,18 +226,11 @@ export class LambdaChecker {
       ? 0
       : (submissionResult as SubmissionResult).problem_id;
 
-    const submissionResultPanel = vscode.window.createWebviewPanel(
-      "lambdachecker.webview.results",
-      `${problemId}. ${problemName}`,
-      {
-        viewColumn: vscode.ViewColumn.Two,
-        preserveFocus: false,
-      },
-      {
-        enableScripts: true,
-        enableFindWidget: true,
-      }
+    const submissionResultPanelWrapper = WebviewFactory.createWebview(
+      ViewType.UserSubmissionResult,
+      `${problemId}. ${problemName}`
     );
+    const submissionResultPanel = submissionResultPanelWrapper.webviewPanel;
 
     if (ephemeralSubmission === false) {
     // Create the listener once, and use it for each message received
