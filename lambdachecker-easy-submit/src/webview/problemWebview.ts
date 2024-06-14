@@ -133,17 +133,27 @@ export class ProblemWebview {
           }
         );
 
-        const progressNotification = await vscode.window.withProgress(
+        await vscode.window.withProgress(
           {
             location: vscode.ProgressLocation.Notification,
             title: `[${this.problem.name}] Compiling and running your source code...`,
             cancellable: false,
           },
           () =>
-            executionResultPromise.catch((error) => {
-              console.log(error);
-              vscode.window.showErrorMessage(error.message);
-            })
+            executionResultPromise
+              .then((result) => {
+                LambdaChecker.showSubmissionResult(
+                  result,
+                  this.problem.name,
+                  message.tests!,
+                  this.problem.language,
+                  true
+                );
+              })
+              .catch((error) => {
+                console.log(error);
+                vscode.window.showErrorMessage(error.message);
+              })
         );
 
         break;

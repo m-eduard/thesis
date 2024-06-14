@@ -308,7 +308,8 @@ const getAllSubmissionsButton = () => {
 
 export const getFailedCompilationHTML = (
   compileError: string,
-  submissionDate: string
+  submissionDate: string,
+  ephemeralSubmission: boolean = false
 ) => {
   return `
 <!DOCTYPE html>
@@ -317,15 +318,19 @@ export const getFailedCompilationHTML = (
 ${head}
 <body>
 
-<div>
-<span class="toolbar-buttons">
-${getAllSubmissionsButton()}
-</span>
-
-<span class="toolbar-buttons">
-${getBringCodeToEditorButton()}
-</span>
-</div>
+${
+  ephemeralSubmission
+    ? ""
+    : `
+  <div>
+    <span class="toolbar-buttons">
+    ${getAllSubmissionsButton()}
+    </span>
+    <span class="toolbar-buttons">
+      ${getBringCodeToEditorButton()}
+    </span>
+  </div>`
+}
 
 <h1> <span class="failed">Compilation Error</span>
   <div class="meta">Submitted on ${stringifyDate(submissionDate)}</div>
@@ -390,7 +395,7 @@ const getTestResultHTML = (
   testResult: TestResult,
   test: ProblemTest
 ) => {
-  const grade = testResult.status === "PASSED" ? test.grade : 0;
+  const grade = testResult.status === "PASSED" ? test.grade || 1 : 0;
 
   let formattedOut = "";
   let formattedRef = "";
@@ -448,7 +453,7 @@ const getTestResultHTML = (
 <h2> <span class=${
     testResult.status === "PASSED" ? "accepted" : "failed"
   }>Case ${testNo} </span> <span class="normal">|  ${grade} / ${
-    test.grade
+    test.grade || 1
   } pts</span>
 </h2>
 
@@ -503,7 +508,8 @@ export const getExecutionResultHTML = (
   scriptsUri: vscode.Uri,
   testsResults: TestResult[],
   submissionDate: string,
-  tests: ProblemTest[]
+  tests: ProblemTest[],
+  ephemeralSubmission: boolean = false
 ) => {
   const executionStatus = getExecutionStatus(testsResults);
   const accepted = executionStatus === "Accepted";
@@ -536,15 +542,19 @@ export const getExecutionResultHTML = (
 
 <body>
 
-<div>
-<span class="toolbar-buttons">
-${getAllSubmissionsButton()}
-</span>
-
-<span class="toolbar-buttons">
-${getBringCodeToEditorButton()}
-</span>
-</div>
+${
+  ephemeralSubmission
+    ? ""
+    : `
+  <div>
+    <span class="toolbar-buttons">
+    ${getAllSubmissionsButton()}
+    </span>
+    <span class="toolbar-buttons">
+      ${getBringCodeToEditorButton()}
+    </span>
+  </div>`
+}
 
 <h1> 
 <div>

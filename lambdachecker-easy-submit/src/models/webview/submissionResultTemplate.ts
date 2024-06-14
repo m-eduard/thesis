@@ -52,3 +52,27 @@ export const getSubmissionResultWebviewContent = (
 
   // button copy to editor
 };
+
+export const getEphemeralSubmissionResultWebviewContent = (
+  stylesUri: vscode.Uri,
+  scriptsUri: vscode.Uri,
+  runOutput: RunOutput,
+  tests: ProblemTest[]
+) => {
+  if (runOutput.compiled === false) {
+    return getFailedCompilationHTML(
+      runOutput.error || "",
+      new Date().toISOString(),
+      true
+    );
+  }
+
+  return getExecutionResultHTML(
+    stylesUri,
+    scriptsUri,
+    runOutput.results!,
+    new Date().toISOString(),
+    tests,
+    true
+  );
+};

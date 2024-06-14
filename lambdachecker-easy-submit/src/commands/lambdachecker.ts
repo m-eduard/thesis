@@ -13,6 +13,7 @@ import {
   Storage,
   SubmissionResult,
   User,
+  getEphemeralSubmissionResultWebviewContent,
   getProblemWebviewContent,
   getSubmissionResultWebviewContent,
 } from "../models";
@@ -209,16 +210,21 @@ export class LambdaChecker {
   }
 
   static async showSubmissionResult(
-    submissionResult: SubmissionResult,
+    submissionResult: SubmissionResult | RunOutput,
     problemName: string,
     problemTests: ProblemTest[],
-    problemLanguage: Language
+    problemLanguage: Language,
+    ephemeralSubmission: boolean = false
   ) {
     // console.log(JSON.parse(submissionResult.run_output) as RunOutput);
 
+    let problemId = ephemeralSubmission
+      ? 0
+      : (submissionResult as SubmissionResult).problem_id;
+
     const submissionResultPanel = vscode.window.createWebviewPanel(
       "lambdachecker.webview.results",
-      `${submissionResult.problem_id}. ${problemName}`,
+      `${problemId}. ${problemName}`,
       {
         viewColumn: vscode.ViewColumn.Two,
         preserveFocus: false,
@@ -229,12 +235,13 @@ export class LambdaChecker {
       }
     );
 
+    if (ephemeralSubmission === false) {
     // Create the listener once, and use it for each message received
     const currentProblemResultListener = new ProblemSubmissionWebviewListener(
-      submissionResult.problem_id,
+        problemId,
       problemName,
       problemLanguage,
-      submissionResult.code,
+        (submissionResult as SubmissionResult).code,
       submissionResultPanel,
       problemTests
     );
@@ -242,6 +249,7 @@ export class LambdaChecker {
     submissionResultPanel.webview.onDidReceiveMessage(async (message) => {
       currentProblemResultListener.webviewListener(message);
     });
+    }
 
     const stylesPath = vscode.Uri.joinPath(
       LambdaChecker.context.extensionUri,
@@ -257,12 +265,22 @@ export class LambdaChecker {
       "submissionView.js"
     );
 
+    if (ephemeralSubmission === false) {
     submissionResultPanel.webview.html = getSubmissionResultWebviewContent(
       submissionResultPanel.webview.asWebviewUri(stylesPath),
       submissionResultPanel.webview.asWebviewUri(scriptsPath),
-      submissionResult,
+        submissionResult as SubmissionResult,
+        problemTests
+      );
+    } else {
+      submissionResultPanel.webview.html =
+        getEphemeralSubmissionResultWebviewContent(
+          submissionResultPanel.webview.asWebviewUri(stylesPath),
+          submissionResultPanel.webview.asWebviewUri(scriptsPath),
+          submissionResult as RunOutput,
       problemTests
     );
+    }
   }
 
   static async enrollInContest(
