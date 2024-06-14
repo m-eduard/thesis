@@ -363,8 +363,8 @@ testsDisplayed.forEach((element) => {
 });
 
 // Add the first test
-// addTest();
-// revealTestById('example');
+addTest();
+revealTestById('example');
 
 function activateTestDisplay(testDiv, testBtn, removeTestBtn) {
     testDiv.classList.remove('hidden');

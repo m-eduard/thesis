@@ -15,13 +15,20 @@
 }
 
 .all-submissions svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   margin-right: 3px;
+  vertical-align: text-top;
 }
 
 .download-tests svg {
   margin-right: 3px;
+  vertical-align: text-top;
+}
+
+.restore-skeleton svg {
+  margin-right: 3px;
+  vertical-align: text-top;
 }
 
 input.test-input {
