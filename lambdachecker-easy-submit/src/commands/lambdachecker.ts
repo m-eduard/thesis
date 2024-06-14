@@ -159,7 +159,8 @@ export class LambdaChecker {
   static async showProblem(
     problemId: number,
     contestId?: number,
-    contestName?: string
+    contestName?: string,
+    contestEndDate?: string
   ) {
     let problem;
 
@@ -213,7 +214,8 @@ export class LambdaChecker {
       problemPanel.webview.asWebviewUri(stylesPath),
       problem,
       contestId,
-      contestName
+      contestName,
+      contestEndDate
     );
   }
 

@@ -790,7 +790,8 @@ export const getProblemHTML = (
   stylesUri: vscode.Uri,
   problemData: SpecificProblem,
   contestId?: number,
-  contestName?: string
+  contestName?: string,
+  contestEndDate?: string
 ) => {
   const title = `${problemData.id}. ${problemData.name}`;
 
@@ -860,26 +861,26 @@ export const getProblemHTML = (
           ${getContestLabelHTML(contestName)}
         </div>
       </div>
-      <div class="clock-wrapper">
-        <div class="countdown-inner">
-          <div style="display: none;" class="countdown-column">
-            <span class="top-layer-countdown">10</span>
-            <span class="bottom-layer-countdown">Days</span>
+      <div id="countdown" class="clock-wrapper" style="display: none;">
+        <div id="countdown-text" class="countdown-inner">
+          <div id="countdown-days-column" class="countdown-column">
+            <span id="countdown-days" class="top-layer-countdown">00</span>
+            <span id="countdown-days-text" class="bottom-layer-countdown">Days</span>
           </div>
 
           <div class="countdown-column">
-            <span class="top-layer-countdown">01</span>
-            <span class="bottom-layer-countdown">Hours</span>
+            <span id="countdown-hours" class="top-layer-countdown">00</span>
+            <span id="countdown-hours-text" class="bottom-layer-countdown">Hours</span>
           </div>
 
           <div class="countdown-column">
-            <span class="top-layer-countdown">30</span>
-            <span class="bottom-layer-countdown">Minutes</span>
+            <span id="countdown-minutes" class="top-layer-countdown">00</span>
+            <span id="countdown-minutes-text" class="bottom-layer-countdown">Minutes</span>
           </div>
 
           <div class="countdown-column">
-            <span class="top-layer-countdown">10</span>
-            <span class="bottom-layer-countdown">Seconds</span>
+            <span id="countdown-seconds" class="top-layer-countdown">00</span>
+            <span id="countdown-seconds-text" class="bottom-layer-countdown">Seconds</span>
           </div>
         </div>
       </div>
@@ -922,11 +923,13 @@ export const getProblemHTML = (
 
     <script>
       const vscode = acquireVsCodeApi();
+      const contestEndDate = new Date("${contestEndDate}");
 
       vscode.setState(${JSON.stringify({
         problem: problemData,
         contestId: contestId,
         contestName: contestName,
+        contestEndDate: contestEndDate,
       })});
 
       function send(cmd) {

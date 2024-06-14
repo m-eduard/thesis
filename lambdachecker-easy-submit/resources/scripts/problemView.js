@@ -32,6 +32,72 @@ testsDisplayed.forEach((element) => {
     totalNumberOfShownTests++;
 });
 
+// Countdown timer used when the problem is opened
+// in an active contest context
+if (contestEndDate !== undefined && contestEndDate.getTime() - Date.now() > 0) {
+    document.getElementById('countdown').style.display = 'flex';
+
+    function countdown() {
+        const distance = contestEndDate.getTime() - Date.now();
+
+        if (distance < 0) {
+            clearInterval(countdown);
+            document.getElementById('countdown-text').style.display = 'none';
+
+            const expirationText = document.createElement('div');
+            expirationText.classList.add('countdown-column');
+            expirationText.style.fontWeight = '400';
+            expirationText.innerHTML = '<span>Contest has ended<span>';
+            document.getElementById('countdown').appendChild(expirationText);
+
+            return;
+        }
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        document.getElementById('countdown-days').innerHTML = days.toString().padStart(2, '0');
+        document.getElementById('countdown-hours').innerHTML = hours.toString().padStart(2, '0');
+        document.getElementById('countdown-minutes').innerHTML = minutes.toString().padStart(2, '0');
+        document.getElementById('countdown-seconds').innerHTML = seconds.toString().padStart(2, '0');
+
+        if (days === 1) {
+            document.getElementById('countdown-days-text').innerText = "Day";
+        } else if (days === 0) {
+            document.getElementById('countdown-days-column').style.display = 'none';
+        }
+
+        if (hours === 1) {
+            document.getElementById('countdown-hours-text').innerText = "Hour";
+        } else if (hours === 0) {
+            document.getElementById('countdown-hours-text').innerText = "Hours";
+        }
+
+        if (minutes === 1) {
+            document.getElementById('countdown-minutes-text').innerText = "Minute";
+        } else if (minutes === 0) {
+            document.getElementById('countdown-minutes-text').innerText = "Minutes";
+        }
+
+        if (seconds === 1) {
+            document.getElementById('countdown-seconds-text').innerText = "Second";
+        } else if (seconds === 0) {
+            document.getElementById('countdown-seconds-text').innerText = "Seconds";
+        }
+
+        if (distance < 15 * 1000 * 60) {
+            document.getElementById('countdown-text').classList.add('hard');
+            document.getElementById('countdown-text').style.fontWeight = '500';
+        }
+
+        setTimeout(countdown, 1000);
+    }
+
+    countdown();
+}
+
 function activateTestDisplay(testDiv, testBtn, removeTestBtn) {
     testDiv.classList.remove('hidden');
     testBtn.classList.add('test-btn-active-text');

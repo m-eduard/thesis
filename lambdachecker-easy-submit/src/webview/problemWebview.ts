@@ -7,7 +7,6 @@ import {
   SubmissionResult,
   WebviewMessage,
 } from "../models";
-import { getProblemHTML } from "../models/webview/htmlTemplates";
 import { SubmissionFile } from "../storage";
 import { ProblemSubmissionWebviewListener } from "./problemSubmissionWebviewListener";
 import { ViewType, WebviewFactory } from "./webviewFactory";

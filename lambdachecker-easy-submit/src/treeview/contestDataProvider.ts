@@ -228,6 +228,7 @@ export class ContestDataProvider
                 problemMetadata: problem,
                 contestId: element.props.contestMetadata!.id,
                 contestName: element.props.contestMetadata!.name,
+                contestEndDate: element.props.contestMetadata!.end_date,
               },
               path.join(
                 element.partialPath,
@@ -256,6 +257,7 @@ export class ContestDataProvider
           element.props.problemMetadata!.id,
           element.props.contestId,
           element.props.contestName,
+          element.props.contestEndDate,
         ],
       };
     } else {
