@@ -154,14 +154,11 @@ export class LambdaChecker {
   // create a thread which manages the token in order to refresh it
   // (I suspect that we don't have a refresh token on the backend)
 
-  static async showProblem(problemItem: ProblemItem, contestId?: number) {
+  static async showProblem(problemId: number, contestId?: number) {
     let problem;
 
     try {
-      problem = await LambdaChecker.client.getProblem(
-        problemItem.props.problemMetadata!.id,
-        contestId
-      );
+      problem = await LambdaChecker.client.getProblem(problemId, contestId);
     } catch (error: any) {
       vscode.window.showErrorMessage(error.message);
       return;

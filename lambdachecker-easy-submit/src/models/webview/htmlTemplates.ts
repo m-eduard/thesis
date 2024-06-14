@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { ProblemDataProvider } from "../../treeview";
 import {
   BaseProblem,
   ContestSubject,
@@ -72,12 +73,12 @@ const styles = `
   .accepted {
     color: #0BDA51;
     font-weight: bold;
-    font-size: 26px;
+    font-size: 24px;
   }
   .failed {
     color: #D2042D;
     font-weight: bold;
-    font-size: 26px;
+    font-size: 24px;
   }
 
   .accepted-normal {
@@ -127,6 +128,10 @@ const styles = `
 
   .btn:hover {
     color: inherit;
+  }
+  
+  .copy-code {
+    float: right;
   }
 
   .copy-code svg {
@@ -307,7 +312,7 @@ const getAllSubmissionsButton = () => {
   <button id="all-submissions" class="btn all-submissions" onclick="send('view-all-submissions')">
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path fill-rule="evenodd" clip-rule="evenodd" d="M6.99999 3.0929L2 8.09288L2 8.79999L6.99999 13.8L7.7071 13.0929L3.56066 8.94644L14 8.94644L14 7.94644L3.56066 7.94644L7.7071 3.8L6.99999 3.0929Z" fill="#C5C5C5"/>
-    </svg> All Submissions <span class="button-container-separator">|</span></button>`;
+    </svg> All Submissions <span class="button-container-separator" style="visibility: hidden; ">|</span></button>`;
 };
 
 export const getFailedCompilationHTML = (
@@ -326,13 +331,14 @@ ${
   ephemeralSubmission
     ? ""
     : `
-  <div class="button-container">
+  <div>
     ${getAllSubmissionsButton()}
     ${getBringCodeToEditorButton()}
   </div>`
 }
 
-<h1> <span class="failed">Compilation Error</span>
+<h1>
+  <div><span class="failed">Compilation Error</span></div>
   <div class="meta">Submitted on ${stringifyDate(submissionDate)}</div>
 </h1>
 
@@ -546,9 +552,9 @@ ${
   ephemeralSubmission
     ? ""
     : `
-  <div class="button-container">
-    ${getAllSubmissionsButton()}
-    ${getBringCodeToEditorButton()}
+  <div>
+    <span>${getAllSubmissionsButton()}</span>
+    <span>${getBringCodeToEditorButton()}</span>
   </div>`
 }
 
@@ -805,7 +811,16 @@ export const getProblemHTML = (
       ${getRestoreSkeletonButton()}
     </div>
 
-    <h1>${title}</h1>
+    <h1>${title} ${
+    !ProblemDataProvider.ownedProblems.includes(problemData.id)
+      ? ""
+      : `
+        <button id="edit-problem" class="btn edit-problem" onclick="send('edit-problem')">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13.23 1H11.77L3.52002 9.25L3.35999 9.46997L1 13.59L2.41003 15L6.53003 12.64L6.75 12.48L15 4.22998V2.77002L13.23 1ZM2.41003 13.59L3.92004 10.59L5.37 12.04L2.41003 13.59ZM6.23999 11.53L4.46997 9.76001L12.47 1.76001L14.24 3.53003L6.23999 11.53Z" fill="#C5C5C5"/>
+          </svg>
+        </button>`
+  } </h1>
     <p>${problemData.description}</p>
 
     <div class="buttons">

@@ -34,8 +34,8 @@ export async function activate(context: vscode.ExtensionContext) {
       ),
       vscode.commands.registerCommand(
         "lambdachecker.show-problem",
-        (item: ProblemItem, contestId?: number) =>
-          LambdaChecker.showProblem(item, contestId)
+        (problemId: number, contestId?: number) =>
+          LambdaChecker.showProblem(problemId, contestId)
       ),
       vscode.commands.registerCommand(
         "lambdachecker.enroll-in-contest",

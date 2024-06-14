@@ -7,6 +7,7 @@ import {
   SubmissionResult,
   WebviewMessage,
 } from "../models";
+import { getProblemHTML } from "../models/webview/htmlTemplates";
 import { SubmissionFile } from "../storage";
 import { ProblemSubmissionWebviewListener } from "./problemSubmissionWebviewListener";
 import { ViewType, WebviewFactory } from "./webviewFactory";
@@ -127,6 +128,10 @@ export class ProblemWebview {
       case "restore-skeleton":
         this.submissionFile.problemSkel = this.problem.skeleton?.code || "";
         this.submissionFile.openInEditor(true);
+        break;
+      case "edit-problem":
+        LambdaChecker.editProblem(this.problem);
+        LambdaChecker.showProblem(this.problem.id, message.contestId);
         break;
       case "run":
         const executionResultPromise = LambdaChecker.submissionApiClient.submit(

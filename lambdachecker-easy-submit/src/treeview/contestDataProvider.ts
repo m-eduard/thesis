@@ -251,7 +251,7 @@ export class ContestDataProvider
       element.command = {
         command: "lambdachecker.show-problem",
         title: "Show Problem",
-        arguments: [element, element.props.contestId],
+        arguments: [element.props.problemMetadata!.id, element.props.contestId],
       };
     } else {
       if (element.props.type === "contest") {

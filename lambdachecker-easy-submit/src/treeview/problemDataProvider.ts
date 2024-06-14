@@ -25,8 +25,8 @@ export class ProblemDataProvider
 
   // Attribute useful only for teachers, to allow
   // editing only the problems created by them
-  private ownedProblems: number[] = [];
-  private currentUserRole: string = "student";
+  static ownedProblems: number[] = [];
+  static currentUserRole: string = "student";
 
   constructor(client: HTTPClient) {
     this.lambdacheckerClient = client;
@@ -63,18 +63,20 @@ export class ProblemDataProvider
 
   refresh() {
     this.problemsPromise = this.getAllProblems();
-    this.currentUserRole = (
+    ProblemDataProvider.currentUserRole = (
       LambdaChecker.userDataCache.get("user") as unknown as Record<
         string,
         unknown
       >
     )["role"] as string;
 
-    if (this.currentUserRole === "teacher") {
+    if (ProblemDataProvider.currentUserRole === "teacher") {
       LambdaChecker.client.getOwnedProblems().then((problems) => {
-        this.ownedProblems = problems.map((problem) => problem.id);
+        ProblemDataProvider.ownedProblems = problems.map(
+          (problem) => problem.id
+        );
         this._onDidChangeTreeData.fire();
-        return this.ownedProblems;
+        return ProblemDataProvider.ownedProblems;
       });
     }
 
@@ -155,7 +157,7 @@ export class ProblemDataProvider
       element.command = {
         command: "lambdachecker.show-problem",
         title: "Show Problem",
-        arguments: [element],
+        arguments: [element.props.problemMetadata!.id],
       };
 
       element.partialPath = path.join(
@@ -167,7 +169,11 @@ export class ProblemDataProvider
         }`
       );
 
-      if (this.ownedProblems.includes(element.props.problemMetadata!.id)) {
+      if (
+        ProblemDataProvider.ownedProblems.includes(
+          element.props.problemMetadata!.id
+        )
+      ) {
         element.contextValue = "editable-problem";
 
         // Enrich the current metadata stored in the TreeNode
