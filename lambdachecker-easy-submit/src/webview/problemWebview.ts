@@ -1,3 +1,4 @@
+import path from "path";
 import * as vscode from "vscode";
 import { LambdaChecker } from "../commands";
 import {
@@ -227,6 +228,88 @@ export class ProblemWebview {
         } else {
           this.submissionsPanel!.reveal();
         }
+
+        break;
+      case "download-tests":
+        const downloadOptions: vscode.OpenDialogOptions = {
+          canSelectFiles: false,
+          canSelectFolders: true,
+          title: "Download To",
+        };
+
+        console.log(this.problem.tests);
+
+        vscode.window.showOpenDialog(downloadOptions).then(async (fileUri) => {
+          if (!(fileUri && fileUri[0])) {
+            return;
+          }
+
+          const inputPaths: string[] = [];
+          const outputPaths: string[] = [];
+
+          const testsPromises = this.problem.tests.map((test, index) => {
+            const inputPath = path.join(fileUri[0].path, `test${index}.in`);
+            const outputPath = path.join(fileUri[0].path, `test${index}.out`);
+
+            inputPaths.push(inputPath);
+            outputPaths.push(outputPath);
+
+            return [
+              vscode.workspace.fs.writeFile(
+                vscode.Uri.file(inputPath),
+                Buffer.from(test.input || "")
+              ),
+              vscode.workspace.fs.writeFile(
+                vscode.Uri.file(outputPath),
+                Buffer.from(test.output || "")
+              ),
+            ];
+          });
+
+          Promise.all(testsPromises.flat()).then(async () => {
+            const alternateInOut = inputPaths
+              .map((inputPath, index) => [inputPath, outputPaths[index]])
+              .flat();
+
+            for (let i = 0; i < inputPaths.length; i++) {
+              await vscode.window.showTextDocument(
+                vscode.Uri.file(inputPaths[i]),
+                {
+                  viewColumn: vscode.ViewColumn.Two,
+                  preview: false,
+                  preserveFocus: true,
+                }
+              );
+
+              await vscode.window.showTextDocument(
+                vscode.Uri.file(outputPaths[i]),
+                {
+                  viewColumn: vscode.ViewColumn.Three,
+                  preview: false,
+                  preserveFocus: true,
+                }
+              );
+            }
+
+            await vscode.window.showTextDocument(
+              vscode.Uri.file(outputPaths[0]),
+              {
+                viewColumn: vscode.ViewColumn.Three,
+                preview: false,
+                preserveFocus: true,
+              }
+            );
+
+            await vscode.window.showTextDocument(
+              vscode.Uri.file(inputPaths[0]),
+              {
+                viewColumn: vscode.ViewColumn.Two,
+                preview: false,
+                preserveFocus: false,
+              }
+            );
+          });
+        });
 
         break;
     }
