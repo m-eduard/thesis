@@ -1,3 +1,9 @@
+:root {
+  --difficulty-easy: #28C244;
+  --difficulty-medium: #FAC31D;
+  --difficulty-hard: #F44336;
+}
+
 .header-btn {
   font-size: 14px;
   padding: 8px 0px;
@@ -140,13 +146,56 @@ textarea.test-input {
   flex-direction: column;
   gap: 16px;
   border-radius: 20px;
-  padding-block: 0px;
-  padding-inline: 32px;
+  padding-block: 2px;
+  padding-inline: 20px;
 
   background: linear-gradient(var(--vscode-editor-background), var(--vscode-editor-background)) padding-box,
               linear-gradient(45deg, #3149e4 0%, #8c30f5 100%) border-box;
 
   border: 1.5px solid transparent;
+}
+
+.title-wrapper {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  padding-block: 0px;
+}
+
+.labels-container-wrapper {
+  display: flex;
+  gap: 4px;
+  font-size: 16px;
+  font-weight: normal;
+  padding: 10px 0px 0px;
+}
+
+.difficulty-wrapper {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  border-radius: 20px;
+  padding-block: 2px;
+  padding-inline: 20px;
+
+  background: linear-gradient(var(--vscode-input-background), var(--vscode-input-background)) padding-box;
+  border: 1.5px solid transparent;
+}
+
+.easy {
+  color: var(--difficulty-easy);
+}
+
+.medium {
+  color: var(--difficulty-medium);
+}
+
+.hard {
+  color: var(--difficulty-hard);
+}
+
+.label {
+  font-size: 12px;
 }
 
 .clock-wrapper {

@@ -762,6 +762,29 @@ const getInitialTestsHTML = (tests: ProblemTest[]) => {
     .join("");
 };
 
+const getCategoriesHTML = (categories: string) => {
+  return categories
+    .split(";")
+    .map(
+      (category) => `
+<div class="difficulty-wrapper">
+  <span class="label">${category}</span>
+</div>`
+    )
+    .join("");
+};
+
+const getContestLabelHTML = (contestId: number | undefined) => {
+  if (contestId === undefined) {
+    return "";
+  }
+
+  return `
+<div class="contest-name-wrapper">
+  <span class="label">Contest ${contestId}</span>
+</div>`;
+};
+
 export const getProblemHTML = (
   scriptsUri: vscode.Uri,
   stylesUri: vscode.Uri,
@@ -812,10 +835,11 @@ export const getProblemHTML = (
         ${getDownloadTestsButton()}
         ${getRestoreSkeletonButton()}
       </div>
-      <div class="contest-name-wrapper">Contest 99</div>
     </div>
 
-    <h1 class="problem-name">${title} ${
+    <h1 class="problem-name">
+      <div class="title-wrapper">
+        <div>${title} ${
     !ProblemDataProvider.ownedProblems.includes(problemData.id)
       ? ""
       : `
@@ -824,7 +848,17 @@ export const getProblemHTML = (
             <path d="M13.23 1H11.77L3.52002 9.25L3.35999 9.46997L1 13.59L2.41003 15L6.53003 12.64L6.75 12.48L15 4.22998V2.77002L13.23 1ZM2.41003 13.59L3.92004 10.59L5.37 12.04L2.41003 13.59ZM6.23999 11.53L4.46997 9.76001L12.47 1.76001L14.24 3.53003L6.23999 11.53Z" fill="#C5C5C5"/>
           </svg>
         </button>`
-  }
+  }     </div>
+        <div class="labels-container-wrapper">
+          <div class="difficulty-wrapper">
+            <span class="${problemData.difficulty.toLowerCase()} label">${
+    problemData.difficulty
+  }</span>
+          </div>
+          ${getCategoriesHTML(problemData.categories)}
+          ${getContestLabelHTML(contestId)}
+        </div>
+      </div>
       <div class="clock-wrapper">
         <div class="countdown-inner">
           <div style="display: none;" class="countdown-column">
