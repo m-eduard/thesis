@@ -12,7 +12,6 @@ import { SubmissionFile } from "../storage";
 
 export class ProblemSubmissionWebviewListener {
   public submissionFile: SubmissionFile;
-  public allSubmissions: SubmissionResult[] = [];
   private stylesUri: vscode.Uri;
   private scriptsUri: vscode.Uri;
 
@@ -67,32 +66,36 @@ export class ProblemSubmissionWebviewListener {
         // Second, when the current batch is ready, replace the
         // old HTML content with this one
         getSubmissionsSafe().then((submissions) => {
-          this.allSubmissions = submissions;
+          LambdaChecker.allSubmissions.set(this.problemId, submissions);
+
           this.panel.webview.html = getSubmissionsTableHTML(
-            this.allSubmissions,
+            submissions,
             this.problemTests
           );
         });
 
         // First, show the old batch of submissions
         this.panel.webview.html = getSubmissionsTableHTML(
-          this.allSubmissions,
+          LambdaChecker.allSubmissions.get(this.problemId) || [],
           this.problemTests
         );
 
         break;
       case "view-submission":
+        const selectedSubmission = LambdaChecker.allSubmissions.get(
+          this.problemId
+        )![message.submissionIdx!];
+
         this.panel.webview.html = getSubmissionResultWebviewContent(
           this.stylesUri,
           this.scriptsUri,
-          this.allSubmissions[message.submissionIdx!],
+          selectedSubmission,
           this.problemTests
         );
         this.panel.webview.postMessage({ command: "reset-cursor" });
 
         // Update the code stored for the current submission
-        this.submissionFile.problemSkel =
-          this.allSubmissions[message.submissionIdx!].code;
+        this.submissionFile.problemSkel = selectedSubmission.code;
 
         break;
     }

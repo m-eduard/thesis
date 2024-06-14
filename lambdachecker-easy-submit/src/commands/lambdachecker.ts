@@ -45,6 +45,7 @@ export class LambdaChecker {
   static problemDataProvider: ProblemDataProvider;
   static users: User[] = [];
   static problems: BaseProblem[] = [];
+  static allSubmissions: Map<number, SubmissionResult[]> = new Map();
 
   static {
     // LambdaChecker.client.getUsers().then((users) => {
