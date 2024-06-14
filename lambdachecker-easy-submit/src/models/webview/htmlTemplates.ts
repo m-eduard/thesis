@@ -774,14 +774,14 @@ const getCategoriesHTML = (categories: string) => {
     .join("");
 };
 
-const getContestLabelHTML = (contestId: number | undefined) => {
-  if (contestId === undefined) {
+const getContestLabelHTML = (contestName: string | undefined) => {
+  if (contestName === undefined) {
     return "";
   }
 
   return `
 <div class="contest-name-wrapper">
-  <span class="label">Contest ${contestId}</span>
+  <span class="label">Contest ${contestName}</span>
 </div>`;
 };
 
@@ -789,7 +789,8 @@ export const getProblemHTML = (
   scriptsUri: vscode.Uri,
   stylesUri: vscode.Uri,
   problemData: SpecificProblem,
-  contestId?: number
+  contestId?: number,
+  contestName?: string
 ) => {
   const title = `${problemData.id}. ${problemData.name}`;
 
@@ -856,7 +857,7 @@ export const getProblemHTML = (
   }</span>
           </div>
           ${getCategoriesHTML(problemData.categories)}
-          ${getContestLabelHTML(contestId)}
+          ${getContestLabelHTML(contestName)}
         </div>
       </div>
       <div class="clock-wrapper">
@@ -925,6 +926,7 @@ export const getProblemHTML = (
       vscode.setState(${JSON.stringify({
         problem: problemData,
         contestId: contestId,
+        contestName: contestName,
       })});
 
       function send(cmd) {

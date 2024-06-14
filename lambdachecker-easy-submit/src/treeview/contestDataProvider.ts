@@ -227,6 +227,7 @@ export class ContestDataProvider
                 language: languageIdMapping[problem.language_id],
                 problemMetadata: problem,
                 contestId: element.props.contestMetadata!.id,
+                contestName: element.props.contestMetadata!.name,
               },
               path.join(
                 element.partialPath,
@@ -251,7 +252,11 @@ export class ContestDataProvider
       element.command = {
         command: "lambdachecker.show-problem",
         title: "Show Problem",
-        arguments: [element.props.problemMetadata!.id, element.props.contestId],
+        arguments: [
+          element.props.problemMetadata!.id,
+          element.props.contestId,
+          element.props.contestName,
+        ],
       };
     } else {
       if (element.props.type === "contest") {

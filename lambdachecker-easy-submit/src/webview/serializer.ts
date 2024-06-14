@@ -8,6 +8,7 @@ export class ProblemWebviewSerializer implements vscode.WebviewPanelSerializer {
   async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
     const problem: SpecificProblem = state.problem;
     const contestId: number | undefined = state.contestId;
+    const contestName: string | undefined = state.contestName;
 
     const problemWebview = new ProblemWebview(problem, webviewPanel);
 
@@ -32,7 +33,8 @@ export class ProblemWebviewSerializer implements vscode.WebviewPanelSerializer {
       webviewPanel.webview.asWebviewUri(scriptsPath),
       webviewPanel.webview.asWebviewUri(stylesPath),
       problem,
-      contestId
+      contestId,
+      contestName
     );
   }
 }

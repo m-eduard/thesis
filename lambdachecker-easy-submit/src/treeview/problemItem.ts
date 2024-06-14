@@ -8,6 +8,7 @@ export interface ProblemItemProps {
   problemMetadata?: BaseProblem | SpecificProblem;
   children?: ProblemItem[];
   contestId?: number;
+  contestName?: string;
 }
 
 export class ProblemItem extends vscode.TreeItem {
