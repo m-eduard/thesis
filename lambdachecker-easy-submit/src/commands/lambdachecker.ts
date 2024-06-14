@@ -136,8 +136,9 @@ export class LambdaChecker {
         );
       }
 
-      // Update the contests status
+      // Update the contests and problems status
       LambdaChecker.contestDataProvider.refresh();
+      LambdaChecker.problemDataProvider.refresh();
 
       // save the data retrieved from api regarding the current user
       // the user data, token and enrolled contests

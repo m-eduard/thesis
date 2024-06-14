@@ -296,6 +296,14 @@ export class ContestDataProvider
           : element.props.status
           ? "status=" + element.props.status + "&"
           : ""
+      }${
+        element instanceof ProblemItem
+          ? ""
+          : element.props.contestMetadata === undefined
+          ? ""
+          : `active=${
+              new Date(element.props.contestMetadata.end_date) > new Date()
+            }&`
       }type=${element.props.type}`,
     });
 

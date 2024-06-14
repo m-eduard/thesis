@@ -76,15 +76,27 @@ export async function activate(context: vscode.ExtensionContext) {
             return;
           }
 
-          console.log(uri);
-
           const queryParams = new URLSearchParams(uri.query);
           const isLockedContest =
             queryParams.get("status") === EnrollmentStatus.NOT_ENROLLED;
+          const isActiveContest = queryParams.get("active") === "true";
+
+          let badge = "";
+          let tooltip = "";
+
+          if (isActiveContest) {
+            badge += "\u{1F7E2}";
+            tooltip += "Active";
+          }
+
+          if (isLockedContest) {
+            badge += "\u{1F512}";
+            tooltip += (tooltip === "" ? "" : " \u{2022} ") + "Locked";
+          }
 
           return {
-            badge: isLockedContest ? "🔒" : undefined,
-            tooltip: isLockedContest ? "Locked" : undefined,
+            badge: badge || undefined,
+            tooltip: tooltip || undefined,
           };
         },
       })
