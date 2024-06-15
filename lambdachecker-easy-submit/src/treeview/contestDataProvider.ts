@@ -226,9 +226,7 @@ export class ContestDataProvider
                 difficulty: problem.difficulty,
                 language: languageIdMapping[problem.language_id],
                 problemMetadata: problem,
-                contestId: element.props.contestMetadata!.id,
-                contestName: element.props.contestMetadata!.name,
-                contestEndDate: element.props.contestMetadata!.end_date,
+                contestMetadata: element.props.contestMetadata,
               },
               path.join(
                 element.partialPath,
@@ -247,17 +245,12 @@ export class ContestDataProvider
     element: ContestItem | ProblemItem
   ): vscode.TreeItem | Thenable<vscode.TreeItem> {
     if (element instanceof ProblemItem) {
-      // element.iconPath =
-      //   fileIconMapping[element.props.language as Language].path;
-
       element.command = {
         command: "lambdachecker.show-problem",
         title: "Show Problem",
         arguments: [
           element.props.problemMetadata!.id,
-          element.props.contestId,
-          element.props.contestName,
-          element.props.contestEndDate,
+          element.props.contestMetadata,
         ],
       };
     } else {

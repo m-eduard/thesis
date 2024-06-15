@@ -1,5 +1,11 @@
 import * as vscode from "vscode";
-import { BaseProblem, Difficulty, Language, SpecificProblem } from "../models";
+import {
+  BaseProblem,
+  Contest,
+  Difficulty,
+  Language,
+  SpecificProblem,
+} from "../models";
 
 export interface ProblemItemProps {
   type: string;
@@ -7,9 +13,7 @@ export interface ProblemItemProps {
   language?: Language;
   problemMetadata?: BaseProblem | SpecificProblem;
   children?: ProblemItem[];
-  contestId?: number;
-  contestName?: string;
-  contestEndDate?: string;
+  contestMetadata?: Contest;
 }
 
 export class ProblemItem extends vscode.TreeItem {

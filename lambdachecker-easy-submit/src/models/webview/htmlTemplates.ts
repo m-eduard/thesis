@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { ProblemDataProvider } from "../../treeview";
 import {
   BaseProblem,
+  Contest,
   ContestSubject,
   Difficulty,
   Language,
@@ -719,7 +720,15 @@ const getRestoreSkeletonButton = () => {
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M5.56253 2.51577C3.46348 3.4501 2 5.55414 2 7.99999C2 11.3137 4.68629 14 8 14C11.3137 14 14 11.3137 14 7.99999C14 5.32519 12.2497 3.05919 9.83199 2.28482L9.52968 3.23832C11.5429 3.88454 13 5.7721 13 7.99999C13 10.7614 10.7614 13 8 13C5.23858 13 3 10.7614 3 7.99999C3 6.31104 3.83742 4.81767 5.11969 3.91245L5.56253 2.51577Z" fill="#C5C5C5"/>
     <path fill-rule="evenodd" clip-rule="evenodd" d="M5 3H2V2H5.5L6 2.5V6H5V3Z" fill="#C5C5C5"/>
-  </svg> Restore Skeleton <span class="button-container-separator" style="visibility: hidden; ">|</span></button>`;
+  </svg> Restore Skeleton <span id="restore-skeleton-separator" class="button-container-separator">|</span></button>`;
+};
+
+const getContestRankingsButton = () => {
+  return `
+<button id="contest-ranking" title="View Contest Ranking" class="btn contest-ranking" onclick="send('contest-ranking')">
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 14H15V13H2V0H1V13.5L1.5 14ZM3 11.5V3.5L3.5 3H5.5L6 3.5V11.5L5.5 12H3.5L3 11.5ZM5 11V4H4V11H5ZM11 1.5V11.5L11.5 12H13.5L14 11.5V1.5L13.5 1H11.5L11 1.5ZM13 2V11H12V2H13ZM7 11.5V5.5L7.5 5H9.5L10 5.5V11.5L9.5 12H7.5L7 11.5ZM9 11V6H8V11H9Z" fill="#C5C5C5"/>
+  </svg> Contest Ranking <span class="button-container-separator" style="visibility: hidden;">|</span></button>`;
 };
 
 const getInitialTestsButtons = (countInitialTests: number) => {
@@ -789,15 +798,13 @@ export const getProblemHTML = (
   scriptsUri: vscode.Uri,
   stylesUri: vscode.Uri,
   problemData: SpecificProblem,
-  contestId?: number,
-  contestName?: string,
-  contestEndDate?: string
+  contestMetadata?: Contest
 ) => {
   const title = `${problemData.id}. ${problemData.name}`;
 
   console.log(
     "From getting problem HTML: Registered contest id",
-    contestId,
+    contestMetadata!.id,
     "for problem ",
     problemData
   );
@@ -836,6 +843,7 @@ export const getProblemHTML = (
         ${getSubmissionsButton()}
         ${getDownloadTestsButton()}
         ${getRestoreSkeletonButton()}
+        ${getContestRankingsButton()}
       </div>
     </div>
 
@@ -858,7 +866,7 @@ export const getProblemHTML = (
   }</span>
           </div>
           ${getCategoriesHTML(problemData.categories)}
-          ${getContestLabelHTML(contestName)}
+          ${getContestLabelHTML(contestMetadata?.name)}
         </div>
       </div>
       <div id="countdown" class="clock-wrapper" style="display: none;">
@@ -923,19 +931,18 @@ export const getProblemHTML = (
 
     <script>
       const vscode = acquireVsCodeApi();
-      const contestEndDate = new Date("${contestEndDate}");
+      const contestEndDate = new Date("${contestMetadata?.end_date}");
+      const contestId = ${contestMetadata?.id};
 
       vscode.setState(${JSON.stringify({
         problem: problemData,
-        contestId: contestId,
-        contestName: contestName,
-        contestEndDate: contestEndDate,
+        contestMetadata: contestMetadata,
       })});
 
       function send(cmd) {
         vscode.postMessage({
           action: cmd,
-          contestId: ${contestId},
+          contestId: ${contestMetadata?.id},
         });
       }
 

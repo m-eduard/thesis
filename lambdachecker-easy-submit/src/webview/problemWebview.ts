@@ -2,6 +2,7 @@ import path from "path";
 import * as vscode from "vscode";
 import { LambdaChecker } from "../commands";
 import {
+  Contest,
   RunOutput,
   SpecificProblem,
   SubmissionResult,
@@ -21,7 +22,8 @@ export class ProblemWebview {
 
   constructor(
     public problem: SpecificProblem,
-    public panel: vscode.WebviewPanel
+    public panel: vscode.WebviewPanel,
+    public contestMetadata?: Contest
   ) {
     this.submissionFile = new SubmissionFile(
       problem.id,
@@ -130,7 +132,10 @@ export class ProblemWebview {
         break;
       case "edit-problem":
         LambdaChecker.editProblem(this.problem);
-        LambdaChecker.showProblem(this.problem.id, message.contestId);
+        // LambdaChecker.showProblem(this.problem.id, message.contestId);
+        break;
+      case "contest-ranking":
+        LambdaChecker.showContestRanking(this.contestMetadata!);
         break;
       case "run":
         const executionResultPromise = LambdaChecker.submissionApiClient.submit(

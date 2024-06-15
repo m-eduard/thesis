@@ -1,9 +1,11 @@
 import * as vscode from "vscode";
+import { LambdaChecker } from "../commands";
 import { Webview } from "../models";
 
 export enum ViewType {
   UserAllSubmissions = "lambdachecker.webview.user-all-submissions",
-  UserSubmissionResult = "lambdachecker-webview.user-submission-result",
+  UserSubmissionResult = "lambdachecker.webview.user-submission-result",
+  ContestRanking = "lambdachecker.webview.contest-ranking",
 }
 
 /**
@@ -35,6 +37,11 @@ export class WebviewFactory {
             viewColumn: vscode.ViewColumn.Two,
             preserveFocus: false,
           }
+        : viewType === ViewType.ContestRanking
+        ? {
+            viewColumn: vscode.ViewColumn.One,
+            preserveFocus: false,
+          }
         : {
             viewColumn: vscode.ViewColumn.Three,
             preserveFocus: false,
@@ -48,6 +55,18 @@ export class WebviewFactory {
         ? {
             enableScripts: true,
             enableFindWidget: true,
+          }
+        : viewType === ViewType.ContestRanking
+        ? {
+            enableScripts: true,
+            enableFindWidget: true,
+            localResourceRoots: [
+              vscode.Uri.joinPath(
+                LambdaChecker.context.extensionUri,
+                "resources"
+              ),
+            ],
+            retainContextWhenHidden: true,
           }
         : {
             enableScripts: true,

@@ -32,6 +32,12 @@ testsDisplayed.forEach((element) => {
     totalNumberOfShownTests++;
 });
 
+// Reveal the Ranking button
+if (contestId === undefined) {
+    document.getElementById('restore-skeleton-separator').style.display = 'none';
+    document.getElementById('contest-ranking').style.display = 'none';
+}
+
 // Countdown timer used when the problem is opened
 // in an active contest context
 if (contestEndDate !== undefined && contestEndDate.getTime() - Date.now() > 0) {

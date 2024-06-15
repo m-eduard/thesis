@@ -7,6 +7,7 @@ import {
   ContestSubject,
   Language,
   ProblemTest,
+  RankListEntry,
   RunOutput,
   SpecificProblem,
   StatusBar,
@@ -17,6 +18,7 @@ import {
   getProblemWebviewContent,
   getSubmissionResultWebviewContent,
 } from "../models";
+import { getContestRankingHTML } from "../models/webview/contestRankingTemplate";
 import {
   getContestCreationHTML,
   getProblemCreationHTML,
@@ -28,6 +30,7 @@ import {
   ProblemItem,
 } from "../treeview";
 import {
+  ContestRankingListener,
   ProblemSubmissionWebviewListener,
   ViewType,
   WebviewFactory,
@@ -46,6 +49,7 @@ export class LambdaChecker {
   static users: User[] = [];
   static problems: BaseProblem[] = [];
   static allSubmissions: Map<number, SubmissionResult[]> = new Map();
+  static rankingPages: RankListEntry[][] = [];
 
   static {
     // LambdaChecker.client.getUsers().then((users) => {
@@ -156,16 +160,14 @@ export class LambdaChecker {
   // create a thread which manages the token in order to refresh it
   // (I suspect that we don't have a refresh token on the backend)
 
-  static async showProblem(
-    problemId: number,
-    contestId?: number,
-    contestName?: string,
-    contestEndDate?: string
-  ) {
+  static async showProblem(problemId: number, contestMetadata?: Contest) {
     let problem;
 
     try {
-      problem = await LambdaChecker.client.getProblem(problemId, contestId);
+      problem = await LambdaChecker.client.getProblem(
+        problemId,
+        contestMetadata?.id
+      );
     } catch (error: any) {
       vscode.window.showErrorMessage(error.message);
       return;
@@ -190,7 +192,11 @@ export class LambdaChecker {
 
     // Create the listener once (more efficient than creating a new
     // listener for each message received)
-    const problemWebview = new ProblemWebview(problem, problemPanel);
+    const problemWebview = new ProblemWebview(
+      problem,
+      problemPanel,
+      contestMetadata
+    );
 
     problemPanel.webview.onDidReceiveMessage(async (message) => {
       problemWebview.webviewListener(message);
@@ -213,9 +219,7 @@ export class LambdaChecker {
       problemPanel.webview.asWebviewUri(scriptsPath),
       problemPanel.webview.asWebviewUri(stylesPath),
       problem,
-      contestId,
-      contestName,
-      contestEndDate
+      contestMetadata
     );
   }
 
@@ -498,8 +502,6 @@ export class LambdaChecker {
   }
 
   static async editContest(contestData: Contest) {
-    console.log(contestData);
-
     const editContestPanel = vscode.window.createWebviewPanel(
       "lambdachecker.webview.edit-problem",
       `${contestData.id}. Edit Contest`,
@@ -518,8 +520,6 @@ export class LambdaChecker {
 
     LambdaChecker.client.getUsers().then((users) => {
       LambdaChecker.users = users;
-      console.log("Sent the fresh data to html");
-      console.log("Example user:", users[0]);
       editContestPanel.webview.postMessage({
         action: "updateUsers",
         users: users.filter((user) => user.role === "teacher"),
@@ -567,6 +567,95 @@ export class LambdaChecker {
     );
     editContestPanel.webview.onDidReceiveMessage(async (message) => {
       createContestListener.webviewListener(message);
+    });
+  }
+
+  static async showContestRanking(
+    contestMetadata: Contest,
+    page: number = 1,
+    username?: string
+  ) {
+    const contestRankingWebviewWrapper = WebviewFactory.createWebview(
+      ViewType.ContestRanking,
+      `Ranking ${contestMetadata.name}`
+    );
+    const contestRankingWebview =
+      contestRankingWebviewWrapper.webviewPanel.webview;
+
+    try {
+      const problemsGrades = await LambdaChecker.client.getProblemsGrades(
+        contestMetadata.id
+      );
+
+      const stylesPath = vscode.Uri.joinPath(
+        LambdaChecker.context.extensionUri,
+        "resources",
+        "styles",
+        "contestRanking.css"
+      );
+      const scriptsPath = vscode.Uri.joinPath(
+        LambdaChecker.context.extensionUri,
+        "resources",
+        "scripts",
+        "contestRanking.js"
+      );
+
+      LambdaChecker.rankingPages[page - 1] =
+        await LambdaChecker.client.getRanking(
+          contestMetadata.id,
+          page,
+          10,
+          username
+        );
+
+      contestRankingWebview.html = getContestRankingHTML(
+        contestRankingWebview.asWebviewUri(stylesPath),
+        contestRankingWebview.asWebviewUri(scriptsPath),
+        contestMetadata,
+        problemsGrades,
+        LambdaChecker.users,
+        LambdaChecker.rankingPages.length >= page
+          ? LambdaChecker.rankingPages[page - 1]
+          : [],
+        (page - 1) * 10
+      );
+
+      const contestRankingListener = new ContestRankingListener(
+        contestMetadata,
+        contestRankingWebviewWrapper.webviewPanel
+      );
+
+      contestRankingWebview.onDidReceiveMessage(async (message) => {
+        contestRankingListener.webviewListener(message);
+      });
+    } catch (error: any) {
+      vscode.window.showErrorMessage(error.message);
+      return;
+    }
+
+    LambdaChecker.client.getUsers().then((users) => {
+      LambdaChecker.users = users;
+      contestRankingWebview.postMessage({
+        action: "updateUsers",
+        users: users,
+      });
+    });
+
+    LambdaChecker.client
+      .getRanking(contestMetadata.id, page, 10, username)
+      .then((rankingEntries) => {
+        if (username === undefined) {
+          LambdaChecker.rankingPages[page - 1] = rankingEntries;
+        }
+
+        console.log("Received next ranks: ", rankingEntries);
+
+        contestRankingWebview.postMessage({
+          action: "updateRanking",
+          ranking: rankingEntries,
+          page: page,
+          username: username,
+        });
     });
   }
 }

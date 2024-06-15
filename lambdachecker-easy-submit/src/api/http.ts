@@ -9,6 +9,8 @@ import {
   Language,
   ProblemCreate,
   ProblemCreateResponse,
+  ProblemTotalGrade,
+  RankListEntry,
   RunOutput,
   SpecificProblem,
   SubmissionApiEndpoints,
@@ -432,6 +434,56 @@ export class HTTPClient {
     }
 
     return usersData.map((user) => user["user"]) as User[];
+  }
+
+  async getProblemsGrades(contestId: number): Promise<ProblemTotalGrade[]> {
+    const response = await this.request(
+      new Route("GET", `/contests/${contestId}/problems_grades`)
+    );
+
+    try {
+      const problemsGradeData = await response.text();
+
+      if (response.status !== 200) {
+        throw new Error(problemsGradeData);
+      }
+
+      return JSON.parse(problemsGradeData)[
+        "problems_grades"
+      ] as ProblemTotalGrade[];
+    } catch (error: any) {
+      console.log(`[Lambda Checker API]: ${error.message}`);
+      throw new Error(`[Lambda Checker API]: ${error.message}`);
+    }
+  }
+
+  async getRanking(
+    contestId: number,
+    page?: number,
+    per_page?: number,
+    username?: string
+  ): Promise<RankListEntry[]> {
+    const response = await this.request(
+      new Route(
+        "GET",
+        `/contests/${contestId}/get_contest_leaderboard?${
+          username ? "username=" + username + "&" : ""
+        }page=${page}&per_page=${per_page}`
+      )
+    );
+
+    try {
+      const rankingData = await response.text();
+
+      if (response.status !== 200) {
+        throw new Error(rankingData);
+      }
+      console.log(JSON.parse(rankingData));
+
+      return JSON.parse(rankingData)["ranking"] as RankListEntry[];
+    } catch (error: any) {
+      throw new Error(`[Lambda Checker API]: ${error.message}`);
+    }
   }
 
   async checkTokenValidity(): Promise<boolean> {

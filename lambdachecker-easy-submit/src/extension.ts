@@ -3,6 +3,7 @@
 import * as vscode from "vscode";
 import { LambdaChecker } from "./commands";
 import {
+  Contest,
   EnrollmentStatus,
   SpecificProblem,
   StatusBar,
@@ -34,18 +35,8 @@ export async function activate(context: vscode.ExtensionContext) {
       ),
       vscode.commands.registerCommand(
         "lambdachecker.show-problem",
-        (
-          problemId: number,
-          contestId?: number,
-          contestName?: string,
-          contestEndDate?: string
-        ) =>
-          LambdaChecker.showProblem(
-            problemId,
-            contestId,
-            contestName,
-            contestEndDate
-          )
+        (problemId: number, contestMetadata?: Contest) =>
+          LambdaChecker.showProblem(problemId, contestMetadata)
       ),
       vscode.commands.registerCommand(
         "lambdachecker.enroll-in-contest",

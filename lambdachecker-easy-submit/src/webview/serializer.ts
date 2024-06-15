@@ -1,17 +1,19 @@
 import * as vscode from "vscode";
 import { LambdaChecker } from "../commands";
-import { SpecificProblem, getProblemWebviewContent } from "../models";
+import { Contest, SpecificProblem, getProblemWebviewContent } from "../models";
 import { getProblemHTML } from "../models/webview/htmlTemplates";
 import { ProblemWebview } from "./problemWebview";
 
 export class ProblemWebviewSerializer implements vscode.WebviewPanelSerializer {
   async deserializeWebviewPanel(webviewPanel: vscode.WebviewPanel, state: any) {
     const problem: SpecificProblem = state.problem;
-    const contestId: number | undefined = state.contestId;
-    const contestName: string | undefined = state.contestName;
-    const contestEndDate: string | undefined = state.contestEndDate;
+    const contestMetadata: Contest | undefined = state.contestMetadata;
 
-    const problemWebview = new ProblemWebview(problem, webviewPanel);
+    const problemWebview = new ProblemWebview(
+      problem,
+      webviewPanel,
+      contestMetadata
+    );
 
     webviewPanel.webview.onDidReceiveMessage(async (message) => {
       problemWebview.webviewListener(message);
@@ -34,9 +36,7 @@ export class ProblemWebviewSerializer implements vscode.WebviewPanelSerializer {
       webviewPanel.webview.asWebviewUri(scriptsPath),
       webviewPanel.webview.asWebviewUri(stylesPath),
       problem,
-      contestId,
-      contestName,
-      contestEndDate
+      contestMetadata
     );
   }
 }
