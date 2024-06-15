@@ -115,6 +115,18 @@ const getRankingTableEntryHTML = (
   `;
 };
 
+const stringifyDate = (date: string) => {
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hourCycle: "h23",
+  });
+};
+
 export const getContestRankingHTML = (
   stylesUri: vscode.Uri,
   scriptsUri: vscode.Uri,
@@ -149,7 +161,21 @@ export const getContestRankingHTML = (
     <link rel='stylesheet' type='text/css' href='${stylesUri}'>
   </head>
     <body>
-    <h1>Ranking ${contestMetadata.name}</h1>
+    <h1 class="contest-name">Ranking ${contestMetadata.name}
+    <div class="clock-wrapper">
+      <div class="countdown-inner">
+        <div class="countdown-column">
+          <span class="meta">Start date: </span>
+          <span class="meta">End date: </span>
+        </div>
+
+        <div class="countdown-column">
+          <span class="meta">${stringifyDate(contestMetadata.start_date)}</span>
+          <span class="meta">${stringifyDate(contestMetadata.end_date)}</span>
+        </div>
+      </div>
+    </div>
+    </h1>
 
     <table class="ranking-table">
         <thead>
