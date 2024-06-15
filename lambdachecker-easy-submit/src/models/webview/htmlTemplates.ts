@@ -783,14 +783,19 @@ const getCategoriesHTML = (categories: string) => {
     .join("");
 };
 
-const getContestLabelHTML = (contestName: string | undefined) => {
+const getContestLabelHTML = (
+  contestName: string | undefined,
+  problemIndexWithinContest: number | undefined
+) => {
   if (contestName === undefined) {
     return "";
   }
 
   return `
 <div class="contest-name-wrapper">
-  <span class="label">Contest ${contestName}</span>
+  <span class="label">Contest ${contestName} - ${String.fromCharCode(
+    "A".charCodeAt(0) + problemIndexWithinContest!
+  )} </span>
 </div>`;
 };
 
@@ -866,7 +871,10 @@ export const getProblemHTML = (
   }</span>
           </div>
           ${getCategoriesHTML(problemData.categories)}
-          ${getContestLabelHTML(contestMetadata?.name)}
+          ${getContestLabelHTML(
+            contestMetadata?.name,
+            contestMetadata?.problems.findIndex((x) => x.id === problemData.id)
+          )}
         </div>
       </div>
       <div id="countdown" class="clock-wrapper" style="display: none;">

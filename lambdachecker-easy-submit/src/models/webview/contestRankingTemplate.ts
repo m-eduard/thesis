@@ -19,11 +19,13 @@ const getProblemsHeaderHTML = (
 
   return problems
     .map(
-      (problem) =>
+      (problem, idx) =>
         `<th><div class="header-cell-wrapper" onclick="showProblem(${
           problem.id
         })">
-            <span class="top-layer-countdown">${problem.name}</span>
+            <span class="top-layer-countdown">${String.fromCharCode(
+              "A".charCodeAt(0) + idx
+            )}</span>
             <span class="bottom-layer-countdown">${
               problemsGrades.filter((x) => x.id === problem.id)[0]?.total || 0
             } points</span>
