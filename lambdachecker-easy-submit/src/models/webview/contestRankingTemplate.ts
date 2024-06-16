@@ -13,11 +13,6 @@ const getProblemsHeaderHTML = (
   problems: ProblemMetadataContestContext[],
   problemsGrades: ProblemTotalGrade[]
 ) => {
-  console.log("Printing problems", problems);
-  problems.forEach((problem) => {
-    console.log(problem.name);
-  });
-
   return problems
     .map(
       (problem, idx) =>

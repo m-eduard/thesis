@@ -106,12 +106,11 @@ export class ProblemDataProvider
           .showErrorMessage(
             "Error fetching problems. Would you like to try again?\n" +
               error.message,
-            "Yes",
-            "No"
+            "Go to output"
           )
           .then((selection) => {
-            if (selection === "Yes") {
-              return this.getAllProblems();
+            if (selection === "Go to output") {
+              LambdaChecker.outputChannel.show();
             }
 
             return [];

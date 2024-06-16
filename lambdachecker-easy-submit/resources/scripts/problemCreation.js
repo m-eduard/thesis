@@ -143,8 +143,6 @@ function updateCategoriesUI(containerIdPrefix) {
   inputWrapper.innerHTML = '';
 
   const inputTextbox = document.getElementById(containerIdPrefix + '-input');
-  console.log("Searching for ", containerIdPrefix + '-input', inputTextbox);
-
   if (categories.length === 0) {
     inputTextbox.style.borderTopLeftRadius = '4px';
     inputTextbox.style.borderTopRightRadius = '4px';
@@ -268,8 +266,6 @@ window.addEventListener('message', event => {
   switch (message.action) {
     case 'populateProblemForm':
       message.data = JSON.parse(message.data);
-
-      console.log("Received ", message.data);
 
       const nameInput = document.getElementById('name-input');
       nameInput.value = message.data.name;
@@ -521,7 +517,6 @@ function removeTestById(testIdPrefix) {
     }
 
     testsNamesMapping.pop();
-    console.log(testsNamesMapping);
 }
 
 
@@ -538,8 +533,6 @@ function getFormData() {
   const skeletonSource = skelButtonsIds.filter(id =>
     document.getElementById(id).classList.contains('test-btn-active-text')
   )[0];
-
-  console.log("Source is ", skeletonSource);
 
   const skeleton = skeletonSource === 'open-skel-btn'
     ? ''

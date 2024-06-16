@@ -53,7 +53,13 @@ export class ProblemSubmissionWebviewListener {
       return LambdaChecker.client
         .getSubmissions(this.problemId)
         .catch((error) => {
-          vscode.window.showErrorMessage(error.message);
+          vscode.window
+            .showErrorMessage(error.message, "Go to output")
+            .then((selection) => {
+              if (selection === "Go to output") {
+                LambdaChecker.outputChannel.show();
+              }
+            });
           return [] as SubmissionResult[];
         });
     };

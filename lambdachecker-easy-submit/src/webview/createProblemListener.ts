@@ -68,8 +68,6 @@ export class CreateProblemListener {
             (await this.submissionFile?.readSubmissionFile())?.toString() || "";
         }
 
-        console.log(createProblemData);
-
         try {
           const response = await (this.newProblem
             ? LambdaChecker.client.createProblem(createProblemData)
@@ -86,7 +84,13 @@ export class CreateProblemListener {
           );
           this.panel.dispose();
         } catch (error: any) {
-          vscode.window.showErrorMessage(error.message);
+          vscode.window
+            .showErrorMessage(error.message, "Go to output")
+            .then((selection) => {
+              if (selection === "Go to output") {
+                LambdaChecker.outputChannel.show();
+              }
+            });
         }
 
         break;

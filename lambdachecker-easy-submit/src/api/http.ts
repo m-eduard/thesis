@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { LambdaChecker } from "../commands";
 import {
   BaseProblem,
   Contest,
@@ -37,29 +38,25 @@ export class HTTPClient {
     }
 
     // Fetch might throw an error only if there are network issues
-    // for (let i = 0; i < 5; ++i) {
-    //   console.log("Retrying for ", route);
-
-    //   try {
-    //     return await fetch(route.url, {
-    //       method: route.method,
-    //       headers: headers,
-    //       body: body,
-    //     }).then((a) => {
-    //       console.log("It was successful");
-    //       return a;
-    //     });
-    //   } catch (error) {
-    //     console.log("It was a puta network error");
-    //   }
-    // }
+    for (let i = 0; i < 5; ++i) {
+      try {
+        return await fetch(route.url, {
+          method: route.method,
+          headers: headers,
+          body: body,
+        }).then((a) => a);
+      } catch (error) {
+        LambdaChecker.outputChannel.appendLine(
+          "Network error while trying to fetch data from " + route.url
+        );
+      }
+    }
 
     return await fetch(route.url, {
       method: route.method,
       headers: headers,
       body: body,
     }).catch((error) => {
-      console.log("chiingado");
       throw new Error(
         `Error while fetching response from API: ${error.message}`
       );
@@ -77,11 +74,6 @@ export class HTTPClient {
         password: password,
       })
     );
-
-    console.log({
-      email: email,
-      password: password,
-    });
 
     const responseData: Record<string, unknown> =
       (await response.json()) as Record<string, unknown>;
@@ -105,8 +97,6 @@ export class HTTPClient {
     );
 
     const contestsData = (await response.json().catch((error) => {
-      console.log(error);
-
       throw new Error(`${response.statusText} (${response.status})`);
     })) as Record<string, unknown>;
 
@@ -128,8 +118,6 @@ export class HTTPClient {
     );
 
     const contestsData = (await response.json().catch((error) => {
-      console.log(error);
-
       throw new Error(`${response.statusText} (${response.status})`);
     })) as Record<string, unknown>;
 
@@ -150,8 +138,6 @@ export class HTTPClient {
     );
 
     const contestsData = (await response.json().catch((error) => {
-      console.log(error);
-
       throw new Error(`${response.statusText} (${response.status})`);
     })) as Record<string, unknown>;
 
@@ -180,7 +166,6 @@ export class HTTPClient {
     const response = await this.request(
       new Route("GET", `/contests/${contestId}`)
     ).catch((error) => {
-      console.log("Error thworn by API", error);
       return undefined;
     });
 
@@ -220,8 +205,6 @@ export class HTTPClient {
     const path = `/problems/${problemId}?${
       contestId !== undefined ? "contest_id=" + contestId : ""
     }`;
-
-    console.log(path);
 
     const response = await this.request(new Route("GET", path));
     const problemData = await response.json();
@@ -273,9 +256,6 @@ export class HTTPClient {
       const submissionResponse = await response.text();
 
       if (response.status !== 200) {
-        console.log(
-          `${response.status} ${submissionResponse || response.statusText}`
-        );
         throw new Error(submissionResponse || response.statusText);
       }
     } catch (error: any) {
@@ -354,8 +334,6 @@ export class HTTPClient {
 
     const contestCreateData = await response.json();
 
-    console.log("content:", contestCreateData);
-
     if (response.status !== 200) {
       throw new Error(
         `${response.statusText} (${response.status}): ${
@@ -379,7 +357,7 @@ export class HTTPClient {
     try {
       const contestEditData = await response.text();
 
-    if (response.status !== 200) {
+      if (response.status !== 200) {
         throw new Error(contestEditData);
       }
 
@@ -399,7 +377,6 @@ export class HTTPClient {
 
     try {
       const problemCreateData = await response.text();
-      console.log("content:", problemCreateData);
 
       if (response.status !== 200) {
         throw new Error(problemCreateData);
@@ -415,8 +392,6 @@ export class HTTPClient {
     problemId: number,
     problemContent: Omit<ProblemCreate, "skeleton_source_is_local">
   ): Promise<ProblemCreateResponse> {
-    console.log("Content is ", problemContent);
-
     const response = await this.request(
       new Route("PUT", `/problems/${problemId}`),
       JSON.stringify(problemContent)
@@ -424,7 +399,6 @@ export class HTTPClient {
 
     try {
       const problemEditData = await response.text();
-      console.log("content:", problemEditData);
 
       if (response.status !== 200) {
         throw new Error(problemEditData);
@@ -440,8 +414,6 @@ export class HTTPClient {
     const response = await this.request(new Route("GET", `/users`));
 
     const usersData = (await response.json().catch((error) => {
-      console.log("Error when getting users", error);
-
       throw new Error(`${response.statusText} (${response.status})`);
     })) as Record<string, User>[];
 
@@ -472,7 +444,6 @@ export class HTTPClient {
         "problems_grades"
       ] as ProblemTotalGrade[];
     } catch (error: any) {
-      console.log(`[Lambda Checker API]: ${error.message}`);
       throw new Error(`[Lambda Checker API]: ${error.message}`);
     }
   }
@@ -498,7 +469,6 @@ export class HTTPClient {
       if (response.status !== 200) {
         throw new Error(rankingData);
       }
-      console.log(JSON.parse(rankingData));
 
       return JSON.parse(rankingData) as RankingResponse;
     } catch (error: any) {
@@ -564,10 +534,8 @@ export class SubmissionsApiClient {
       });
 
       const submissionData = await response.text();
-      console.log(submissionData);
 
       if (response?.status !== 200) {
-        console.log(`${response.status} ${submissionData}`);
         throw new Error(submissionData);
       }
 

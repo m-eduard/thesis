@@ -24,8 +24,6 @@ window.addEventListener("message", event => {
       freshProblems = message.problems.reverse().map((problem) => `${problem.id}. ${problem.name}`);
       break;
     case 'populateContestForm':
-      console.log("Populating with ", message.data);
-
       const nameInput = document.getElementById('name-input');
       nameInput.value = message.data.name;
 
@@ -78,7 +76,6 @@ document.getElementById('contest-form').addEventListener('keypress', (e) => {
       const suggestionItems = form.elements[index].parentNode.getElementsByClassName('suggestion-item');
 
       if (suggestionItems.length > 0) {
-        console.log(form.elements[index].parentNode.getElementsByClassName('suggestion-item'));
         form.elements[index].parentNode.getElementsByClassName('suggestion-item')[0].click();
       } else {
         form.elements[index + 1].focus();
@@ -277,30 +274,10 @@ function handleDeleteKey(e, containerIdPrefix) {
 function addSelectedItem(item, containerIdPrefix) {
   // Add a problem maximum once
   if (!selectedItems.some(selected => selected.text === item)) {
-    console.log("Selected items is", selectedItems);
-
       selectedItems.push({ text: item, grayed: false });
       updateSelectedItemsUI(containerIdPrefix);
   }
 }
-
-// function updateSelectedItemsUI() {
-//   const selectedItemsContainer = document.getElementById('selected-items');
-//   selectedItemsContainer.innerHTML = '';
-
-//   selectedItems.forEach((item, index) => {
-//       const itemElement = document.createElement('div');
-//       itemElement.classList.add('selected-item');
-//       if (item.grayed) {
-//           itemElement.classList.add('grayed');
-//       }
-//       itemElement.innerHTML = `
-//           ${item.text} <span class="remove-btn" onclick="removeSelectedItem(${index})">X</span>
-//       `;
-
-//       selectedItemsContainer.appendChild(itemElement);
-//   });
-// }
 
 function updateSelectedItemsUI(containerIdPrefix) {
   const inputWrapper = document.getElementById('input-wrapper');
@@ -322,8 +299,6 @@ function updateSelectedItemsUI(containerIdPrefix) {
   if (containerIdPrefix === 'problems') {
     const quotasInput = document.getElementById('quotas-input');
     quotasInput.value = selectedItems.map((item) => 1);
-
-    console.log("I am here ", quotasInput);
   }
 
   selectedItems.forEach((item, index) => {

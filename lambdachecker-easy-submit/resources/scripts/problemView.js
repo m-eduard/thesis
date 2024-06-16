@@ -180,8 +180,6 @@ function getTestData() {
         });
     });
 
-    console.log(testData);
-
     return testData;
 }
 
@@ -290,7 +288,6 @@ function removeTestById(testIdPrefix) {
     }
 
     testsNamesMapping.pop();
-    console.log(testsNamesMapping);
 }
 
 

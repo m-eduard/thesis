@@ -42,7 +42,6 @@ export class WebviewFactory {
 
       if (desiredWebview !== undefined) {
         desiredWebview.webviewPanel.reveal();
-        console.log("Revealed the problem");
         return desiredWebview;
       }
     }
@@ -143,8 +142,6 @@ export class WebviewFactory {
   }
 
   static disposeListenersForWebview(viewType: string, title: string) {
-    console.log("Disposing all the listeners for", title, viewType);
-
     if (!this.openWebviews.has(viewType)) {
       this.openWebviews.set(viewType, new Map<string, Webview>());
     }

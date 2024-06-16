@@ -50,11 +50,7 @@ export class ProblemWebview {
           .showErrorMessage(error.message, "Go to output")
           .then((selection) => {
             if (selection === "Go to output") {
-              const outputChannel = vscode.window.createOutputChannel(
-                "LambdaChecker Output"
-              );
-
-              outputChannel.show();
+              LambdaChecker.outputChannel.show();
             }
           });
       });
@@ -63,8 +59,13 @@ export class ProblemWebview {
       return LambdaChecker.client
         .getSubmissions(this.problem.id)
         .catch((error) => {
-          console.log(error);
-          vscode.window.showErrorMessage(error.message);
+          vscode.window
+            .showErrorMessage(error.message, "Go to output")
+            .then((selection) => {
+              if (selection === "Go to output") {
+                LambdaChecker.outputChannel.show();
+              }
+            });
 
           return [] as SubmissionResult[];
         });
@@ -102,9 +103,16 @@ export class ProblemWebview {
 
             if (iterations === ProblemWebview.maxApiConsecutiveRequests) {
               clearInterval(poller);
-              vscode.window.showErrorMessage(
-                "Submission is taking too long to load, try again in a few seconds"
-              );
+              vscode.window
+                .showErrorMessage(
+                  "Submission is taking too long to load, try again in a few seconds",
+                  "Go to output"
+                )
+                .then((selection) => {
+                  if (selection === "Go to output") {
+                    LambdaChecker.outputChannel.show();
+                  }
+                });
               resolve(undefined);
               return;
             }
@@ -183,8 +191,13 @@ export class ProblemWebview {
                 );
               })
               .catch((error) => {
-                console.log(error);
-                vscode.window.showErrorMessage(error.message);
+                vscode.window
+                  .showErrorMessage(error.message, "Go to output")
+                  .then((selection) => {
+                    if (selection === "Go to output") {
+                      LambdaChecker.outputChannel.show();
+                    }
+                  });
               })
         );
 
@@ -260,8 +273,6 @@ export class ProblemWebview {
           canSelectFolders: true,
           title: "Download To",
         };
-
-        console.log(this.problem.tests);
 
         vscode.window.showOpenDialog(downloadOptions).then(async (fileUri) => {
           if (!(fileUri && fileUri[0])) {

@@ -1,8 +1,6 @@
 const vscode = acquireVsCodeApi();
 
 function showProblem(problemId) {
-  console.log("Received the message here");
-
   vscode.postMessage({
     action: 'show-problem',
     problemId: problemId,
@@ -11,15 +9,12 @@ function showProblem(problemId) {
 
 function updateUI(targetPage) {
   if (targetPage === currentSlidingWindow[0] && targetPage !== 1) {
-    console.log("begin");
     document.getElementById(`page-${currentSlidingWindow[0] - 1}-btn`).style.display = "flex";
     document.getElementById(`page-${currentSlidingWindow[1]}-btn`).style.display = "none";
     currentSlidingWindow[0]--;
     currentSlidingWindow[1]--;
 
     if (currentSlidingWindow[1] - currentSlidingWindow[0] > 9) {
-      console.log("shrinking ... ");
-
       document.getElementById(`page-${totalPages - 2}-btn`).style.display = "none";
       document.getElementById(`page-${totalPages - 1}-btn`).style.display = "none";
       document.getElementById(`page-${totalPages}-btn`).style.display = "none";
@@ -29,7 +24,6 @@ function updateUI(targetPage) {
       currentSlidingWindow[1] = currentSlidingWindow[0] + 9;
     }
   } else if (targetPage === currentSlidingWindow[1] && targetPage !== totalPages) {
-    console.log("end");
     document.getElementById(`page-${currentSlidingWindow[1] + 1}-btn`).style.display = "flex";
     document.getElementById(`page-${currentSlidingWindow[0]}-btn`).style.display = "none";
     currentSlidingWindow[0]++;

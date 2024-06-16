@@ -132,19 +132,16 @@ export class ContestDataProvider
         return values.flat();
       });
     } catch (error: any) {
-      console.log("Error fetching contests: ", error);
-
       vscode.window
         .showErrorMessage(
           "Error fetching contests. Would you like to log in again?" +
             "\n" +
             error.message,
-          "Yes",
-          "No"
+          "Go to output"
         )
         .then((selection) => {
-          if (selection !== undefined && selection !== "No") {
-            vscode.commands.executeCommand("lambdachecker.login");
+          if (selection === "Go to output") {
+            LambdaChecker.outputChannel.show();
           }
         });
       return [];
@@ -158,7 +155,12 @@ export class ContestDataProvider
           await this.lambdacheckerClient
             .getEnrollmentStatus(contest.id)
             .catch((error) => {
-              console.log("Something went wrong with ", contest, error);
+              LambdaChecker.outputChannel.appendLine(
+                "Cannot obtain enrollment status for contest: " +
+                  contest.name +
+                  error
+              );
+
               return undefined;
             })
       )
