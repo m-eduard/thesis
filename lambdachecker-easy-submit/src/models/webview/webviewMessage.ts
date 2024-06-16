@@ -17,6 +17,8 @@ export interface WebviewMessage {
    * (only for action "run")
    */
   tests?: ProblemTest[];
+
+  testId?: string;
 }
 
 export interface ProblemSubmissionWebviewMessage {

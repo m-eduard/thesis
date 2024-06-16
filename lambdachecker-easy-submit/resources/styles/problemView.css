@@ -264,3 +264,33 @@ textarea.test-input {
   font-size: 12px;
   font-weight: 300;
 }
+
+
+.upload-container {
+  position: relative;
+  width: 100%;
+}
+
+div.tests-container {
+  padding-top: 0px;
+  min-height: 0px !important;
+}
+
+div.tests-container {
+  margin-bottom: 20px !important;
+}
+
+.upload {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: inherit;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -122,6 +122,12 @@ export class ProblemWebview {
   }
 
   async webviewListener(message: WebviewMessage) {
+    const uploadOptions: vscode.OpenDialogOptions = {
+      canSelectFiles: true,
+      canSelectFolders: false,
+      title: "Upload From",
+    };
+
     switch (message.action) {
       case "code":
         this.submissionFile.openInEditor();
@@ -131,11 +137,23 @@ export class ProblemWebview {
         this.submissionFile.openInEditor(true);
         break;
       case "edit-problem":
-        LambdaChecker.editProblem(this.problem);
-        // LambdaChecker.showProblem(this.problem.id, message.contestId);
+        LambdaChecker.editProblem(this.problem.id);
         break;
       case "contest-ranking":
         LambdaChecker.showContestRanking(this.contestMetadata!);
+        break;
+      case "uploadTestFile":
+        vscode.window.showOpenDialog(uploadOptions).then(async (fileUri) => {
+          if (fileUri && fileUri[0]) {
+            const fileContent = await vscode.workspace.fs.readFile(fileUri[0]);
+
+            this.panel.webview.postMessage({
+              action: "uploadTestFileResponse",
+              testId: message.testId,
+              data: fileContent.toString(),
+            });
+          }
+        });
         break;
       case "run":
         const executionResultPromise = LambdaChecker.submissionApiClient.submit(
