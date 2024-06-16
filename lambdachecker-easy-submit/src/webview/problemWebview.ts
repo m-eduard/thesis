@@ -164,13 +164,10 @@ export class ProblemWebview {
         });
         break;
       case "run":
-        const executionResultPromise = LambdaChecker.submissionApiClient.submit(
-          this.problem.language,
-          {
-            code: (await this.submissionFile.readSubmissionFile()).toString(),
-            flags: [],
-            tests: message.tests!,
-          }
+        const executionResultPromise = LambdaChecker.client.runSolution(
+          this.problem.id,
+          (await this.submissionFile.readSubmissionFile()).toString(),
+          message.tests!
         );
 
         await vscode.window.withProgress(

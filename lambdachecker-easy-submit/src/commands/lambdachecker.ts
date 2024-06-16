@@ -42,20 +42,15 @@ import { ProblemWebview } from "../webview/problemWebview";
 export class LambdaChecker {
   static context: vscode.ExtensionContext;
   static client: HTTPClient;
-  static submissionApiClient: SubmissionsApiClient;
   static userDataCache = new Storage();
   static contestDataProvider: ContestDataProvider;
   static problemDataProvider: ProblemDataProvider;
   static users: User[] = [];
   static problems: BaseProblem[] = [];
-  static allSubmissions: Map<number, SubmissionResult[]> = new Map();
   static rankingsPageSize = 10;
-
-  static {
-    // LambdaChecker.client.getUsers().then((users) => {
-    //   LambdaChecker.users = users;
-    // });
-  }
+  static outputChannel = vscode.window.createOutputChannel(
+    "LambdaChecker Output"
+  );
 
   static async getLoginStatus(): Promise<string | undefined> {
     const loggedIn =
@@ -65,16 +60,6 @@ export class LambdaChecker {
       if (LambdaChecker.client === undefined) {
         LambdaChecker.client = new HTTPClient(
           LambdaChecker.userDataCache.get("token") as string
-        );
-      }
-
-      if (LambdaChecker.submissionApiClient === undefined) {
-        LambdaChecker.submissionApiClient = new SubmissionsApiClient(
-          {
-            c: "aws-lambda-c-path",
-            java: "aws-lambda-java-path",
-          },
-          "the-secret-was-removed:)"
         );
       }
 
@@ -177,7 +162,13 @@ export class LambdaChecker {
         contestMetadata?.id
       );
     } catch (error: any) {
-      vscode.window.showErrorMessage(error.message);
+      vscode.window
+        .showErrorMessage(error.message, "Go to output")
+        .then((selection) => {
+          if (selection === "Go to output") {
+            LambdaChecker.outputChannel.show();
+          }
+        });
       return;
     }
 
@@ -220,8 +211,6 @@ export class LambdaChecker {
     problemLanguage: Language,
     ephemeralSubmission: boolean = false
   ) {
-    // console.log(JSON.parse(submissionResult.run_output) as RunOutput);
-
     let problemId = ephemeralSubmission
       ? 0
       : (submissionResult as SubmissionResult).problem_id;
@@ -233,19 +222,19 @@ export class LambdaChecker {
     const submissionResultPanel = submissionResultPanelWrapper.webviewPanel;
 
     if (ephemeralSubmission === false) {
-    // Create the listener once, and use it for each message received
-    const currentProblemResultListener = new ProblemSubmissionWebviewListener(
+      // Create the listener once, and use it for each message received
+      const currentProblemResultListener = new ProblemSubmissionWebviewListener(
         problemId,
-      problemName,
-      problemLanguage,
+        problemName,
+        problemLanguage,
         (submissionResult as SubmissionResult).code,
-      submissionResultPanel,
-      problemTests
-    );
+        submissionResultPanel,
+        problemTests
+      );
 
       submissionResultPanelWrapper.addListener(async (message) => {
-      currentProblemResultListener.webviewListener(message);
-    });
+        currentProblemResultListener.webviewListener(message);
+      });
     }
 
     const stylesPath = vscode.Uri.joinPath(
@@ -263,9 +252,9 @@ export class LambdaChecker {
     );
 
     if (ephemeralSubmission === false) {
-    submissionResultPanel.webview.html = getSubmissionResultWebviewContent(
-      submissionResultPanel.webview.asWebviewUri(stylesPath),
-      submissionResultPanel.webview.asWebviewUri(scriptsPath),
+      submissionResultPanel.webview.html = getSubmissionResultWebviewContent(
+        submissionResultPanel.webview.asWebviewUri(stylesPath),
+        submissionResultPanel.webview.asWebviewUri(scriptsPath),
         submissionResult as SubmissionResult,
         problemTests
       );
@@ -275,8 +264,8 @@ export class LambdaChecker {
           submissionResultPanel.webview.asWebviewUri(stylesPath),
           submissionResultPanel.webview.asWebviewUri(scriptsPath),
           submissionResult as RunOutput,
-      problemTests
-    );
+          problemTests
+        );
     }
   }
 
@@ -311,8 +300,6 @@ export class LambdaChecker {
 
       contestDataProvider.refresh(contestId);
     } catch (error: any) {
-      console.log("here", error);
-
       vscode.window
         .showErrorMessage(error.message, "Try again")
         .then((selection) => {
@@ -348,8 +335,11 @@ export class LambdaChecker {
 
     LambdaChecker.client.getUsers().then((users) => {
       LambdaChecker.users = users;
-      console.log("Sent the fresh data to html");
-      console.log("Example user:", users[0]);
+
+      LambdaChecker.outputChannel.appendLine(
+        "Sent the newly fetched users to Create Contest Webview"
+      );
+
       createContestPanel.webview.postMessage({
         action: "updateUsers",
         users: users.filter((user) => user.role === "teacher"),
@@ -358,7 +348,11 @@ export class LambdaChecker {
 
     LambdaChecker.client.getProblems().then((problems) => {
       LambdaChecker.problems = problems;
-      console.log("Example problem:", problems[0]);
+
+      LambdaChecker.outputChannel.appendLine(
+        "Sent the newly fetched problems to Create Contest Webview"
+      );
+
       createContestPanel.webview.postMessage({
         action: "updateProblems",
         problems: problems,
@@ -378,15 +372,10 @@ export class LambdaChecker {
       "contestCreation.js"
     );
 
-    console.log("Showing the html");
     createContestPanel.webview.html = getContestCreationHTML(
       createContestPanel.webview.asWebviewUri(stylesPath),
       createContestPanel.webview.asWebviewUri(scriptsPath)
     );
-
-    createContestPanel.onDidDispose(() => {
-      console.log("Form disposed");
-    });
 
     const createContestListener = new CreateContestListener(createContestPanel);
     createContestPanel.webview.onDidReceiveMessage(async (message) =>
@@ -511,6 +500,11 @@ export class LambdaChecker {
 
     LambdaChecker.client.getUsers().then((users) => {
       LambdaChecker.users = users;
+
+      LambdaChecker.outputChannel.appendLine(
+        "Sent the newly fetched users to Create Contest Webview"
+      );
+
       editContestPanel.webview.postMessage({
         action: "updateUsers",
         users: users.filter((user) => user.role === "teacher"),
@@ -519,7 +513,11 @@ export class LambdaChecker {
 
     LambdaChecker.client.getProblems().then((problems) => {
       LambdaChecker.problems = problems;
-      console.log("Example problem:", problems[0]);
+
+      LambdaChecker.outputChannel.appendLine(
+        "Sent the newly fetched problems to Edit Contest Webview"
+      );
+
       editContestPanel.webview.postMessage({
         action: "updateProblems",
         problems: problems,
@@ -566,15 +564,15 @@ export class LambdaChecker {
 
   static async showContestRanking(contestMetadata: Contest, page: number = 1) {
     try {
-    const contestRankingWebviewWrapper = WebviewFactory.createWebview(
-      ViewType.ContestRanking,
+      const contestRankingWebviewWrapper = WebviewFactory.createWebview(
+        ViewType.ContestRanking,
         `Ranking ${contestMetadata.name}`,
         async (message) => {
           contestRankingListener.webviewListener(message);
         }
-    );
-    const contestRankingWebview =
-      contestRankingWebviewWrapper.webviewPanel.webview;
+      );
+      const contestRankingWebview =
+        contestRankingWebviewWrapper.webviewPanel.webview;
 
       const problemsGrades = await LambdaChecker.client.getProblemsGrades(
         contestMetadata.id
@@ -594,10 +592,10 @@ export class LambdaChecker {
       );
 
       const rankingData = await LambdaChecker.client.getRanking(
-          contestMetadata.id,
-          page,
+        contestMetadata.id,
+        page,
         LambdaChecker.rankingsPageSize
-        );
+      );
 
       const contestRankingListener = new ContestRankingListener(
         contestMetadata,
@@ -616,7 +614,13 @@ export class LambdaChecker {
         rankingData.total_pages
       );
     } catch (error: any) {
-      vscode.window.showErrorMessage(error.message);
+      vscode.window
+        .showErrorMessage(error.message, "Go to output")
+        .then((selection) => {
+          if (selection === "Go to output") {
+            LambdaChecker.outputChannel.show();
+          }
+        });
       return;
     }
   }

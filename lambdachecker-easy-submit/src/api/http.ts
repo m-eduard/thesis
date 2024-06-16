@@ -11,6 +11,7 @@ import {
   Language,
   ProblemCreate,
   ProblemCreateResponse,
+  ProblemTest,
   ProblemTotalGrade,
   RankListEntry,
   RankingResponse,
@@ -258,6 +259,33 @@ export class HTTPClient {
       if (response.status !== 200) {
         throw new Error(submissionResponse || response.statusText);
       }
+    } catch (error: any) {
+      throw new Error(`[Lambda Checker API]: ${error.message}`);
+    }
+  }
+
+  async runSolution(
+    problemId: number,
+    code: string,
+    tests: ProblemTest[]
+  ): Promise<RunOutput> {
+    const response = await this.request(
+      new Route("POST", "/submissions_run"),
+      JSON.stringify({
+        problem_id: problemId,
+        code: code,
+        tests: tests,
+      })
+    );
+
+    try {
+      const runResponse = await response.text();
+
+      if (response.status !== 200) {
+        throw new Error(runResponse || response.statusText);
+      }
+
+      return JSON.parse(runResponse) as RunOutput;
     } catch (error: any) {
       throw new Error(`[Lambda Checker API]: ${error.message}`);
     }
