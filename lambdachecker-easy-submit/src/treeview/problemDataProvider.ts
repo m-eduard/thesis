@@ -75,7 +75,10 @@ export class ProblemDataProvider
         ProblemDataProvider.ownedProblems = problems.map(
           (problem) => problem.id
         );
+
         this._onDidChangeTreeData.fire();
+        LambdaChecker.contestDataProvider.refreshContestProblems();
+
         return ProblemDataProvider.ownedProblems;
       });
     }

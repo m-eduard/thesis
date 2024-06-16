@@ -132,7 +132,7 @@
         {
           "command": "lambdachecker.edit-problem",
           "group": "inline",
-          "when": "lambdachecker.teacher && viewItem == editable-problem && view == lambdachecker.problems"
+          "when": "lambdachecker.teacher && viewItem == editable-problem && (view == lambdachecker.problems || view == lambdachecker.contests)"
         }
       ]
     },

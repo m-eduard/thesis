@@ -14,6 +14,7 @@ import {
   languageIdMapping,
 } from "../models";
 import { ContestItem } from "./contestItem";
+import { ProblemDataProvider } from "./problemDataProvider";
 import { ProblemItem } from "./problemItem";
 
 export class ContestDataProvider
@@ -100,6 +101,10 @@ export class ContestDataProvider
       >
     )["id"] as number;
 
+    this._onDidChangeTreeData.fire();
+  }
+
+  refreshContestProblems() {
     this._onDidChangeTreeData.fire();
   }
 
@@ -253,6 +258,24 @@ export class ContestDataProvider
           element.props.contestMetadata,
         ],
       };
+
+      if (
+        ProblemDataProvider.ownedProblems.includes(
+          element.props.problemMetadata!.id
+        )
+      ) {
+        element.contextValue = "editable-problem";
+
+        // Enrich the current metadata stored in the TreeNode
+        // with full problem data (skeleton, tests, ...)
+        LambdaChecker.client
+          .getProblem(element.props.problemMetadata!.id)
+          .then((problem) => {
+            element.props.problemMetadata = problem;
+          });
+      } else {
+        element.contextValue = "problem";
+      }
     } else {
       if (element.props.type === "contest") {
         // Update the status for the contest if it was unlocked during this session
