@@ -1,3 +1,9 @@
+export interface RankingResponse {
+  ranking: RankListEntry[];
+  paginate: boolean;
+  total_pages: number;
+}
+
 export interface RankListEntry {
   username: string;
   points: number;

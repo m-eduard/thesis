@@ -11,6 +11,7 @@ import {
   ProblemCreateResponse,
   ProblemTotalGrade,
   RankListEntry,
+  RankingResponse,
   RunOutput,
   SpecificProblem,
   SubmissionApiEndpoints,
@@ -462,7 +463,7 @@ export class HTTPClient {
     page?: number,
     per_page?: number,
     username?: string
-  ): Promise<RankListEntry[]> {
+  ): Promise<RankingResponse> {
     const response = await this.request(
       new Route(
         "GET",
@@ -480,7 +481,7 @@ export class HTTPClient {
       }
       console.log(JSON.parse(rankingData));
 
-      return JSON.parse(rankingData)["ranking"] as RankListEntry[];
+      return JSON.parse(rankingData) as RankingResponse;
     } catch (error: any) {
       throw new Error(`[Lambda Checker API]: ${error.message}`);
     }

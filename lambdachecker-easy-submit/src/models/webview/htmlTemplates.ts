@@ -807,13 +807,6 @@ export const getProblemHTML = (
 ) => {
   const title = `${problemData.id}. ${problemData.name}`;
 
-  console.log(
-    "From getting problem HTML: Registered contest id",
-    contestMetadata!.id,
-    "for problem ",
-    problemData
-  );
-
   return `
 <!DOCTYPE html>
 <html lang="en">

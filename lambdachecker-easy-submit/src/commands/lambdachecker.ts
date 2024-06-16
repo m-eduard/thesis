@@ -49,7 +49,7 @@ export class LambdaChecker {
   static users: User[] = [];
   static problems: BaseProblem[] = [];
   static allSubmissions: Map<number, SubmissionResult[]> = new Map();
-  static rankingPages: RankListEntry[][] = [];
+  static rankingsPageSize = 10;
 
   static {
     // LambdaChecker.client.getUsers().then((users) => {
@@ -600,11 +600,10 @@ export class LambdaChecker {
         "contestRanking.js"
       );
 
-      LambdaChecker.rankingPages[page - 1] =
-        await LambdaChecker.client.getRanking(
+      const rankingData = await LambdaChecker.client.getRanking(
           contestMetadata.id,
           page,
-          10,
+        LambdaChecker.rankingsPageSize,
           username
         );
 
@@ -614,11 +613,25 @@ export class LambdaChecker {
         contestMetadata,
         problemsGrades,
         LambdaChecker.users,
-        LambdaChecker.rankingPages.length >= page
-          ? LambdaChecker.rankingPages[page - 1]
-          : [],
-        (page - 1) * 10
+        rankingData.ranking,
+        page,
+        rankingData.total_pages
       );
+
+      console.log("Html is", contestRankingWebview.html);
+
+      contestRankingWebview.postMessage({
+        action: "initializeUsers",
+        users: LambdaChecker.users,
+      });
+
+      LambdaChecker.client.getUsers().then((users) => {
+        LambdaChecker.users = users;
+        contestRankingWebview.postMessage({
+          action: "updateUsers",
+          users: users,
+        });
+      });
 
       const contestRankingListener = new ContestRankingListener(
         contestMetadata,
@@ -632,30 +645,5 @@ export class LambdaChecker {
       vscode.window.showErrorMessage(error.message);
       return;
     }
-
-    LambdaChecker.client.getUsers().then((users) => {
-      LambdaChecker.users = users;
-      contestRankingWebview.postMessage({
-        action: "updateUsers",
-        users: users,
-      });
-    });
-
-    LambdaChecker.client
-      .getRanking(contestMetadata.id, page, 10, username)
-      .then((rankingEntries) => {
-        if (username === undefined) {
-          LambdaChecker.rankingPages[page - 1] = rankingEntries;
-        }
-
-        console.log("Received next ranks: ", rankingEntries);
-
-        contestRankingWebview.postMessage({
-          action: "updateRanking",
-          ranking: rankingEntries,
-          page: page,
-          username: username,
-        });
-    });
   }
 }

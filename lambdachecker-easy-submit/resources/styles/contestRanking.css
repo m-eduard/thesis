@@ -241,3 +241,78 @@ table td:last-child {
 }
 
 /* -------------------------------- */
+
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1px;
+  padding: 10px;
+  border-radius: 20px;
+  /* background: linear-gradient(var(--vscode-editor-background), var(--vscode-editor-background)) padding-box,
+              linear-gradient(45deg, #3149e4 0%, #8c30f5 100%) border-box; */
+  border: 1.5px solid transparent;
+  width: fit-content;
+  margin: 20px auto 20px auto;
+}
+
+.pagination-button-active {
+  border: none;
+  border-radius: 10px;
+  /* background: linear-gradient(var(--vscode-editor-background), var(--vscode-editor-background)) padding-box,
+              linear-gradient(45deg, #3149e4 0%, #8c30f5 100%) border-box; */
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.sentinel-button {
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  padding: 3px 10px;
+}
+
+.pagination-button {
+  padding: 3px 10px;
+  border: none;
+  background-color: transparent;
+  color: var(--vscode-input-foreground);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.pagination-button:hover {
+  background-color: var(--vscode-inlineChat-background);
+  color: inherit;
+}
+
+.pagination-current {
+  padding: 5px 10px;
+  border-radius: 10px;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+svg {
+  /* stroke: var(--vscode-input-foreground); */
+  fill: var(--vscode-input-foreground);
+  vertical-align: middle;
+  width: 10px;
+  height: 10px;
+}
+
+body {
+  border-left: 3px solid #8c30f5;
+}
+
+
+.sentinel-button:disabled {
+  background-color: transparent;
+  cursor: default;
+  opacity: 0.7; /* Make disabled buttons appear grayed out */
+}

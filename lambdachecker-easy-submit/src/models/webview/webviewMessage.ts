@@ -38,4 +38,5 @@ export interface CreateContestWebviewMessage {
 export interface ContestRankingWebviewMessage {
   action: string;
   problemId?: number;
+  page?: number;
 }

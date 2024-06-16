@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { LambdaChecker } from "../../commands";
 import {
   Contest,
   MaxSubmissionMeta,
@@ -127,6 +128,43 @@ const stringifyDate = (date: string) => {
   });
 };
 
+const getPaginationElement = (currentPage: number, totalPages: number) => {
+  let paginationItems = "";
+  const maxPages = Math.min(10, totalPages);
+
+  for (let i = 1; i <= maxPages; ++i) {
+    if (currentPage === i) {
+      paginationItems += `<button class="pagination-button pagination-button-active" id="page-${i}-btn" onclick="updateRankingPage(${i})">${i}</button>`;
+    } else {
+      paginationItems += `<button class="pagination-button" id="page-${i}-btn" onclick="updateRankingPage(${i})">${i}</button>`;
+    }
+  }
+
+  for (let i = maxPages + 1; i <= totalPages; ++i) {
+    paginationItems += `<span class="pagination-button" id="page-${i}-btn" onclick="updateRankingPage(${i})" style="display: none;">${i}</span>`;
+  }
+
+  if (maxPages !== totalPages) {
+    paginationItems += `<button id="points" class="sentinel-button" disabled>...</button>`;
+    paginationItems += `<button id="dummy-btn" class="sentinel-button" disabled>${totalPages}</button>`;
+  }
+
+  return `
+<div class="pagination-wrapper">
+  <button class="pagination-button sentinel-button" onclick="updateRankingPage('-1')">
+    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="12" viewBox="0 0 8 12">
+      <path d="M5.874.35a1.28 1.28 0 011.761 0 1.165 1.165 0 010 1.695L3.522 6l4.113 3.955a1.165 1.165 0 010 1.694 1.28 1.28 0 01-1.76 0L0 6 5.874.35z" />
+    </svg>
+  </button>
+  ${paginationItems}
+  <button class="pagination-button sentinel-button" onclick="updateRankingPage('+1')">
+    <svg xmlns="http://www.w3.org/2000/svg" width="8" height="12" viewBox="0 0 8 12">
+      <path d="M2.126.35a1.28 1.28 0 00-1.761 0 1.165 1.165 0 000 1.695L4.478 6 .365 9.955a1.165 1.165 0 000 1.694 1.28 1.28 0 001.76 0L8 6 2.126.35z" />
+    </svg>
+  </button>
+</div>`;
+};
+
 export const getContestRankingHTML = (
   stylesUri: vscode.Uri,
   scriptsUri: vscode.Uri,
@@ -134,13 +172,14 @@ export const getContestRankingHTML = (
   problemsGrades: ProblemTotalGrade[],
   users: User[],
   oldRankingData: RankListEntry[],
-  offsetRank: number
+  currentPage: number,
+  totalPages: number
 ) => {
   const rankingData = oldRankingData
     .map((entry, idx) =>
       getRankingTableEntryHTML(
         entry,
-        offsetRank + idx + 1,
+        (currentPage - 1) * LambdaChecker.rankingsPageSize + idx + 1,
         contestMetadata.problems,
         contestMetadata.start_date,
         problemsGrades
@@ -148,7 +187,7 @@ export const getContestRankingHTML = (
     )
     .join("");
 
-  console.log(rankingData);
+  const paginationElement = getPaginationElement(currentPage, totalPages);
 
   return `
 <!DOCTYPE html>
@@ -189,12 +228,18 @@ export const getContestRankingHTML = (
                 )}
             </tr>
         </thead>
-        <tbody>
+        <tbody id="ranking-data">
             ${rankingData}
         </tbody>
       </table>
 
+      ${paginationElement}
+
+      <script>
+        var totalPages = ${totalPages};
+      </script>
       <script src="${scriptsUri}"></script>
+      
     </body>
   </html>
   `;

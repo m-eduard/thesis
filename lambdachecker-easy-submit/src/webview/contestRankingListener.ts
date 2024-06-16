@@ -33,6 +33,16 @@ export class ContestRankingListener {
       case "show-problem":
         LambdaChecker.showProblem(message.problemId!, this.contestMetadata);
         break;
+      case "get-ranking-page":
+        this.panel.webview.postMessage({
+          action: "getRankingPageResponse",
+          ranking: await LambdaChecker.client.getRanking(
+            this.contestMetadata.id,
+            message.page,
+            LambdaChecker.rankingsPageSize
+          ),
+          page: message.page,
+        });
     }
     //       case "view-all-submissions":
     //         // Second, when the current batch is ready, replace the
