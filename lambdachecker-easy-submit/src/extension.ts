@@ -15,7 +15,7 @@ import {
   ProblemDataProvider,
   ProblemItem,
 } from "./treeview";
-import { ProblemWebviewSerializer } from "./webview";
+import { ProblemWebviewSerializer, ViewType } from "./webview";
 
 interface ProblemProps {
   title: string;
@@ -102,7 +102,7 @@ export async function activate(context: vscode.ExtensionContext) {
     );
 
     vscode.window.registerWebviewPanelSerializer(
-      "lambdachecker.webview",
+      ViewType.ProblemStatement,
       new ProblemWebviewSerializer()
     );
 
