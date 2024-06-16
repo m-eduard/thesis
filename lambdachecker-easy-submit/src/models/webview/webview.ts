@@ -36,8 +36,11 @@ export class Webview {
     });
   }
 
-  public addListener(listener: vscode.Disposable) {
-    this.listeners.push(listener);
+  public addListener(listener: (e: any) => any) {
+    const disposableListener =
+      this.webviewPanel.webview.onDidReceiveMessage(listener);
+
+    this.listeners.push(disposableListener);
   }
 
   public disposeListeners() {

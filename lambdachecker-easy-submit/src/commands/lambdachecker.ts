@@ -163,44 +163,39 @@ export class LambdaChecker {
   static async showProblem(problemId: number, contestMetadata?: Contest) {
     let problem;
 
+    const problemStatementPanelWrapper = WebviewFactory.createWebview(
+      ViewType.ProblemStatement,
+      `${problemId}${contestMetadata ? `-${contestMetadata.id}` : ""}`,
+      async (message) => {
+        problemWebview.webviewListener(message);
+      }
+    );
+
     try {
       problem = await LambdaChecker.client.getProblem(
         problemId,
         contestMetadata?.id
       );
+
+      if (ProblemDataProvider.currentUserRole === "teacher") {
+        LambdaChecker.problemDataProvider.refresh();
+        LambdaChecker.contestDataProvider.refreshContestProblems();
+      }
     } catch (error: any) {
       vscode.window.showErrorMessage(error.message);
       return;
     }
 
-    const problemPanel = vscode.window.createWebviewPanel(
-      "lambdachecker.webview",
-      `${problem.id}. ${problem.name}`,
-      {
-        viewColumn: vscode.ViewColumn.One,
-        preserveFocus: false,
-      },
-      {
-        enableScripts: true,
-        enableFindWidget: true,
-        localResourceRoots: [
-          vscode.Uri.joinPath(LambdaChecker.context.extensionUri, "resources"),
-        ],
-        retainContextWhenHidden: true,
-      }
-    );
+    const problemStatementPanel = problemStatementPanelWrapper.webviewPanel;
+    problemStatementPanel.title = `${problem.id}. ${problem.name}`;
 
     // Create the listener once (more efficient than creating a new
     // listener for each message received)
     const problemWebview = new ProblemWebview(
       problem,
-      problemPanel,
+      problemStatementPanel,
       contestMetadata
     );
-
-    problemPanel.webview.onDidReceiveMessage(async (message) => {
-      problemWebview.webviewListener(message);
-    });
 
     const scriptsPath = vscode.Uri.joinPath(
       LambdaChecker.context.extensionUri,
@@ -215,9 +210,9 @@ export class LambdaChecker {
       "problemView.css"
     );
 
-    problemPanel.webview.html = getProblemHTML(
-      problemPanel.webview.asWebviewUri(scriptsPath),
-      problemPanel.webview.asWebviewUri(stylesPath),
+    problemStatementPanel.webview.html = getProblemHTML(
+      problemStatementPanel.webview.asWebviewUri(scriptsPath),
+      problemStatementPanel.webview.asWebviewUri(stylesPath),
       problem,
       contestMetadata
     );

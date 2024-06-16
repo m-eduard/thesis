@@ -160,7 +160,7 @@ function resizeTextArea(textarea) {
     const { style, value } = textarea;
 
     style.height = style.minHeight = 'auto';
-    style.minHeight = `${ Math.min(textarea.scrollHeight, parseInt(textarea.style.maxHeight)) }px`;
+    style.minHeight = `${ Math.min(textarea.scrollHeight + 1, parseInt(textarea.style.maxHeight)) }px`;
 }
 
 function getTestData() {

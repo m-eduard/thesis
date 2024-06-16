@@ -6,7 +6,10 @@ export enum ViewType {
   UserAllSubmissions = "lambdachecker.webview.user-all-submissions",
   UserSubmissionResult = "lambdachecker.webview.user-submission-result",
   ContestRanking = "lambdachecker.webview.contest-ranking",
+  ProblemStatement = "lambdachecker.webview.problem-statement",
 }
+
+const deduplicatedViewTypes = new Set<ViewType>([ViewType.ProblemStatement]);
 
 /**
  * Class used for tracking the active Webviews and listeners
@@ -19,9 +22,26 @@ export class WebviewFactory {
     }
   }
 
-  static createWebview(viewType: ViewType, title: string): Webview {
+  static createWebview(
+    viewType: ViewType,
+    title: string,
+    listener?: (e: any) => any
+  ): Webview {
     if (!Object.values(ViewType).includes(viewType)) {
       throw new Error("Invalid viewType");
+    }
+
+    if (
+      deduplicatedViewTypes.has(viewType) &&
+      this.openWebviews.has(viewType)
+    ) {
+      const desiredWebview = this.openWebviews.get(viewType)!.get(title);
+
+      if (desiredWebview !== undefined) {
+        desiredWebview.webviewPanel.reveal();
+        console.log("Revealed the problem");
+        return desiredWebview;
+      }
     }
 
     const newWebview = new Webview(
@@ -38,6 +58,11 @@ export class WebviewFactory {
             preserveFocus: false,
           }
         : viewType === ViewType.ContestRanking
+        ? {
+            viewColumn: vscode.ViewColumn.One,
+            preserveFocus: false,
+          }
+        : viewType === ViewType.ProblemStatement
         ? {
             viewColumn: vscode.ViewColumn.One,
             preserveFocus: false,
@@ -68,11 +93,31 @@ export class WebviewFactory {
             ],
             retainContextWhenHidden: true,
           }
+        : viewType === ViewType.ProblemStatement
+        ? {
+            enableScripts: true,
+            enableFindWidget: true,
+            localResourceRoots: [
+              vscode.Uri.joinPath(
+                LambdaChecker.context.extensionUri,
+                "resources"
+              ),
+            ],
+            retainContextWhenHidden: true,
+          }
         : {
             enableScripts: true,
             enableFindWidget: true,
           }
     );
+
+    if (listener !== undefined) {
+      newWebview.addListener(listener);
+    }
+
+    newWebview.webviewPanel.onDidDispose(() => {
+      this.openWebviews.get(viewType)?.delete(title);
+    });
 
     if (!this.openWebviews.has(viewType)) {
       this.openWebviews.set(viewType, new Map<string, Webview>());
@@ -85,7 +130,7 @@ export class WebviewFactory {
   static addListenerForWebview(
     viewType: string,
     title: string,
-    listener: vscode.Disposable
+    listener: (e: any) => any
   ) {
     if (!this.openWebviews.has(viewType)) {
       this.openWebviews.set(viewType, new Map<string, Webview>());
