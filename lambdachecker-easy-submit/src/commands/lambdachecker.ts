@@ -53,14 +53,12 @@ export class LambdaChecker {
   );
 
   static async getLoginStatus(): Promise<string | undefined> {
-    const loggedIn =
-      LambdaChecker.userDataCache.get("token", true) !== undefined;
+    const userToken = await LambdaChecker.userDataCache.getSecret("token");
+    const loggedIn = userToken !== undefined;
 
     if (loggedIn) {
       if (LambdaChecker.client === undefined) {
-        LambdaChecker.client = new HTTPClient(
-          LambdaChecker.userDataCache.get("token") as string
-        );
+        LambdaChecker.client = new HTTPClient(userToken as string);
       }
 
       const user = LambdaChecker.userDataCache.get(
@@ -103,8 +101,13 @@ export class LambdaChecker {
         "Successfully logged into you LambdaChecker account!"
       );
 
+      LambdaChecker.userDataCache.clear();
+
       LambdaChecker.userDataCache.put("user", response["user"] as string);
-      LambdaChecker.userDataCache.put("token", response["token"] as string);
+      LambdaChecker.userDataCache.putSecret(
+        "token",
+        response["token"] as string
+      );
       StatusBar.updateStatus(await LambdaChecker.getLoginStatus());
 
       // Update the role seen by the extension

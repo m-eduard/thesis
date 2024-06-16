@@ -7,9 +7,11 @@ import * as vscode from "vscode";
 export class Storage {
   private static context: vscode.ExtensionContext;
   private keys: Set<string>;
+  private secretKeys: Set<string>;
 
   constructor() {
     this.keys = new Set<string>();
+    this.secretKeys = new Set<string>();
   }
 
   /**
@@ -19,6 +21,21 @@ export class Storage {
    */
   static setContext(context: vscode.ExtensionContext) {
     Storage.context = context;
+  }
+
+  async putSecret(key: string, value: string | undefined) {
+    if (value === undefined) {
+      this.secretKeys.delete(key);
+      return Storage.context.secrets.delete(key);
+    }
+
+    this.secretKeys.add(key);
+    return Storage.context.secrets.store(key, value);
+  }
+
+  async getSecret(key: string): Promise<string | undefined> {
+    this.secretKeys.add(key);
+    return Storage.context.secrets.get(key);
   }
 
   /**
@@ -76,6 +93,11 @@ export class Storage {
       Storage.context.globalState.update(key, undefined);
     }
 
+    for (const secretKey of this.secretKeys) {
+      Storage.context.secrets.delete(secretKey);
+    }
+
     this.keys.clear();
+    this.secretKeys.clear();
   }
 }
