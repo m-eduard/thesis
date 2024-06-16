@@ -37,6 +37,16 @@
   vertical-align: text-top;
 }
 
+@media only screen and (max-width: 600px) {
+  .contest-ranking {
+    display: none !important;
+  }
+
+  .clock-wrapper {
+    display: none !important;
+  }
+}
+
 .contest-ranking svg {
   margin-right: 3px;
   vertical-align: text-top;
