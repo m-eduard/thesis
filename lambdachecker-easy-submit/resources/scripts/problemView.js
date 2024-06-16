@@ -98,7 +98,7 @@ if (contestEndDate !== undefined && contestEndDate.getTime() - Date.now() > 0) {
             document.getElementById('countdown-text').style.fontWeight = '500';
         }
 
-        setTimeout(countdown, 1000);
+        setTimeout(countdown, 900);
     }
 
     countdown();
