@@ -7,6 +7,7 @@ import {
   BaseProblem,
   Difficulty,
   Language,
+  SpecificProblem,
   languageExtensions,
 } from "../models";
 import { ProblemItem } from "./problemItem";
@@ -178,14 +179,6 @@ export class ProblemDataProvider
         )
       ) {
         element.contextValue = "editable-problem";
-
-        // Enrich the current metadata stored in the TreeNode
-        // with full problem data (skeleton, tests, ...)
-        LambdaChecker.client
-          .getProblem(element.props.problemMetadata!.id)
-          .then((problem) => {
-            element.props.problemMetadata = problem;
-          });
       } else {
         element.contextValue = "problem";
       }

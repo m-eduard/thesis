@@ -265,14 +265,6 @@ export class ContestDataProvider
         )
       ) {
         element.contextValue = "editable-problem";
-
-        // Enrich the current metadata stored in the TreeNode
-        // with full problem data (skeleton, tests, ...)
-        LambdaChecker.client
-          .getProblem(element.props.problemMetadata!.id)
-          .then((problem) => {
-            element.props.problemMetadata = problem;
-          });
       } else {
         element.contextValue = "problem";
       }

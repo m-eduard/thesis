@@ -15,6 +15,11 @@ export enum EnrollmentStatus {
   NOT_ENROLLED = "NOT_ENROLLED",
 }
 
+export interface ContestResponse {
+  current_time: string;
+  contest: Contest;
+}
+
 export interface Contest {
   id: number;
   name: string;

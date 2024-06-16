@@ -49,7 +49,7 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(
         "lambdachecker.edit-contest",
         (context: ContestItem) =>
-          LambdaChecker.editContest(context.props.contestMetadata!)
+          LambdaChecker.editContest(context.props.contestMetadata!.id)
       ),
       vscode.commands.registerCommand(
         "lambdachecker.create-problem",
@@ -58,9 +58,7 @@ export async function activate(context: vscode.ExtensionContext) {
       vscode.commands.registerCommand(
         "lambdachecker.edit-problem",
         (context: ProblemItem) =>
-          LambdaChecker.editProblem(
-            context.props.problemMetadata as SpecificProblem
-          )
+          LambdaChecker.editProblem(context.props.problemMetadata!.id)
       ),
       vscode.commands.registerCommand("lambdachecker.refresh-contests", () =>
         LambdaChecker.contestDataProvider.refresh()

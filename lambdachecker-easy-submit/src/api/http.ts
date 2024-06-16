@@ -4,6 +4,7 @@ import {
   Contest,
   ContestCreate,
   ContestCreateResponse,
+  ContestResponse,
   ContestSubject,
   EnrollmentStatus,
   Language,
@@ -155,6 +156,24 @@ export class HTTPClient {
     })) as Record<string, unknown>;
 
     return contestsData["contests"] as Contest[];
+  }
+
+  async getContest(contestId: number): Promise<ContestResponse> {
+    const response = await this.request(
+      new Route("GET", `/contests/${contestId}}`)
+    );
+
+    try {
+      const contestData = await response.text();
+
+      if (response.status !== 200) {
+        throw new Error(contestData);
+      }
+
+      return JSON.parse(contestData) as ContestResponse;
+    } catch (error: any) {
+      throw new Error(`[Lambda Checker API]: ${error.message}`);
+    }
   }
 
   async getEnrollmentStatus(contestId: number): Promise<EnrollmentStatus> {

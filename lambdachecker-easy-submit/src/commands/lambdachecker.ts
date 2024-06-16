@@ -176,11 +176,6 @@ export class LambdaChecker {
         problemId,
         contestMetadata?.id
       );
-
-      if (ProblemDataProvider.currentUserRole === "teacher") {
-        LambdaChecker.problemDataProvider.refresh();
-        LambdaChecker.contestDataProvider.refreshContestProblems();
-      }
     } catch (error: any) {
       vscode.window.showErrorMessage(error.message);
       return;
@@ -441,12 +436,10 @@ export class LambdaChecker {
     });
   }
 
-  static async editProblem(problemData: SpecificProblem) {
-    console.log(problemData);
-
+  static async editProblem(problemId: number) {
     const editProblemPanel = vscode.window.createWebviewPanel(
       "lambdachecker.webview.edit-problem",
-      `${problemData.id}. Edit Problem`,
+      `${problemId}. Edit Problem`,
       {
         viewColumn: vscode.ViewColumn.One,
         preserveFocus: false,
@@ -480,7 +473,10 @@ export class LambdaChecker {
       true
     );
 
-    // Populate the form with data
+    // Populate the form with data (just context data stored in
+    // the Treeview node is not enough, since it lacks skeleton,
+    // tests, ...) - we need to fetch the full problem data
+    const problemData = await LambdaChecker.client.getProblem(problemId);
     editProblemPanel.webview.postMessage({
       action: "populateProblemForm",
       data: JSON.stringify(problemData),
@@ -496,10 +492,10 @@ export class LambdaChecker {
     });
   }
 
-  static async editContest(contestData: Contest) {
+  static async editContest(contestId: number) {
     const editContestPanel = vscode.window.createWebviewPanel(
       "lambdachecker.webview.edit-problem",
-      `${contestData.id}. Edit Contest`,
+      `${contestId}. Edit Contest`,
       {
         viewColumn: vscode.ViewColumn.One,
       },
@@ -549,16 +545,19 @@ export class LambdaChecker {
       true
     );
 
+    // Get the fresh data from the API
+    const contestData = await LambdaChecker.client.getContest(contestId);
+
     // Populate the form with data
     editContestPanel.webview.postMessage({
       action: "populateContestForm",
-      data: contestData,
+      data: contestData.contest,
     });
 
     const createContestListener = new CreateContestListener(
       editContestPanel,
       false,
-      contestData.id
+      contestId
     );
     editContestPanel.webview.onDidReceiveMessage(async (message) => {
       createContestListener.webviewListener(message);
