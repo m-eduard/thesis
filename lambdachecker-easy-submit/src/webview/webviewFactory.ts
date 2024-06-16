@@ -9,7 +9,10 @@ export enum ViewType {
   ProblemStatement = "lambdachecker.webview.problem-statement",
 }
 
-const deduplicatedViewTypes = new Set<ViewType>([ViewType.ProblemStatement]);
+const deduplicatedViewTypes = new Set<ViewType>([
+  ViewType.ProblemStatement,
+  ViewType.ContestRanking,
+]);
 
 /**
  * Class used for tracking the active Webviews and listeners

@@ -243,7 +243,7 @@ export class LambdaChecker {
       problemTests
     );
 
-    submissionResultPanel.webview.onDidReceiveMessage(async (message) => {
+      submissionResultPanelWrapper.addListener(async (message) => {
       currentProblemResultListener.webviewListener(message);
     });
     }
@@ -494,7 +494,7 @@ export class LambdaChecker {
 
   static async editContest(contestId: number) {
     const editContestPanel = vscode.window.createWebviewPanel(
-      "lambdachecker.webview.edit-problem",
+      "lambdachecker.webview.edit-contest",
       `${contestId}. Edit Contest`,
       {
         viewColumn: vscode.ViewColumn.One,
@@ -565,14 +565,17 @@ export class LambdaChecker {
   }
 
   static async showContestRanking(contestMetadata: Contest, page: number = 1) {
+    try {
     const contestRankingWebviewWrapper = WebviewFactory.createWebview(
       ViewType.ContestRanking,
-      `Ranking ${contestMetadata.name}`
+        `Ranking ${contestMetadata.name}`,
+        async (message) => {
+          contestRankingListener.webviewListener(message);
+        }
     );
     const contestRankingWebview =
       contestRankingWebviewWrapper.webviewPanel.webview;
 
-    try {
       const problemsGrades = await LambdaChecker.client.getProblemsGrades(
         contestMetadata.id
       );
@@ -596,6 +599,13 @@ export class LambdaChecker {
         LambdaChecker.rankingsPageSize
         );
 
+      const contestRankingListener = new ContestRankingListener(
+        contestMetadata,
+        problemsGrades,
+        contestRankingWebviewWrapper.webviewPanel,
+        rankingData
+      );
+
       contestRankingWebview.html = getContestRankingHTML(
         contestRankingWebview.asWebviewUri(stylesPath),
         contestRankingWebview.asWebviewUri(scriptsPath),
@@ -605,19 +615,6 @@ export class LambdaChecker {
         page,
         rankingData.total_pages
       );
-
-      console.log("Html is", contestRankingWebview.html);
-
-      const contestRankingListener = new ContestRankingListener(
-        contestMetadata,
-        problemsGrades,
-        contestRankingWebviewWrapper.webviewPanel,
-        rankingData
-      );
-
-      contestRankingWebview.onDidReceiveMessage(async (message) => {
-        contestRankingListener.webviewListener(message);
-      });
     } catch (error: any) {
       vscode.window.showErrorMessage(error.message);
       return;
