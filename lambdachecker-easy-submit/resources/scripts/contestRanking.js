@@ -1,10 +1,5 @@
 const vscode = acquireVsCodeApi();
 
-let ranking = {};
-let users = [];
-let currentPage = 1;
-let currentSlidingWindow = [1, 10];
-
 function showProblem(problemId) {
   console.log("Received the message here");
 
@@ -14,35 +9,7 @@ function showProblem(problemId) {
   });
 }
 
-window.addEventListener("message", event => {
-  const message = event.data;
-
-  switch (message.action) {
-    case 'initializeUsers':
-      users = users.length ? users : message.users;
-      break;
-    case 'updateUsers':
-      users = message.users;
-      break;
-    case 'getRankingPageRespose':
-      ranking[message.page] = message.ranking;
-
-      const rankingTableBody = Element.getElementById("ranking-data");
-      rankingTableBody.replaceChildren();
-  }
-});
-
-
-
-function updateRankingPage(targetPage) {
-  console.log("Updating ranking page", totalPages, targetPage);
-
-  if (targetPage === "-1") {
-    targetPage = Math.max(currentPage - 1, 1);
-  } else if (targetPage === "+1") {
-    targetPage = Math.min(currentPage + 1, totalPages);
-  }
-
+function updateUI(targetPage) {
   if (targetPage === currentSlidingWindow[0] && targetPage !== 1) {
     console.log("begin");
     document.getElementById(`page-${currentSlidingWindow[0] - 1}-btn`).style.display = "flex";
@@ -81,13 +48,23 @@ function updateRankingPage(targetPage) {
   document.getElementById(`page-${currentPage}-btn`).classList.remove("pagination-button-active");
   currentPage = targetPage;
   document.getElementById(`page-${currentPage}-btn`).classList.add("pagination-button-active");
+}
 
-  if (ranking[currentPage]) {
-    displayRanking(ranking[currentPage]);
-  } else {
-    vscode.postMessage({
-      action: 'get-ranking-page',
-      page: currentPage,
-    });
+function updateRankingPage(targetPage) {
+  // Do the visual update, and then send the state to the extension
+  if (targetPage === "-1") {
+    targetPage = Math.max(currentPage - 1, 1);
+  } else if (targetPage === "+1") {
+    targetPage = Math.min(currentPage + 1, totalPages);
   }
+
+  updateUI(targetPage);
+
+  // Always send the change page request to the
+  // extension, which will further decide what to do
+  vscode.postMessage({
+    action: 'get-ranking-page',
+    page: currentPage,
+    slidingWindow: currentSlidingWindow
+  });
 }

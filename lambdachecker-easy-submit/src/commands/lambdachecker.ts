@@ -570,11 +570,7 @@ export class LambdaChecker {
     });
   }
 
-  static async showContestRanking(
-    contestMetadata: Contest,
-    page: number = 1,
-    username?: string
-  ) {
+  static async showContestRanking(contestMetadata: Contest, page: number = 1) {
     const contestRankingWebviewWrapper = WebviewFactory.createWebview(
       ViewType.ContestRanking,
       `Ranking ${contestMetadata.name}`
@@ -603,8 +599,7 @@ export class LambdaChecker {
       const rankingData = await LambdaChecker.client.getRanking(
           contestMetadata.id,
           page,
-        LambdaChecker.rankingsPageSize,
-          username
+        LambdaChecker.rankingsPageSize
         );
 
       contestRankingWebview.html = getContestRankingHTML(
@@ -612,7 +607,6 @@ export class LambdaChecker {
         contestRankingWebview.asWebviewUri(scriptsPath),
         contestMetadata,
         problemsGrades,
-        LambdaChecker.users,
         rankingData.ranking,
         page,
         rankingData.total_pages
@@ -620,22 +614,11 @@ export class LambdaChecker {
 
       console.log("Html is", contestRankingWebview.html);
 
-      contestRankingWebview.postMessage({
-        action: "initializeUsers",
-        users: LambdaChecker.users,
-      });
-
-      LambdaChecker.client.getUsers().then((users) => {
-        LambdaChecker.users = users;
-        contestRankingWebview.postMessage({
-          action: "updateUsers",
-          users: users,
-        });
-      });
-
       const contestRankingListener = new ContestRankingListener(
         contestMetadata,
-        contestRankingWebviewWrapper.webviewPanel
+        problemsGrades,
+        contestRankingWebviewWrapper.webviewPanel,
+        rankingData
       );
 
       contestRankingWebview.onDidReceiveMessage(async (message) => {

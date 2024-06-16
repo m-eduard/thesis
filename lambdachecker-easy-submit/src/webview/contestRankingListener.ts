@@ -1,14 +1,26 @@
 import * as vscode from "vscode";
 import { LambdaChecker } from "../commands";
-import { Contest, ContestRankingWebviewMessage } from "../models";
+import {
+  Contest,
+  ContestRankingWebviewMessage,
+  ProblemTotalGrade,
+  RankListEntry,
+  RankingResponse,
+} from "../models";
+import { getContestRankingHTML } from "../models/webview/contestRankingTemplate";
 
 export class ContestRankingListener {
   private stylesUri: vscode.Uri;
   private scriptsUri: vscode.Uri;
+  private rankingCache = new Map<number, RankListEntry[]>();
+  private rankingTotalPages = 0;
+  private latestRequestedPage = 1;
 
   constructor(
     public contestMetadata: Contest,
-    public panel: vscode.WebviewPanel
+    public problemsGrades: ProblemTotalGrade[],
+    public panel: vscode.WebviewPanel,
+    firstRankingPage: RankingResponse
   ) {
     const stylesPath = vscode.Uri.joinPath(
       LambdaChecker.context.extensionUri,
@@ -26,6 +38,9 @@ export class ContestRankingListener {
 
     this.stylesUri = this.panel.webview.asWebviewUri(stylesPath);
     this.scriptsUri = this.panel.webview.asWebviewUri(scriptsPath);
+
+    this.rankingCache.set(1, firstRankingPage.ranking);
+    this.rankingTotalPages = firstRankingPage.total_pages;
   }
 
   async webviewListener(message: ContestRankingWebviewMessage) {
@@ -34,46 +49,45 @@ export class ContestRankingListener {
         LambdaChecker.showProblem(message.problemId!, this.contestMetadata);
         break;
       case "get-ranking-page":
-        this.panel.webview.postMessage({
-          action: "getRankingPageResponse",
-          ranking: await LambdaChecker.client.getRanking(
+        this.latestRequestedPage = message.page!;
+
+        LambdaChecker.client
+          .getRanking(
             this.contestMetadata.id,
             message.page,
             LambdaChecker.rankingsPageSize
-          ),
-          page: message.page,
-        });
+          )
+          .then((rankingData) => {
+            this.rankingCache.set(message.page!, rankingData.ranking);
+            this.rankingTotalPages = rankingData.total_pages;
+
+            if (message.page === this.latestRequestedPage) {
+              this.panel.webview.html = getContestRankingHTML(
+                this.stylesUri,
+                this.scriptsUri,
+                this.contestMetadata,
+                this.problemsGrades,
+                this.rankingCache.get(message.page!) || [],
+                message.page!,
+                rankingData.total_pages,
+                message.slidingWindow
+              );
+            }
+          });
+
+        // Show the old ranking data in the Webview
+        if (this.rankingCache.get(message.page!) !== undefined) {
+          this.panel.webview.html = getContestRankingHTML(
+            this.stylesUri,
+            this.scriptsUri,
+            this.contestMetadata,
+            this.problemsGrades,
+            this.rankingCache.get(message.page!) || [],
+            message.page!,
+            this.rankingTotalPages,
+            message.slidingWindow
+          );
+        }
     }
-    //       case "view-all-submissions":
-    //         // Second, when the current batch is ready, replace the
-    //         // old HTML content with this one
-    //         getSubmissionsSafe().then((submissions) => {
-    //           LambdaChecker.allSubmissions.set(this.problemId, submissions);
-    //           this.panel.webview.html = getSubmissionsTableHTML(
-    //             submissions,
-    //             this.problemTests
-    //           );
-    //         });
-    //         // First, show the old batch of submissions
-    //         this.panel.webview.html = getSubmissionsTableHTML(
-    //           LambdaChecker.allSubmissions.get(this.problemId) || [],
-    //           this.problemTests
-    //         );
-    //         break;
-    //       case "view-submission":
-    //         const selectedSubmission = LambdaChecker.allSubmissions.get(
-    //           this.problemId
-    //         )![message.submissionIdx!];
-    //         this.panel.webview.html = getSubmissionResultWebviewContent(
-    //           this.stylesUri,
-    //           this.scriptsUri,
-    //           selectedSubmission,
-    //           this.problemTests
-    //         );
-    //         this.panel.webview.postMessage({ command: "reset-cursor" });
-    //         // Update the code stored for the current submission
-    //         this.submissionFile.problemSkel = selectedSubmission.code;
-    //         break;
-    //     }
   }
 }

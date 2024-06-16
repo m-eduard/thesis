@@ -128,11 +128,14 @@ const stringifyDate = (date: string) => {
   });
 };
 
-const getPaginationElement = (currentPage: number, totalPages: number) => {
+const getPaginationElement = (
+  currentPage: number,
+  totalPages: number,
+  currentSlidingWindow: number[]
+) => {
   let paginationItems = "";
-  const maxPages = Math.min(10, totalPages);
 
-  for (let i = 1; i <= maxPages; ++i) {
+  for (let i = currentSlidingWindow[0]; i <= currentSlidingWindow[1]; ++i) {
     if (currentPage === i) {
       paginationItems += `<button class="pagination-button pagination-button-active" id="page-${i}-btn" onclick="updateRankingPage(${i})">${i}</button>`;
     } else {
@@ -140,11 +143,18 @@ const getPaginationElement = (currentPage: number, totalPages: number) => {
     }
   }
 
-  for (let i = maxPages + 1; i <= totalPages; ++i) {
+  for (let i = 1; i <= totalPages; ++i) {
+    if (i >= currentSlidingWindow[0] && i <= currentSlidingWindow[1]) {
+      continue;
+    }
+
     paginationItems += `<span class="pagination-button" id="page-${i}-btn" onclick="updateRankingPage(${i})" style="display: none;">${i}</span>`;
   }
 
-  if (maxPages !== totalPages) {
+  if (totalPages - currentSlidingWindow[1] <= 1) {
+    paginationItems += `<button id="points" class="sentinel-button" disabled style="display: none;">...</button>`;
+    paginationItems += `<button id="dummy-btn" class="sentinel-button" disabled style="display: none;">${totalPages}</button>`;
+  } else {
     paginationItems += `<button id="points" class="sentinel-button" disabled>...</button>`;
     paginationItems += `<button id="dummy-btn" class="sentinel-button" disabled>${totalPages}</button>`;
   }
@@ -170,10 +180,10 @@ export const getContestRankingHTML = (
   scriptsUri: vscode.Uri,
   contestMetadata: Contest,
   problemsGrades: ProblemTotalGrade[],
-  users: User[],
   oldRankingData: RankListEntry[],
   currentPage: number,
-  totalPages: number
+  totalPages: number,
+  currentSlidingWindow: number[] = [1, Math.min(10, totalPages)]
 ) => {
   const rankingData = oldRankingData
     .map((entry, idx) =>
@@ -187,7 +197,11 @@ export const getContestRankingHTML = (
     )
     .join("");
 
-  const paginationElement = getPaginationElement(currentPage, totalPages);
+  const paginationElement = getPaginationElement(
+    currentPage,
+    totalPages,
+    currentSlidingWindow
+  );
 
   return `
 <!DOCTYPE html>
@@ -236,7 +250,11 @@ export const getContestRankingHTML = (
       ${paginationElement}
 
       <script>
-        var totalPages = ${totalPages};
+        let currentPage = ${currentPage};
+        let currentSlidingWindow = [${currentSlidingWindow[0]}, ${
+    currentSlidingWindow[1]
+  }];
+        let totalPages = ${totalPages};
       </script>
       <script src="${scriptsUri}"></script>
       

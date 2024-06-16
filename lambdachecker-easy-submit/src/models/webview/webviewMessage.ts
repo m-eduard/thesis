@@ -39,4 +39,5 @@ export interface ContestRankingWebviewMessage {
   action: string;
   problemId?: number;
   page?: number;
+  slidingWindow?: number[];
 }
