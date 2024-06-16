@@ -38,7 +38,7 @@ export class HTTPClient {
     }
 
     // Fetch might throw an error only if there are network issues
-    for (let i = 0; i < 5; ++i) {
+    for (let i = 0; i < 10; ++i) {
       try {
         return await fetch(route.url, {
           method: route.method,
@@ -47,7 +47,7 @@ export class HTTPClient {
         }).then((a) => a);
       } catch (error) {
         LambdaChecker.outputChannel.appendLine(
-          "Network error while trying to fetch data from " + route.url
+          `Retry ${i}: Network error while trying to fetch data from ${route.url}`
         );
       }
     }
