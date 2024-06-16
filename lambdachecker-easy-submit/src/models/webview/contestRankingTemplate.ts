@@ -40,6 +40,7 @@ const formatDeltaT = (contestStart: string, submissionDate: string) => {
   const distance =
     new Date(submissionDate).getTime() - new Date(contestStart).getTime();
 
+  const days = Math.floor(distance / (1000 * 60 * 60 * 24));
   const hours = Math.floor(
     (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
   );
@@ -49,6 +50,10 @@ const formatDeltaT = (contestStart: string, submissionDate: string) => {
   const seconds = Math.floor((distance % (1000 * 60)) / 1000)
     .toString()
     .padStart(2, "0");
+
+  if (days > 0) {
+    return `${days}:${hours.toString().padStart(2, "0")}:${minutes}:${seconds}`;
+  }
 
   return `${hours}:${minutes}:${seconds}`;
 };
