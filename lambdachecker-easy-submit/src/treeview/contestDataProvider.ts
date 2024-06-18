@@ -305,7 +305,7 @@ export class ContestDataProvider
 
     element.resourceUri = vscode.Uri.from({
       scheme: "lambdachecker",
-      authority: element.props.type,
+      // authority: element.props.type,
       path: element.partialPath,
       query: `${
         element instanceof ProblemItem

@@ -187,7 +187,7 @@ export class ProblemDataProvider
 
     element.resourceUri = vscode.Uri.from({
       scheme: "lambdachecker",
-      authority: element.props.type,
+      // authority: element.props.type,
       path: element.partialPath,
     });
 
