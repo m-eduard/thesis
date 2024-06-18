@@ -94,6 +94,12 @@
           "command": "lambdachecker.login",
           "when": "true"
         }, {
+          "command": "lambdachecker.show-problem",
+          "when": "false"
+        }, {
+          "command": "lambdachecker.enroll-in-contest",
+          "when": "false"
+        }, {
           "command": "lambdachecker.edit-contest",
           "when": "false"
         }, {
@@ -157,12 +163,6 @@
           "id": "lambdachecker.problems",
           "name": "Problems",
           "contextualTitle": "Lambda Checker Problems",
-          "visibility": "collapsed"
-        },
-        {
-          "id": "lambdachecker.profile",
-          "name": "Profile",
-          "contextualTitle": "Lambda Checker Profile",
           "visibility": "collapsed"
         }
       ]
