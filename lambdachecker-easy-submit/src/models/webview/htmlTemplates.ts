@@ -401,9 +401,9 @@ const levenshteinDistanceOps = (word1: string, word2: string) => {
 const getTestResultHTML = (
   testNo: number,
   testResult: TestResult,
-  test: ProblemTest
+  test: ProblemTest | undefined
 ) => {
-  const grade = testResult.status === "PASSED" ? test.grade || 1 : 0;
+  const grade = testResult.status === "PASSED" ? test?.grade : 0;
 
   let formattedOut = "";
   let formattedRef = "";
@@ -461,12 +461,12 @@ const getTestResultHTML = (
 <h2> <span class=${
     testResult.status === "PASSED" ? "accepted" : "failed"
   }>Case ${testNo} </span> <span class="normal">|  ${grade} / ${
-    test.grade || 1
+    test?.grade || 0
   } pts</span>
 </h2>
 
 <h3>Input:</h3>
-<pre>${test.input || ""}</pre>
+<pre>${test?.input || ""}</pre>
 
 <h3>Output:</h3>
 <pre>${
@@ -637,7 +637,7 @@ const getSubmissionsTableEntryHTML = (
   <td>${
     submissionResult.grade +
     " / " +
-    tests.map((x) => x.grade).reduce((acc, x) => acc + x)
+    tests.map((x) => x?.grade || 0).reduce((acc, x) => acc + x)
   }</td>
 </tr>`;
 };
