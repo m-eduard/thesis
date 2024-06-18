@@ -47,7 +47,7 @@ export class LambdaChecker {
   static problemDataProvider: ProblemDataProvider;
   static users: User[] = [];
   static problems: BaseProblem[] = [];
-  static rankingsPageSize = 10;
+  static rankingsPageSize = 5;
   static outputChannel = vscode.window.createOutputChannel(
     "LambdaChecker Output"
   );
@@ -87,9 +87,18 @@ export class LambdaChecker {
     const password = await vscode.window.showInputBox({
       ignoreFocusOut: true,
       prompt: "Enter your password",
+      title: "LambdaChecker Login",
       placeHolder: "Enter your password",
       password: true,
     });
+
+    if (
+      email === undefined ||
+      password === undefined ||
+      (email === "@stud.acs.upb.ro" && password === "")
+    ) {
+      return;
+    }
 
     try {
       const response = await LambdaChecker.client.login(
@@ -128,12 +137,25 @@ export class LambdaChecker {
         );
       }
 
-      // Update the contests and problems status
-      LambdaChecker.contestDataProvider.refresh();
-      LambdaChecker.problemDataProvider.refresh();
+      if (LambdaChecker.contestDataProvider === undefined) {
+        vscode.window.createTreeView("lambdachecker.contests", {
+          treeDataProvider: new ContestDataProvider(LambdaChecker.client),
+          showCollapseAll: true,
+        });
+      } else {
+        // Update the contests status
+        LambdaChecker.contestDataProvider.refresh();
+      }
 
-      // save the data retrieved from api regarding the current user
-      // the user data, token and enrolled contests
+      if (LambdaChecker.problemDataProvider === undefined) {
+        vscode.window.createTreeView("lambdachecker.problems", {
+          treeDataProvider: new ProblemDataProvider(LambdaChecker.client),
+          showCollapseAll: true,
+        });
+      } else {
+        // Update the problems
+        LambdaChecker.problemDataProvider.refresh();
+      }
     } catch (error: any) {
       vscode.window
         .showErrorMessage(error.message, "Try again")
