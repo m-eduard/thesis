@@ -167,6 +167,18 @@ export class LambdaChecker {
     }
   }
 
+  static async logout() {
+    LambdaChecker.userDataCache.clear();
+    vscode.commands.executeCommand(
+      "setContext",
+      "lambdachecker.teacher",
+      false
+    );
+
+    StatusBar.updateStatus();
+    LambdaChecker.client = new HTTPClient();
+  }
+
   // create a thread which manages the token in order to refresh it
   // (I suspect that we don't have a refresh token on the backend)
 

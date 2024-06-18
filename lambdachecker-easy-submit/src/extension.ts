@@ -34,6 +34,10 @@ export async function activate(context: vscode.ExtensionContext) {
         LambdaChecker.login
       ),
       vscode.commands.registerCommand(
+        "lambdachecker.logout",
+        LambdaChecker.logout
+      ),
+      vscode.commands.registerCommand(
         "lambdachecker.show-problem",
         (problemId: number, contestMetadata?: Contest) =>
           LambdaChecker.showProblem(problemId, contestMetadata)

@@ -21,6 +21,11 @@
         "category": "Lambda Checker"
       },
       {
+        "command": "lambdachecker.logout",
+        "title": "Logout",
+        "category": "Lambda Checker"
+      },
+      {
         "command": "lambdachecker.show-problem",
         "title": "Show Problem",
         "category": "Lambda Checker"
